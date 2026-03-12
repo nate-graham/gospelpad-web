@@ -1,14 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchScriptureByReference, type ScriptureResult } from '@/lib/scripture';
+import { fetchScriptureByReference, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
 
 export function ScriptureReferencePreview({
   reference,
   onClose,
+  onInsert,
 }: {
   reference: string | null;
   onClose: () => void;
+  onInsert?: (payload: string) => void;
 }) {
   const [result, setResult] = useState<ScriptureResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,14 @@ export function ScriptureReferencePreview({
   if (!reference) {
     return null;
   }
+
+  const insertResult = () => {
+    if (!result || !onInsert) {
+      return;
+    }
+
+    onInsert(formatScriptureForInsertion(result));
+  };
 
   return (
     <section
@@ -99,6 +109,13 @@ export function ScriptureReferencePreview({
           >
             {result.text}
           </div>
+          {onInsert ? (
+            <div className="cta-row">
+              <button className="button button-primary" onClick={insertResult} type="button">
+                Insert into note
+              </button>
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>

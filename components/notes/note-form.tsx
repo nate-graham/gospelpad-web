@@ -178,6 +178,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
       {activeReference ? (
         <ScriptureReferencePreview
+          onInsert={insertScripture}
           onClose={() => setActiveReference(null)}
           reference={activeReference}
         />
