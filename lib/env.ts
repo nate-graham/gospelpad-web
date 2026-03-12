@@ -1,4 +1,3 @@
-const requiredEnv = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'] as const;
 const defaultAppUrl = 'http://localhost:3000';
 
 export type EnvState =
@@ -6,10 +5,14 @@ export type EnvState =
   | { ok: false; message: string; missing: string[] };
 
 export function getRequiredEnvState(): EnvState {
-  const missing = requiredEnv.filter((key) => {
-    const value = process.env[key];
-    return !value || !value.trim();
-  });
+  const values = {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  } as const;
+
+  const missing = Object.entries(values)
+    .filter(([, value]) => !value || !value.trim())
+    .map(([key]) => key);
 
   if (missing.length === 0) {
     return { ok: true };
