@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { AuthFrame } from '@/components/layout/auth-frame';
 import { getSafeNextPath } from '@/lib/env';
 import { ensureProfileForUser } from '@/lib/supabase/profile';
 
 export default function AuthCallbackPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [message, setMessage] = useState('Completing sign-in…');
 
@@ -54,11 +53,11 @@ export default function AuthCallbackPage() {
         }
       }
 
-      router.replace(next);
+      window.location.assign(next);
     };
 
     void finish();
-  }, [router, searchParams]);
+  }, [searchParams]);
 
   return (
     <AuthFrame

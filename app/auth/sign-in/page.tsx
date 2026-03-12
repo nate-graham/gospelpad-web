@@ -3,14 +3,13 @@
 import Link from 'next/link';
 import { FormEvent, useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { AuthFrame } from '@/components/layout/auth-frame';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { getRequiredEnvState, getSafeNextPath } from '@/lib/env';
 import { ensureProfileForUser } from '@/lib/supabase/profile';
 
 export default function SignInPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const envState = useMemo(() => getRequiredEnvState(), []);
   const [email, setEmail] = useState('');
@@ -35,16 +34,24 @@ export default function SignInPage() {
       password,
     });
 
-    setPending(false);
-
     if (signInError) {
+      setPending(false);
       setError(signInError.message);
       return;
     }
 
     const {
-      data: { user },
-    } = await supabase.auth.getUser();
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.user?.id) {
+      setPending(false);
+      setError(sessionError?.message ?? 'Sign-in completed but no active session was returned.');
+      return;
+    }
+
+    const { user } = session;
 
     if (user?.id) {
       const metadata = user.user_metadata ?? {};
@@ -55,13 +62,14 @@ export default function SignInPage() {
       });
 
       if (profileError) {
+        setPending(false);
         setError(profileError);
         return;
       }
     }
 
     const next = getSafeNextPath(searchParams.get('next'));
-    router.replace(next);
+    window.location.assign(next);
   };
 
   return (
