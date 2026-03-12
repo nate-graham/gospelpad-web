@@ -240,6 +240,25 @@ select[disabled] {
   background: rgba(255, 255, 255, 0.74);
 }
 
+.scripture-ref-button {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.scripture-ref-button:hover {
+  color: var(--accent);
+}
+
+.note-body-content {
+  overflow-wrap: anywhere;
+}
+
 .skip-link {
   position: absolute;
   left: 1rem;

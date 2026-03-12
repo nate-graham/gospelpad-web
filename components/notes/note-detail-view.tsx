@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { getNoteById, softDeleteNote, type NoteRecord } from '@/lib/notes';
 import { formatNoteDate } from '@/components/notes/note-utils';
+import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
+import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
+import { findScriptureReferences } from '@/lib/scripture-references';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -13,6 +16,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeReference, setActiveReference] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -44,6 +48,11 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
     if (searchParams.get('updated') === '1') return 'Note updated successfully.';
     return null;
   }, [searchParams]);
+
+  const detectedReferences = useMemo(
+    () => findScriptureReferences(note?.body ?? ''),
+    [note?.body]
+  );
 
   const onDelete = async () => {
     const confirmed = window.confirm('Delete this note? It will move into the existing soft-delete path.');
@@ -107,8 +116,33 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
 
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
 
+      {activeReference ? (
+        <ScriptureReferencePreview
+          onClose={() => setActiveReference(null)}
+          reference={activeReference}
+        />
+      ) : null}
+
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+        {detectedReferences.length > 0 ? (
+          <div style={{ display: 'grid', gap: '0.55rem' }}>
+            <span className="eyebrow">Detected references</span>
+            <div className="cta-row">
+              {detectedReferences.map((reference) => (
+                <button
+                  className="button button-secondary"
+                  key={reference}
+                  onClick={() => setActiveReference(reference)}
+                  type="button"
+                >
+                  {reference}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
         <div
+          className="note-body-content"
           style={{
             whiteSpace: 'pre-wrap',
             lineHeight: 1.8,
@@ -117,7 +151,14 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
             minHeight: '220px',
           }}
         >
-          {(note.body ?? '').trim() || 'No body content yet.'}
+          {(note.body ?? '').trim() ? (
+            <ScriptureReferenceText
+              onReferenceClick={setActiveReference}
+              text={(note.body ?? '').trim()}
+            />
+          ) : (
+            'No body content yet.'
+          )}
         </div>
       </section>
 

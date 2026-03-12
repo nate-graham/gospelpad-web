@@ -6,7 +6,9 @@ import type { CSSProperties, FormEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } from '@/lib/notes';
 import { DEFAULT_NOTE_TYPE } from '@/components/notes/note-utils';
+import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
+import { findScriptureReferences } from '@/lib/scripture-references';
 
 type NoteFormProps = {
   mode: 'create' | 'edit';
@@ -39,6 +41,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
+  const [activeReference, setActiveReference] = useState<string | null>(null);
 
   const draftKey = getDraftStorageKey(mode, note?.id);
 
@@ -75,6 +78,8 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
     window.localStorage.setItem(draftKey, JSON.stringify(form));
   }, [draftKey, form, loadingDraft]);
+
+  const detectedReferences = useMemo(() => findScriptureReferences(form.body), [form.body]);
 
   const onChange = <K extends keyof DraftState>(key: K, value: DraftState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -171,6 +176,12 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
       {draftNotice ? <section className="empty-state status-message" role="status">{draftNotice}</section> : null}
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
+      {activeReference ? (
+        <ScriptureReferencePreview
+          onClose={() => setActiveReference(null)}
+          reference={activeReference}
+        />
+      ) : null}
 
       {!loadingDraft ? (
         <form onSubmit={onSubmit} style={{ display: 'grid', gap: '1rem' }}>
@@ -220,6 +231,23 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
           <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
             <ScriptureSearchPanel onInsert={insertScripture} />
+            {detectedReferences.length > 0 ? (
+              <div style={{ display: 'grid', gap: '0.55rem' }}>
+                <span className="eyebrow">Detected references in this note</span>
+                <div className="cta-row">
+                  {detectedReferences.map((reference) => (
+                    <button
+                      className="button button-secondary"
+                      key={reference}
+                      onClick={() => setActiveReference(reference)}
+                      type="button"
+                    >
+                      {reference}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <label style={fieldStyle}>
               <span className="eyebrow" style={labelTextStyle}>Body</span>
               <textarea
