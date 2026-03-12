@@ -1,6 +1,6 @@
 'use client';
 
-import type { CSSProperties, FormEvent } from 'react';
+import type { CSSProperties, KeyboardEvent } from 'react';
 import { useMemo, useState } from 'react';
 import { fetchScriptureByReference, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
 
@@ -17,8 +17,7 @@ export function ScriptureSearchPanel({
 
   const canSearch = useMemo(() => query.trim().length > 0, [query]);
 
-  const onSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  const runSearch = async () => {
     if (!canSearch) return;
 
     setLoading(true);
@@ -34,6 +33,15 @@ export function ScriptureSearchPanel({
     } finally {
       setLoading(false);
     }
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+    void runSearch();
   };
 
   const insertResult = () => {
@@ -52,8 +60,8 @@ export function ScriptureSearchPanel({
         </span>
       </div>
 
-      <form
-        onSubmit={onSubmit}
+      <div
+        className="search-row"
         style={{
           display: 'grid',
           gap: '0.85rem',
@@ -66,14 +74,15 @@ export function ScriptureSearchPanel({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={onKeyDown}
             placeholder="John 3:16"
             style={inputStyle}
           />
         </label>
-        <button className="button button-secondary" disabled={loading || !canSearch} type="submit">
+        <button className="button button-secondary" disabled={loading || !canSearch} onClick={() => void runSearch()} type="button">
           {loading ? 'Searching…' : 'Search'}
         </button>
-      </form>
+      </div>
 
       {error ? (
         <div className="error-state status-message" role="alert">
@@ -118,7 +127,7 @@ export function ScriptureSearchPanel({
 
       <style jsx>{`
         @media (max-width: 720px) {
-          form {
+          .search-row {
             grid-template-columns: 1fr;
           }
         }
