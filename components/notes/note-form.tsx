@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation';
 import type { CSSProperties, FormEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } from '@/lib/notes';
-import { DEFAULT_NOTE_TYPE } from '@/components/notes/note-utils';
+import {
+  DEFAULT_NOTE_TYPE,
+  getNoteTypeGuidance,
+  getScriptureReferenceCount,
+  getNoteWordCount,
+} from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 import { findScriptureReferences } from '@/lib/scripture-references';
@@ -42,6 +47,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   const draftKey = getDraftStorageKey(mode, note?.id);
 
@@ -77,9 +83,12 @@ export function NoteForm({ mode, note }: NoteFormProps) {
     if (typeof window === 'undefined' || loadingDraft) return;
 
     window.localStorage.setItem(draftKey, JSON.stringify(form));
+    setLastSavedAt(new Date().toISOString());
   }, [draftKey, form, loadingDraft]);
 
   const detectedReferences = useMemo(() => findScriptureReferences(form.body), [form.body]);
+  const wordCount = useMemo(() => getNoteWordCount({ body: form.body } as NoteRecord), [form.body]);
+  const scriptureCount = useMemo(() => getScriptureReferenceCount({ body: form.body } as NoteRecord), [form.body]);
 
   const onChange = <K extends keyof DraftState>(key: K, value: DraftState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -91,6 +100,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
     }
     setDraftNotice('Local draft cleared.');
     setForm(initialState);
+    setLastSavedAt(null);
   };
 
   const insertScripture = (payload: string) => {
@@ -167,6 +177,26 @@ export function NoteForm({ mode, note }: NoteFormProps) {
         </p>
       </header>
 
+      <section
+        className="responsive-grid compact"
+        aria-label="Note editor insights"
+      >
+        <article className="status-card" style={{ padding: '1rem' }}>
+          <span className="eyebrow">Local draft</span>
+          <strong style={{ fontSize: '1.15rem' }}>{lastSavedAt ? 'Autosaving active' : 'Waiting for changes'}</strong>
+          <span style={{ color: 'var(--muted)' }}>
+            {lastSavedAt ? `Last local save ${formatEditorTime(lastSavedAt)}` : 'This note will save locally as you type.'}
+          </span>
+        </article>
+        <article className="status-card" style={{ padding: '1rem' }}>
+          <span className="eyebrow">Content length</span>
+          <strong style={{ fontSize: '1.15rem' }}>{wordCount} words</strong>
+          <span style={{ color: 'var(--muted)' }}>
+            {scriptureCount === 0 ? 'No scripture references detected yet.' : `${scriptureCount} scripture reference${scriptureCount === 1 ? '' : 's'} detected.`}
+          </span>
+        </article>
+      </section>
+
       {loadingDraft ? (
         <section className="loading-state status-message" role="status" aria-live="polite">
           <strong>Loading draft…</strong>
@@ -232,6 +262,11 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
           <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
             <ScriptureSearchPanel onInsert={insertScripture} />
+            <div className="status-card" style={{ padding: '1rem' }}>
+              <span className="eyebrow">Note type guidance</span>
+              <strong style={{ fontSize: '1.05rem' }}>{form.type}</strong>
+              <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteTypeGuidance(form.type)}</span>
+            </div>
             {detectedReferences.length > 0 ? (
               <div style={{ display: 'grid', gap: '0.55rem' }}>
                 <span className="eyebrow">Detected references in this note</span>
@@ -307,3 +342,9 @@ const textareaStyle: CSSProperties = {
   resize: 'vertical',
   lineHeight: 1.7,
 };
+
+function formatEditorTime(value: string) {
+  return new Intl.DateTimeFormat('en-GB', {
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
