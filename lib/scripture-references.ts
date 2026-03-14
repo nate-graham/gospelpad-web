@@ -81,7 +81,7 @@ const escapedAliases = [...aliasMap.keys()]
   .join('|');
 
 const referenceRegex = new RegExp(
-  `\\b(${escapedAliases})\\s+(\\d{1,3}:\\d{1,3}(?:\\s*[-–]\\s*\\d{1,3})?)\\b`,
+  `\\b(${escapedAliases})\\s+(\\d{1,3}(?::\\d{1,3}(?:\\s*[-–]\\s*\\d{1,3})?)?(?:\\s*[-–]\\s*\\d{1,3})?)\\b`,
   'gi'
 );
 
@@ -130,7 +130,7 @@ export function splitTextByScriptureReferences(text: string): ScriptureTextSegme
 
 function normalizeReference(value: string) {
   const collapsed = value.replace(/\s+/g, ' ').replace(/\s*[-–]\s*/g, '-').trim();
-  const match = collapsed.match(/^(.+?)\s+(\d{1,3}:\d{1,3}(?:-\d{1,3})?)$/i);
+  const match = collapsed.match(/^(.+?)\s+(\d{1,3}(?::\d{1,3}(?:-\d{1,3})?)?(?:-\d{1,3})?)$/i);
 
   if (!match) {
     return collapsed;
