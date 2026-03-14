@@ -13,6 +13,8 @@ import {
   listGroupMembers,
   listGroupNativeNotes,
   listGroupSharedNotes,
+  removeGroupMember,
+  updateGroupMemberRole,
   type Group,
   type GroupJoinRequestSummary,
   type GroupMemberSummary,
@@ -98,9 +100,21 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
     membership && (membership.role === 'admin' || (group?.created_by ?? null) === membership.user_id)
   );
   const canLeaveGroup = Boolean(membership && (group?.created_by ?? null) !== membership.user_id);
+  const isOwner = Boolean(membership && (group?.created_by ?? null) === membership.user_id);
 
   const getRequestLabel = (request: GroupJoinRequestSummary) =>
     request.name?.trim() || request.display_name?.trim() || request.username?.trim() || 'Pending member';
+  const getMemberRoleSummary = (member: GroupMemberSummary) =>
+    member.is_owner ? 'Owner' : member.role === 'admin' ? 'Admin' : 'Member';
+
+  const canRemoveMember = (member: GroupMemberSummary) => {
+    if (!membership || member.user_id === membership.user_id || member.is_owner) return false;
+    if (isOwner) return true;
+    return membership.role === 'admin' && member.role === 'member';
+  };
+
+  const canToggleAdmin = (member: GroupMemberSummary) =>
+    Boolean(isOwner && !member.is_owner && member.user_id !== membership?.user_id);
 
   const onLeaveGroup = async () => {
     if (!group || !canLeaveGroup) return;
@@ -160,6 +174,58 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       setActionNotice(`Declined ${getRequestLabel(request)}'s join request.`);
     } catch (declineError) {
       setActionError(declineError instanceof Error ? declineError.message : 'Failed to decline join request.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const onRemoveMember = async (member: GroupMemberSummary) => {
+    if (!window.confirm(`Remove ${getGroupMemberLabel(member)} from this group?`)) {
+      return;
+    }
+
+    try {
+      setPendingAction(`remove-${member.id}`);
+      setActionError(null);
+      setActionNotice(null);
+      await removeGroupMember(groupId, member.id);
+      const nextMembers = await listGroupMembers(groupId);
+      setMembers(nextMembers);
+      setActionNotice(`${getGroupMemberLabel(member)} was removed from the group.`);
+    } catch (removeError) {
+      setActionError(removeError instanceof Error ? removeError.message : 'Failed to remove member.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const onToggleAdmin = async (member: GroupMemberSummary) => {
+    const nextRole = member.role === 'admin' ? 'member' : 'admin';
+
+    if (
+      !window.confirm(
+        nextRole === 'admin'
+          ? `Promote ${getGroupMemberLabel(member)} to admin?`
+          : `Demote ${getGroupMemberLabel(member)} to member?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setPendingAction(`role-${member.id}`);
+      setActionError(null);
+      setActionNotice(null);
+      await updateGroupMemberRole(groupId, member.id, nextRole);
+      const nextMembers = await listGroupMembers(groupId);
+      setMembers(nextMembers);
+      setActionNotice(
+        nextRole === 'admin'
+          ? `${getGroupMemberLabel(member)} is now an admin.`
+          : `${getGroupMemberLabel(member)} is now a member.`
+      );
+    } catch (roleError) {
+      setActionError(roleError instanceof Error ? roleError.message : 'Failed to update member role.');
     } finally {
       setPendingAction(null);
     }
@@ -249,7 +315,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             {membership ? `You are a ${membership.role}` : 'Access inherited from owner visibility'}
           </strong>
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            This pass adds non-owner leave-group and private-group join-request review. Member removal, role changes, and ownership transfer stay deferred until there is a dedicated safe admin path.
+            This pass adds non-owner leave-group, private-group join-request review, owner-managed admin toggles, and safe member removal. Ownership transfer still stays deferred.
           </span>
         </div>
 
@@ -312,6 +378,37 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
                   <span style={{ color: 'var(--muted)' }}>
                     {member.username ? `@${member.username}` : 'No public username'} • Joined {formatGroupDate(member.joined_at)}
                   </span>
+                  <span style={{ color: 'var(--muted)' }}>
+                    Role: {getMemberRoleSummary(member)}
+                  </span>
+                  {canRemoveMember(member) || canToggleAdmin(member) ? (
+                    <div className="cta-row">
+                      {canToggleAdmin(member) ? (
+                        <button
+                          className="button button-secondary"
+                          type="button"
+                          disabled={pendingAction === `role-${member.id}` || pendingAction === `remove-${member.id}`}
+                          onClick={() => onToggleAdmin(member)}
+                        >
+                          {pendingAction === `role-${member.id}`
+                            ? 'Updating…'
+                            : member.role === 'admin'
+                              ? 'Make member'
+                              : 'Make admin'}
+                        </button>
+                      ) : null}
+                      {canRemoveMember(member) ? (
+                        <button
+                          className="button button-secondary"
+                          type="button"
+                          disabled={pendingAction === `role-${member.id}` || pendingAction === `remove-${member.id}`}
+                          onClick={() => onRemoveMember(member)}
+                        >
+                          {pendingAction === `remove-${member.id}` ? 'Removing…' : 'Remove member'}
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </article>
               ))}
             </div>
@@ -459,7 +556,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         <span className="eyebrow">V1 boundary</span>
         <strong>Leave-group and join-request handling are in scope; deeper admin tooling still stays deferred.</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          This pass exposes member-visible `group_notes`, shared personal notes, lightweight shared-note comments, non-owner leave-group, and private-group join-request review. Member removal, role changes, invitations, and ownership transfer still need a separate safe pass.
+          This pass exposes member-visible `group_notes`, shared personal notes, lightweight shared-note comments, non-owner leave-group, private-group join-request review, owner-only admin toggles, and safe member removal. Invitations and ownership transfer still need a separate safe pass.
         </span>
       </section>
 

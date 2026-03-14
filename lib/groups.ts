@@ -363,6 +363,33 @@ export async function declineJoinRequest(requestId: string) {
   }
 }
 
+export async function removeGroupMember(groupId: string, memberId: string) {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { error } = await supabase.rpc('remove_group_member', {
+    target_group_id: groupId,
+    target_member_id: memberId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function updateGroupMemberRole(groupId: string, memberId: string, role: 'admin' | 'member') {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { error } = await supabase.rpc('set_group_member_role', {
+    target_group_id: groupId,
+    target_member_id: memberId,
+    next_role: role,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 type GroupShareRow = {
   note_id: string;
   permissions: 'view' | 'comment' | 'edit';
