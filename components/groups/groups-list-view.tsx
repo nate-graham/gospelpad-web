@@ -60,6 +60,7 @@ export function GroupsListView() {
 
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Group created successfully.';
+    if (searchParams.get('left') === '1') return 'You left the group.';
     return null;
   }, [searchParams]);
 

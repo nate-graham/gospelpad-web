@@ -2,14 +2,19 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  approveJoinRequest,
+  declineJoinRequest,
   getCurrentMembership,
   getGroupById,
+  leaveGroup,
+  listGroupJoinRequests,
   listGroupMembers,
   listGroupNativeNotes,
   listGroupSharedNotes,
   type Group,
+  type GroupJoinRequestSummary,
   type GroupMemberSummary,
   type GroupMembership,
   type GroupNativeNoteSummary,
@@ -19,14 +24,19 @@ import { formatGroupDate, getGroupMemberLabel, getGroupVisibilityLabel } from '@
 import { getNoteExcerpt, getScriptureReferenceCount } from '@/components/notes/note-utils';
 
 export function GroupDetailView({ groupId }: { groupId: string }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [group, setGroup] = useState<Group | null>(null);
   const [membership, setMembership] = useState<GroupMembership | null>(null);
   const [members, setMembers] = useState<GroupMemberSummary[]>([]);
+  const [joinRequests, setJoinRequests] = useState<GroupJoinRequestSummary[]>([]);
   const [nativeNotes, setNativeNotes] = useState<GroupNativeNoteSummary[]>([]);
   const [sharedNotes, setSharedNotes] = useState<GroupSharedNoteSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -51,6 +61,18 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         setMembers(nextMembers);
         setNativeNotes(nextNativeNotes);
         setSharedNotes(nextSharedNotes);
+
+        const canLoadRequests =
+          nextMembership &&
+          (nextMembership.role === 'admin' || (nextGroup?.created_by ?? null) === nextMembership.user_id);
+
+        if (canLoadRequests) {
+          const nextRequests = await listGroupJoinRequests(groupId);
+          if (!active) return;
+          setJoinRequests(nextRequests);
+        } else {
+          setJoinRequests([]);
+        }
       } catch (loadError) {
         if (!active) return;
         setError(loadError instanceof Error ? loadError.message : 'Failed to load group.');
@@ -68,8 +90,80 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Group created successfully.';
+    if (searchParams.get('left') === '1') return 'You left the group.';
     return null;
   }, [searchParams]);
+
+  const canManageRequests = Boolean(
+    membership && (membership.role === 'admin' || (group?.created_by ?? null) === membership.user_id)
+  );
+  const canLeaveGroup = Boolean(membership && (group?.created_by ?? null) !== membership.user_id);
+
+  const getRequestLabel = (request: GroupJoinRequestSummary) =>
+    request.name?.trim() || request.display_name?.trim() || request.username?.trim() || 'Pending member';
+
+  const onLeaveGroup = async () => {
+    if (!group || !canLeaveGroup) return;
+    if (!window.confirm(`Leave ${group.name}? You will lose access to its shared notes and member activity.`)) {
+      return;
+    }
+
+    try {
+      setPendingAction('leave');
+      setActionError(null);
+      setActionNotice(null);
+      await leaveGroup(group.id);
+      router.replace('/groups?left=1');
+    } catch (leaveError) {
+      setActionError(leaveError instanceof Error ? leaveError.message : 'Failed to leave group.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const onApproveRequest = async (request: GroupJoinRequestSummary) => {
+    if (!window.confirm(`Approve ${getRequestLabel(request)} to join this group?`)) {
+      return;
+    }
+
+    try {
+      setPendingAction(`approve-${request.id}`);
+      setActionError(null);
+      setActionNotice(null);
+      await approveJoinRequest(request.id, request.group_id, request.user_id);
+      const [nextMembers, nextRequests] = await Promise.all([
+        listGroupMembers(groupId),
+        listGroupJoinRequests(groupId),
+      ]);
+      setMembers(nextMembers);
+      setJoinRequests(nextRequests);
+      setActionNotice(`${getRequestLabel(request)} joined the group.`);
+    } catch (approveError) {
+      setActionError(approveError instanceof Error ? approveError.message : 'Failed to approve join request.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const onDeclineRequest = async (request: GroupJoinRequestSummary) => {
+    if (!window.confirm(`Decline ${getRequestLabel(request)}'s request to join this group?`)) {
+      return;
+    }
+
+    try {
+      setPendingAction(`decline-${request.id}`);
+      setActionError(null);
+      setActionNotice(null);
+      await declineJoinRequest(request.id);
+      const nextRequests = await listGroupJoinRequests(groupId);
+      setJoinRequests(nextRequests);
+      setActionNotice(`Declined ${getRequestLabel(request)}'s join request.`);
+    } catch (declineError) {
+      setActionError(declineError instanceof Error ? declineError.message : 'Failed to decline join request.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -132,6 +226,8 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       </header>
 
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
+      {actionNotice ? <section className="empty-state status-message" role="status">{actionNotice}</section> : null}
+      {actionError ? <section className="error-state status-message" role="alert">{actionError}</section> : null}
 
       <section className="responsive-grid compact">
         <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.4rem' }}>
@@ -144,6 +240,40 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           <strong style={{ fontSize: '1.3rem' }}>{formatGroupDate(group.created_at)}</strong>
           <span style={{ color: 'var(--muted)' }}>{group.is_public ? 'Members can join instantly.' : 'Private groups require a join request.'}</span>
         </article>
+      </section>
+
+      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+        <div className="page-header" style={{ gap: '0.35rem' }}>
+          <span className="eyebrow">Membership</span>
+          <strong style={{ fontSize: '1.1rem' }}>
+            {membership ? `You are a ${membership.role}` : 'Access inherited from owner visibility'}
+          </strong>
+          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+            This pass adds non-owner leave-group and private-group join-request review. Member removal, role changes, and ownership transfer stay deferred until there is a dedicated safe admin path.
+          </span>
+        </div>
+
+        <div className="cta-row">
+          {canLeaveGroup ? (
+            <button
+              className="button button-secondary"
+              type="button"
+              disabled={pendingAction === 'leave'}
+              onClick={onLeaveGroup}
+            >
+              {pendingAction === 'leave' ? 'Leaving…' : 'Leave group'}
+            </button>
+          ) : (
+            <div className="status-card" style={{ padding: '1rem' }}>
+              <strong>{group.created_by === membership?.user_id ? 'Owner cannot leave yet' : 'Membership action unavailable'}</strong>
+              <span style={{ color: 'var(--muted)' }}>
+                {group.created_by === membership?.user_id
+                  ? 'Ownership transfer is not implemented yet, so the current group owner stays in the group.'
+                  : 'This account does not currently have a leave action available.'}
+              </span>
+            </div>
+          )}
+        </div>
       </section>
 
       <section className="two-column-layout">
@@ -177,6 +307,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
                     <strong>{getGroupMemberLabel(member)}</strong>
                     {member.is_owner ? <span className="badge">Owner</span> : null}
                     {!member.is_owner && member.role === 'admin' ? <span className="badge">Admin</span> : null}
+                    {member.user_id === membership?.user_id ? <span className="badge">You</span> : null}
                   </div>
                   <span style={{ color: 'var(--muted)' }}>
                     {member.username ? `@${member.username}` : 'No public username'} • Joined {formatGroupDate(member.joined_at)}
@@ -228,6 +359,61 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         </section>
       </section>
 
+      {canManageRequests && !group.is_public ? (
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+          <div className="page-header" style={{ gap: '0.35rem' }}>
+            <span className="eyebrow">Join requests</span>
+            <strong style={{ fontSize: '1.1rem' }}>
+              {joinRequests.length} {joinRequests.length === 1 ? 'pending request' : 'pending requests'}
+            </strong>
+            <span style={{ color: 'var(--muted)' }}>
+              Private groups can review pending requests here. Public groups join immediately and do not use this queue.
+            </span>
+          </div>
+
+          {joinRequests.length === 0 ? (
+            <section className="empty-state status-message" role="status">
+              <strong>No pending join requests</strong>
+              <span style={{ color: 'var(--muted)' }}>
+                New private-group join requests will appear here for admins and the owner.
+              </span>
+            </section>
+          ) : (
+            <div style={{ display: 'grid', gap: '0.75rem' }}>
+              {joinRequests.map((request) => (
+                <article className="status-card" key={request.id} style={{ padding: '1rem', display: 'grid', gap: '0.65rem' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                    <strong>{getRequestLabel(request)}</strong>
+                    <span className="badge">{request.username ? `@${request.username}` : 'Pending member'}</span>
+                  </div>
+                  <span style={{ color: 'var(--muted)' }}>
+                    Requested {formatGroupDate(request.created_at)}
+                  </span>
+                  <div className="cta-row">
+                    <button
+                      className="button button-primary"
+                      type="button"
+                      disabled={pendingAction === `approve-${request.id}` || pendingAction === `decline-${request.id}`}
+                      onClick={() => onApproveRequest(request)}
+                    >
+                      {pendingAction === `approve-${request.id}` ? 'Approving…' : 'Approve'}
+                    </button>
+                    <button
+                      className="button button-secondary"
+                      type="button"
+                      disabled={pendingAction === `approve-${request.id}` || pendingAction === `decline-${request.id}`}
+                      onClick={() => onDeclineRequest(request)}
+                    >
+                      {pendingAction === `decline-${request.id}` ? 'Declining…' : 'Decline'}
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
+
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Shared personal notes</span>
@@ -271,9 +457,9 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
         <span className="eyebrow">V1 boundary</span>
-        <strong>Shared-note comments are in scope; deeper collaboration still stays deferred.</strong>
+        <strong>Leave-group and join-request handling are in scope; deeper admin tooling still stays deferred.</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          This pass exposes member-visible `group_notes`, shared personal notes, and lightweight comments on the shared-note path. `group_note_comments`, richer admin tools, and deeper collaboration flows still need a separate safe pass.
+          This pass exposes member-visible `group_notes`, shared personal notes, lightweight shared-note comments, non-owner leave-group, and private-group join-request review. Member removal, role changes, invitations, and ownership transfer still need a separate safe pass.
         </span>
       </section>
 

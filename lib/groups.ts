@@ -64,6 +64,20 @@ export type GroupJoinResponse = {
   status: 'joined' | 'pending';
 };
 
+export type GroupJoinRequestSummary = {
+  id: string;
+  group_id: string;
+  user_id: string;
+  status: 'pending' | 'approved' | 'declined';
+  created_at: string;
+  decided_at: string | null;
+  decided_by: string | null;
+  username: string | null;
+  display_name: string | null;
+  name: string | null;
+  avatar_url: string | null;
+};
+
 async function getAuthenticatedContext() {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
@@ -250,6 +264,20 @@ export async function getCurrentMembership(groupId: string) {
   return (data as GroupMembership | null) ?? null;
 }
 
+export async function leaveGroup(groupId: string) {
+  const { supabase, userId } = await getAuthenticatedContext();
+
+  const { error } = await supabase
+    .from('group_members')
+    .delete()
+    .eq('group_id', groupId)
+    .eq('user_id', userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function listGroupMembers(groupId: string): Promise<GroupMemberSummary[]> {
   const { supabase } = await getAuthenticatedContext();
 
@@ -267,6 +295,72 @@ export async function listGroupMembers(groupId: string): Promise<GroupMemberSumm
       role: member.role === 'admin' ? 'admin' : 'member',
     })
   );
+}
+
+export async function listGroupJoinRequests(groupId: string): Promise<GroupJoinRequestSummary[]> {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { data, error } = await supabase.rpc('get_group_join_request_summaries', {
+    target_group_id: groupId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return ((data ?? []) as Array<GroupJoinRequestSummary & { status: string }>).map((request) => ({
+    ...request,
+    status:
+      request.status === 'approved'
+        ? 'approved'
+        : request.status === 'declined'
+          ? 'declined'
+          : 'pending',
+  }));
+}
+
+export async function approveJoinRequest(requestId: string, groupId: string, userId: string) {
+  const { supabase, userId: adminUserId } = await getAuthenticatedContext();
+
+  const { error: memberError } = await supabase.from('group_members').insert({
+    group_id: groupId,
+    user_id: userId,
+    role: 'member',
+  });
+
+  if (memberError && !memberError.message.toLowerCase().includes('duplicate')) {
+    throw new Error(memberError.message);
+  }
+
+  const { error } = await supabase
+    .from('group_join_requests')
+    .update({
+      status: 'approved',
+      decided_at: new Date().toISOString(),
+      decided_by: adminUserId,
+    })
+    .eq('id', requestId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function declineJoinRequest(requestId: string) {
+  const { supabase, userId } = await getAuthenticatedContext();
+
+  const { error } = await supabase
+    .from('group_join_requests')
+    .update({
+      status: 'declined',
+      decided_at: new Date().toISOString(),
+      decided_by: userId,
+    })
+    .eq('id', requestId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 type GroupShareRow = {
