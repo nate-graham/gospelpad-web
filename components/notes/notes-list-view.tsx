@@ -2,15 +2,28 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { listNotes, type NoteRecord } from '@/lib/notes';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { listNotes, NOTE_TYPES, type NoteListQuery, type NoteRecord } from '@/lib/notes';
 import { formatNoteDate, getNoteExcerpt } from '@/components/notes/note-utils';
 
 export function NotesListView() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const query = useMemo<NoteListQuery>(
+    () => ({
+      search: searchParams.get('q') ?? '',
+      type: (searchParams.get('type') as NoteListQuery['type']) ?? 'all',
+      status: (searchParams.get('status') as NoteListQuery['status']) ?? 'all',
+      scope: (searchParams.get('scope') as NoteListQuery['scope']) ?? 'personal',
+      sort: (searchParams.get('sort') as NoteListQuery['sort']) ?? 'updated-desc',
+    }),
+    [searchParams]
+  );
 
   useEffect(() => {
     let active = true;
@@ -19,7 +32,7 @@ export function NotesListView() {
       try {
         setLoading(true);
         setError(null);
-        const data = await listNotes();
+        const data = await listNotes(query);
         if (!active) return;
         setNotes(data);
       } catch (loadError) {
@@ -35,7 +48,7 @@ export function NotesListView() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [query]);
 
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Note created successfully.';
@@ -45,6 +58,37 @@ export function NotesListView() {
   }, [searchParams]);
 
   const noteCountLabel = notes.length === 1 ? '1 note' : `${notes.length} notes`;
+
+  const activeFilterCount = useMemo(() => {
+    return [
+      query.search?.trim(),
+      query.type && query.type !== 'all' ? query.type : '',
+      query.status && query.status !== 'all' ? query.status : '',
+      query.scope && query.scope !== 'personal' ? query.scope : '',
+      query.sort && query.sort !== 'updated-desc' ? query.sort : '',
+    ].filter(Boolean).length;
+  }, [query]);
+
+  const updateQuery = (updates: Partial<NoteListQuery>) => {
+    const next = new URLSearchParams(searchParams.toString());
+
+    const merged: NoteListQuery = {
+      ...query,
+      ...updates,
+    };
+
+    setParam(next, 'q', merged.search?.trim() ?? '', '');
+    setParam(next, 'type', merged.type ?? 'all', 'all');
+    setParam(next, 'status', merged.status ?? 'all', 'all');
+    setParam(next, 'scope', merged.scope ?? 'personal', 'personal');
+    setParam(next, 'sort', merged.sort ?? 'updated-desc', 'updated-desc');
+
+    router.replace(next.toString() ? `${pathname}?${next.toString()}` : pathname);
+  };
+
+  const resetFilters = () => {
+    router.replace(pathname);
+  };
 
   return (
     <div className="page-section">
@@ -78,13 +122,105 @@ export function NotesListView() {
         <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
           <span className="eyebrow">Library</span>
           <strong style={{ fontSize: '1.5rem' }}>{noteCountLabel}</strong>
-          <span style={{ color: 'var(--muted)' }}>All notes are loaded from the existing Supabase `notes` table.</span>
+          <span style={{ color: 'var(--muted)' }}>
+            {activeFilterCount > 0
+              ? `${activeFilterCount} active discovery filter${activeFilterCount === 1 ? '' : 's'}.`
+              : 'All notes are loaded from the existing Supabase `notes` table.'}
+          </span>
         </article>
         <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
           <span className="eyebrow">Editor Scope</span>
           <strong style={{ fontSize: '1.5rem' }}>V1 plain editor</strong>
           <span style={{ color: 'var(--muted)' }}>Rich text, audio, and advanced attachments stay deferred for now.</span>
         </article>
+      </section>
+
+      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <span className="eyebrow">Discovery V1</span>
+          <strong style={{ fontSize: '1.1rem' }}>Search, filter, and sort your notes</strong>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gap: '0.85rem',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          }}
+        >
+          <label style={fieldStyle}>
+            <span className="eyebrow" style={labelTextStyle}>Search</span>
+            <input
+              onChange={(event) => updateQuery({ search: event.target.value })}
+              placeholder="Search title, speaker, or note body"
+              style={inputStyle}
+              value={query.search ?? ''}
+            />
+          </label>
+
+          <label style={fieldStyle}>
+            <span className="eyebrow" style={labelTextStyle}>Type</span>
+            <select
+              onChange={(event) => updateQuery({ type: event.target.value as NoteListQuery['type'] })}
+              style={inputStyle}
+              value={query.type ?? 'all'}
+            >
+              <option value="all">All note types</option>
+              {NOTE_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label style={fieldStyle}>
+            <span className="eyebrow" style={labelTextStyle}>Status</span>
+            <select
+              onChange={(event) => updateQuery({ status: event.target.value as NoteListQuery['status'] })}
+              style={inputStyle}
+              value={query.status ?? 'all'}
+            >
+              <option value="all">Any status</option>
+              <option value="with-status">Has status</option>
+              <option value="no-status">No status</option>
+            </select>
+          </label>
+
+          <label style={fieldStyle}>
+            <span className="eyebrow" style={labelTextStyle}>Scope</span>
+            <select
+              onChange={(event) => updateQuery({ scope: event.target.value as NoteListQuery['scope'] })}
+              style={inputStyle}
+              value={query.scope ?? 'personal'}
+            >
+              <option value="personal">Personal notes</option>
+              <option value="all">All available notes</option>
+              <option value="group">Group-linked notes</option>
+            </select>
+          </label>
+
+          <label style={fieldStyle}>
+            <span className="eyebrow" style={labelTextStyle}>Sort</span>
+            <select
+              onChange={(event) => updateQuery({ sort: event.target.value as NoteListQuery['sort'] })}
+              style={inputStyle}
+              value={query.sort ?? 'updated-desc'}
+            >
+              <option value="updated-desc">Recently updated</option>
+              <option value="updated-asc">Oldest updated</option>
+              <option value="created-desc">Recently created</option>
+              <option value="created-asc">Oldest created</option>
+              <option value="title-asc">Title A-Z</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="cta-row">
+          <button className="button button-secondary" onClick={resetFilters} type="button">
+            Reset filters
+          </button>
+        </div>
       </section>
 
       {loading ? (
@@ -106,14 +242,22 @@ export function NotesListView() {
 
       {!loading && !error && notes.length === 0 ? (
         <section className="empty-state status-message" role="status">
-          <strong>No notes yet</strong>
+          <strong>{activeFilterCount > 0 ? 'No notes match these filters' : 'No notes yet'}</strong>
           <span style={{ color: 'var(--muted)' }}>
-            Start with a church note, study note, journal entry, or dream note.
+            {activeFilterCount > 0
+              ? 'Try broadening your search or resetting the current note filters.'
+              : 'Start with a church note, study note, journal entry, or dream note.'}
           </span>
           <div className="cta-row">
-            <Link className="button button-primary" href="/notes/new">
-              Create your first note
-            </Link>
+            {activeFilterCount > 0 ? (
+              <button className="button button-secondary" onClick={resetFilters} type="button">
+                Reset filters
+              </button>
+            ) : (
+              <Link className="button button-primary" href="/notes/new">
+                Create your first note
+              </Link>
+            )}
           </div>
         </section>
       ) : null}
@@ -161,3 +305,30 @@ export function NotesListView() {
     </div>
   );
 }
+
+function setParam(params: URLSearchParams, key: string, value: string, defaultValue: string) {
+  if (!value || value === defaultValue) {
+    params.delete(key);
+    return;
+  }
+
+  params.set(key, value);
+}
+
+const fieldStyle: React.CSSProperties = {
+  display: 'grid',
+  gap: '0.45rem',
+};
+
+const labelTextStyle: React.CSSProperties = {
+  fontSize: '0.72rem',
+};
+
+const inputStyle: React.CSSProperties = {
+  minHeight: 48,
+  borderRadius: 14,
+  border: '1px solid var(--line)',
+  padding: '0.85rem 1rem',
+  background: 'rgba(255,255,255,0.72)',
+  color: 'var(--text)',
+};
