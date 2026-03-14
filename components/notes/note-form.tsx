@@ -11,6 +11,7 @@ import {
   getNoteWordCount,
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
+import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
 import { findScriptureReferences } from '@/lib/scripture-references';
 
 type NoteFormProps = {
@@ -287,6 +288,32 @@ export function NoteForm({ mode, note }: NoteFormProps) {
                 style={textareaStyle}
               />
             </label>
+            {(form.body ?? '').trim() ? (
+              <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+                <div style={{ display: 'grid', gap: '0.35rem' }}>
+                  <span className="eyebrow">Body preview</span>
+                  <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+                    Scripture references in this preview are clickable. The editor itself remains plain text in this V1 flow.
+                  </span>
+                </div>
+                <div
+                  className="note-body-content"
+                  style={{
+                    whiteSpace: 'pre-wrap',
+                    lineHeight: 1.8,
+                    color: 'var(--text)',
+                    fontSize: '1rem',
+                    minHeight: '120px',
+                    padding: '0.25rem 0',
+                  }}
+                >
+                  <ScriptureReferenceText
+                    onReferenceClick={setActiveReference}
+                    text={(form.body ?? '').trim()}
+                  />
+                </div>
+              </section>
+            ) : null}
           </section>
 
           <div className="cta-row">
