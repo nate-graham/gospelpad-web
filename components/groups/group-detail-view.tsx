@@ -271,9 +271,9 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
         <span className="eyebrow">V1 boundary</span>
-        <strong>Comments, live collaboration, and advanced permissions stay deferred.</strong>
+        <strong>Shared-note comments are in scope; deeper collaboration still stays deferred.</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          This pass now exposes member-visible `group_notes` and shared personal notes. `group_note_comments`, richer admin tools, and deeper collaboration flows still need a separate safe pass.
+          This pass exposes member-visible `group_notes`, shared personal notes, and lightweight comments on the shared-note path. `group_note_comments`, richer admin tools, and deeper collaboration flows still need a separate safe pass.
         </span>
       </section>
 

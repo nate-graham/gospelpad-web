@@ -13,6 +13,7 @@ import {
 import { findScriptureReferences } from '@/lib/scripture-references';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
+import { GroupNoteComments } from '@/components/groups/group-note-comments';
 
 export function GroupSharedNoteView({
   groupId,
@@ -194,6 +195,23 @@ export function GroupSharedNoteView({
           )}
         </div>
       </section>
+
+      {note.source === 'shared' ? (
+        <GroupNoteComments
+          groupId={groupId}
+          noteId={note.id}
+          sharePermission={note.permissions}
+          sharedBy={note.shared_by}
+        />
+      ) : (
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+          <span className="eyebrow">Comments</span>
+          <strong>Dedicated group-note comments stay deferred.</strong>
+          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+            This note lives in `group_notes`. The separate `group_note_comments` table is still too open for a safe web launch, so this pass only enables comments on shared personal notes.
+          </span>
+        </section>
+      )}
 
       <div className="cta-row">
         <Link className="button button-secondary" href={`/groups/${groupId}`}>
