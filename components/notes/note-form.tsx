@@ -11,7 +11,7 @@ import {
   getNoteWordCount,
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
-import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
+import { insertTextIntoEditable, ScriptureEditableField } from '@/components/notes/scripture-editable-field';
 import { findScriptureReferences } from '@/lib/scripture-references';
 
 type NoteFormProps = {
@@ -27,7 +27,7 @@ function getDraftStorageKey(mode: 'create' | 'edit', noteId?: string) {
 
 export function NoteForm({ mode, note }: NoteFormProps) {
   const router = useRouter();
-  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const bodyRef = useRef<HTMLDivElement | null>(null);
   const initialState = useMemo<DraftState>(
     () => ({
       title: note?.title ?? '',
@@ -103,9 +103,9 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   };
 
   const insertScripture = (payload: string) => {
-    const textarea = bodyRef.current;
+    const editor = bodyRef.current;
 
-    if (!textarea) {
+    if (!editor) {
       setForm((current) => ({
         ...current,
         body: current.body ? `${current.body.trimEnd()}\n\n${payload}` : payload,
@@ -113,24 +113,12 @@ export function NoteForm({ mode, note }: NoteFormProps) {
       return;
     }
 
-    const start = textarea.selectionStart ?? textarea.value.length;
-    const end = textarea.selectionEnd ?? textarea.value.length;
-    const before = form.body.slice(0, start);
-    const after = form.body.slice(end);
-    const separatorBefore = before && !before.endsWith('\n') ? '\n\n' : '';
-    const separatorAfter = after && !after.startsWith('\n') ? '\n\n' : '';
-    const nextBody = `${before}${separatorBefore}${payload}${separatorAfter}${after}`.trim();
+    insertTextIntoEditable(editor, form.body.trim() ? `\n\n${payload}` : payload);
 
     setForm((current) => ({
       ...current,
-      body: nextBody,
+      body: editor.innerText.replace(/\u00a0/g, ' ').trimEnd(),
     }));
-
-    requestAnimationFrame(() => {
-      const cursorTarget = before.length + separatorBefore.length + payload.length;
-      textarea.focus();
-      textarea.setSelectionRange(cursorTarget, cursorTarget);
-    });
   };
 
   const onSubmit = async (event: FormEvent) => {
@@ -279,41 +267,13 @@ export function NoteForm({ mode, note }: NoteFormProps) {
             ) : null}
             <label style={fieldStyle}>
               <span className="eyebrow" style={labelTextStyle}>Body</span>
-              <textarea
+              <ScriptureEditableField
                 ref={bodyRef}
                 value={form.body}
-                onChange={(event) => onChange('body', event.target.value)}
-                placeholder="Write your note here..."
-                rows={18}
-                style={textareaStyle}
+                onChange={(nextBody) => onChange('body', nextBody)}
+                onReferenceClick={setActiveReference}
               />
             </label>
-            {(form.body ?? '').trim() ? (
-              <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-                <div style={{ display: 'grid', gap: '0.35rem' }}>
-                  <span className="eyebrow">Body preview</span>
-                  <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-                    Scripture references in this preview are clickable. The editor itself remains plain text in this V1 flow.
-                  </span>
-                </div>
-                <div
-                  className="note-body-content"
-                  style={{
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: 1.8,
-                    color: 'var(--text)',
-                    fontSize: '1rem',
-                    minHeight: '120px',
-                    padding: '0.25rem 0',
-                  }}
-                >
-                  <ScriptureReferenceText
-                    onReferenceClick={setActiveReference}
-                    text={(form.body ?? '').trim()}
-                  />
-                </div>
-              </section>
-            ) : null}
           </section>
 
           <div className="cta-row">
@@ -349,17 +309,6 @@ const inputStyle: CSSProperties = {
   padding: '0.85rem 1rem',
   background: 'rgba(255,255,255,0.72)',
   color: 'var(--text)',
-};
-
-const textareaStyle: CSSProperties = {
-  minHeight: 320,
-  borderRadius: 16,
-  border: '1px solid var(--line)',
-  padding: '1rem',
-  background: 'rgba(255,255,255,0.72)',
-  color: 'var(--text)',
-  resize: 'vertical',
-  lineHeight: 1.7,
 };
 
 function formatEditorTime(value: string) {
