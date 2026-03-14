@@ -291,11 +291,11 @@ export function NotesListView() {
                 <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>Speaker: {note.speaker}</span>
               ) : null}
               <div className="cta-row">
-                <Link className="button button-primary" href={`/notes/${note.id}`}>
+                <Link className="button button-primary" href={`/notes/${note.id}/edit`}>
                   Open
                 </Link>
-                <Link className="button button-secondary" href={`/notes/${note.id}/edit`}>
-                  Edit
+                <Link className="button button-secondary" href={`/notes/${note.id}`}>
+                  View
                 </Link>
               </div>
             </article>
