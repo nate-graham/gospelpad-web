@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { getGroupSharedNoteById, type GroupSharedNoteSummary } from '@/lib/groups';
+import { getGroupNativeNoteById, getGroupSharedNoteById, type GroupNativeNoteSummary, type GroupSharedNoteSummary } from '@/lib/groups';
 import {
   formatNoteDate,
   getNoteExcerpt,
@@ -21,7 +21,7 @@ export function GroupSharedNoteView({
   groupId: string;
   noteId: string;
 }) {
-  const [note, setNote] = useState<GroupSharedNoteSummary | null>(null);
+  const [note, setNote] = useState<(GroupSharedNoteSummary & { source: 'shared' }) | (GroupNativeNoteSummary & { source: 'group' }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
@@ -33,9 +33,20 @@ export function GroupSharedNoteView({
       try {
         setLoading(true);
         setError(null);
-        const nextNote = await getGroupSharedNoteById(groupId, noteId);
+        const [nativeNote, sharedNote] = await Promise.all([
+          getGroupNativeNoteById(groupId, noteId),
+          getGroupSharedNoteById(groupId, noteId),
+        ]);
         if (!active) return;
-        setNote(nextNote);
+        if (nativeNote) {
+          setNote({ ...nativeNote, source: 'group' });
+          return;
+        }
+        if (sharedNote) {
+          setNote({ ...sharedNote, source: 'shared' });
+          return;
+        }
+        setNote(null);
       } catch (loadError) {
         if (!active) return;
         setError(loadError instanceof Error ? loadError.message : 'Failed to load group note.');
@@ -59,8 +70,8 @@ export function GroupSharedNoteView({
   if (loading) {
     return (
       <section className="loading-state status-message" role="status" aria-live="polite">
-        <strong>Loading shared note…</strong>
-        <span style={{ color: 'var(--muted)' }}>Checking the group-scoped note access path.</span>
+        <strong>Loading group note…</strong>
+        <span style={{ color: 'var(--muted)' }}>Checking the available group note access paths.</span>
       </section>
     );
   }
@@ -68,7 +79,7 @@ export function GroupSharedNoteView({
   if (error) {
     return (
       <section className="error-state status-message" role="alert">
-        <strong>Unable to load shared note</strong>
+        <strong>Unable to load group note</strong>
         <span style={{ color: 'var(--muted)' }}>{error}</span>
         <Link className="button button-secondary" href={`/groups/${groupId}`}>
           Back to group
@@ -80,9 +91,9 @@ export function GroupSharedNoteView({
   if (!note) {
     return (
       <section className="empty-state status-message" role="status">
-        <strong>Shared note not found</strong>
+        <strong>Group note not found</strong>
         <span style={{ color: 'var(--muted)' }}>
-          This note may no longer be shared with the current group or may not be visible to this account.
+          This note may not belong to the current group or may no longer be visible to this account.
         </span>
         <Link className="button button-primary" href={`/groups/${groupId}`}>
           Return to group
@@ -95,13 +106,17 @@ export function GroupSharedNoteView({
     <div className="page-section">
       <header className="page-header">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', alignItems: 'center' }}>
-          <span className="badge">{note.type ?? 'Shared note'}</span>
-          <span style={{ color: 'var(--muted)' }}>Permission: {note.permissions}</span>
-          {note.speaker ? <span style={{ color: 'var(--muted)' }}>Speaker: {note.speaker}</span> : null}
+          <span className="badge">
+            {note.source === 'group' ? 'Group note' : (note.type ?? 'Shared note')}
+          </span>
+          {note.source === 'shared' ? <span style={{ color: 'var(--muted)' }}>Permission: {note.permissions}</span> : null}
+          {'speaker' in note && note.speaker ? <span style={{ color: 'var(--muted)' }}>Speaker: {note.speaker}</span> : null}
         </div>
         <h1>{note.title?.trim() || 'Untitled'}</h1>
         <p className="page-description">
-          Shared to this group {formatNoteDate(note.shared_at)} • Updated {formatNoteDate(note.updated_at)}
+          {note.source === 'shared'
+            ? `Shared to this group ${formatNoteDate(note.shared_at)} • Updated ${formatNoteDate(note.updated_at)}`
+            : `Created ${formatNoteDate(note.created_at)} • Updated ${formatNoteDate(note.updated_at)}`}
         </p>
       </header>
 
@@ -132,7 +147,9 @@ export function GroupSharedNoteView({
           <span className="eyebrow">Preview</span>
           <strong style={{ fontSize: '1.05rem' }}>{getNoteExcerpt(note)}</strong>
           <span style={{ color: 'var(--muted)' }}>
-            Group notes surface currently follows the existing note sharing model.
+            {note.source === 'shared'
+              ? 'This note is visible through the existing note sharing model.'
+              : 'This note comes from the dedicated group note sessions already stored in the repo.'}
           </span>
         </article>
       </section>

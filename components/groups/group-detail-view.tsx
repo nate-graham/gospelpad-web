@@ -7,10 +7,12 @@ import {
   getCurrentMembership,
   getGroupById,
   listGroupMembers,
+  listGroupNativeNotes,
   listGroupSharedNotes,
   type Group,
   type GroupMemberSummary,
   type GroupMembership,
+  type GroupNativeNoteSummary,
   type GroupSharedNoteSummary,
 } from '@/lib/groups';
 import { formatGroupDate, getGroupMemberLabel, getGroupVisibilityLabel } from '@/components/groups/group-utils';
@@ -21,6 +23,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const [group, setGroup] = useState<Group | null>(null);
   const [membership, setMembership] = useState<GroupMembership | null>(null);
   const [members, setMembers] = useState<GroupMemberSummary[]>([]);
+  const [nativeNotes, setNativeNotes] = useState<GroupNativeNoteSummary[]>([]);
   const [sharedNotes, setSharedNotes] = useState<GroupSharedNoteSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +36,11 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         setLoading(true);
         setError(null);
 
-        const [nextGroup, nextMembership, nextMembers, nextSharedNotes] = await Promise.all([
+        const [nextGroup, nextMembership, nextMembers, nextNativeNotes, nextSharedNotes] = await Promise.all([
           getGroupById(groupId),
           getCurrentMembership(groupId),
           listGroupMembers(groupId),
+          listGroupNativeNotes(groupId),
           listGroupSharedNotes(groupId),
         ]);
 
@@ -45,6 +49,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         setGroup(nextGroup);
         setMembership(nextMembership);
         setMembers(nextMembers);
+        setNativeNotes(nextNativeNotes);
         setSharedNotes(nextSharedNotes);
       } catch (loadError) {
         if (!active) return;
@@ -184,30 +189,29 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
         <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
           <div className="page-header" style={{ gap: '0.35rem' }}>
-            <span className="eyebrow">Group notes surface</span>
+            <span className="eyebrow">Group notes</span>
             <strong style={{ fontSize: '1.1rem' }}>
-              {sharedNotes.length} {sharedNotes.length === 1 ? 'shared note' : 'shared notes'}
+              {nativeNotes.length} {nativeNotes.length === 1 ? 'group note' : 'group notes'}
             </strong>
             <span style={{ color: 'var(--muted)' }}>
-              This V1 uses notes already shared to the group through the existing `note_shares` and shared-note policies.
+              These are the dedicated note sessions already stored in the repo’s `group_notes` table.
             </span>
           </div>
 
-          {sharedNotes.length === 0 ? (
+          {nativeNotes.length === 0 ? (
             <section className="empty-state status-message" role="status">
-              <strong>No shared notes yet</strong>
+              <strong>No group notes yet</strong>
               <span style={{ color: 'var(--muted)' }}>
-                Dedicated group notes remain deferred. This surface only shows notes that are already shared with the group through the current backend rules.
+                This group does not currently have any dedicated note sessions stored in `group_notes`.
               </span>
             </section>
           ) : (
             <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {sharedNotes.map((note) => (
+              {nativeNotes.map((note) => (
                 <article className="status-card" key={note.id} style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                     <strong>{note.title?.trim() || 'Untitled'}</strong>
-                    <span className="badge">{note.permissions}</span>
-                    {note.type ? <span style={{ color: 'var(--muted)' }}>{note.type}</span> : null}
+                    <span className="badge">group note</span>
                   </div>
                   <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteExcerpt(note)}</span>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', color: 'var(--muted)' }}>
@@ -215,7 +219,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
                     <span>{getScriptureReferenceCount(note)} scripture refs</span>
                   </div>
                   <Link className="button button-secondary" href={`/groups/${group.id}/notes/${note.id}`}>
-                    Open shared note
+                    Open group note
                   </Link>
                 </article>
               ))}
@@ -224,11 +228,52 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         </section>
       </section>
 
+      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+        <div className="page-header" style={{ gap: '0.35rem' }}>
+          <span className="eyebrow">Shared personal notes</span>
+          <strong style={{ fontSize: '1.1rem' }}>
+            {sharedNotes.length} {sharedNotes.length === 1 ? 'shared note' : 'shared notes'}
+          </strong>
+          <span style={{ color: 'var(--muted)' }}>
+            These are personal notes explicitly shared into the group through the existing `note_shares` path.
+          </span>
+        </div>
+
+        {sharedNotes.length === 0 ? (
+          <section className="empty-state status-message" role="status">
+            <strong>No shared personal notes yet</strong>
+            <span style={{ color: 'var(--muted)' }}>
+              This section only shows notes explicitly shared to the group from someone’s personal note library.
+            </span>
+          </section>
+        ) : (
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            {sharedNotes.map((note) => (
+              <article className="status-card" key={`shared-${note.id}`} style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                  <strong>{note.title?.trim() || 'Untitled'}</strong>
+                  <span className="badge">{note.permissions}</span>
+                  {note.type ? <span style={{ color: 'var(--muted)' }}>{note.type}</span> : null}
+                </div>
+                <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteExcerpt(note)}</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', color: 'var(--muted)' }}>
+                  <span>Updated {formatGroupDate(note.updated_at)}</span>
+                  <span>{getScriptureReferenceCount(note)} scripture refs</span>
+                </div>
+                <Link className="button button-secondary" href={`/groups/${group.id}/notes/${note.id}`}>
+                  Open shared note
+                </Link>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
         <span className="eyebrow">V1 boundary</span>
-        <strong>Comments, live collaboration, and the dedicated `group_notes` tables stay deferred.</strong>
+        <strong>Comments, live collaboration, and advanced permissions stay deferred.</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          The repo already contains deeper collaboration schema, but `group_notes`, `group_note_comments`, and permission tables still have overly broad policies. This pass exposes only the safer membership and shared-note surfaces needed for a more useful web launch.
+          This pass now exposes member-visible `group_notes` and shared personal notes. `group_note_comments`, richer admin tools, and deeper collaboration flows still need a separate safe pass.
         </span>
       </section>
 

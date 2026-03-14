@@ -49,6 +49,16 @@ export type GroupSharedNoteSummary = {
   shared_by: string | null;
 };
 
+export type GroupNativeNoteSummary = {
+  id: string;
+  group_id: string;
+  created_by: string | null;
+  title: string | null;
+  body: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type GroupJoinResponse = {
   group: Group;
   status: 'joined' | 'pending';
@@ -321,6 +331,39 @@ export async function listGroupSharedNotes(groupId: string) {
       } satisfies GroupSharedNoteSummary;
     })
     .filter((note): note is GroupSharedNoteSummary => note !== null);
+}
+
+export async function listGroupNativeNotes(groupId: string) {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { data, error } = await supabase
+    .from('group_notes')
+    .select('id, group_id, created_by, title, body, created_at, updated_at')
+    .eq('group_id', groupId)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as GroupNativeNoteSummary[];
+}
+
+export async function getGroupNativeNoteById(groupId: string, noteId: string) {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { data, error } = await supabase
+    .from('group_notes')
+    .select('id, group_id, created_by, title, body, created_at, updated_at')
+    .eq('group_id', groupId)
+    .eq('id', noteId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as GroupNativeNoteSummary | null) ?? null;
 }
 
 export async function getGroupSharedNoteById(groupId: string, noteId: string) {
