@@ -24,6 +24,7 @@ import {
 } from '@/lib/groups';
 import { formatGroupDate, getGroupMemberLabel, getGroupVisibilityLabel } from '@/components/groups/group-utils';
 import { getNoteExcerpt, getScriptureReferenceCount } from '@/components/notes/note-utils';
+import { GroupInvitePanel } from '@/components/groups/group-invite-panel';
 
 export function GroupDetailView({ groupId }: { groupId: string }) {
   const router = useRouter();
@@ -297,16 +298,13 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
       <section className="responsive-grid compact">
         <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.4rem' }}>
-          <span className="eyebrow">Invite code</span>
-          <strong style={{ fontSize: '1.3rem', letterSpacing: '0.08em' }}>{group.invite_code}</strong>
-          <span style={{ color: 'var(--muted)' }}>Share this code with people you want to invite.</span>
-        </article>
-        <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.4rem' }}>
           <span className="eyebrow">Created</span>
           <strong style={{ fontSize: '1.3rem' }}>{formatGroupDate(group.created_at)}</strong>
           <span style={{ color: 'var(--muted)' }}>{group.is_public ? 'Members can join instantly.' : 'Private groups require a join request.'}</span>
         </article>
       </section>
+
+      <GroupInvitePanel group={group} membership={membership} />
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>

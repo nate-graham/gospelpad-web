@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
+import { getPublicAppUrl } from '@/lib/env';
 
 export type Group = {
   id: string;
@@ -194,6 +195,12 @@ export async function createGroup(input: {
   }
 
   return created;
+}
+
+export function getGroupInviteLink(inviteCode: string) {
+  const url = new URL('/join', getPublicAppUrl());
+  url.searchParams.set('code', inviteCode.trim().toUpperCase());
+  return url.toString();
 }
 
 export async function joinGroupByCode(code: string) {
