@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { duplicateNote, getNoteById, softDeleteNote, type NoteRecord } from '@/lib/notes';
+import { duplicateNote, getNoteById, type NoteGroupShare, softDeleteNote, type NoteRecord } from '@/lib/notes';
 import {
   formatNoteDate,
   getNoteReadingTimeMinutes,
@@ -14,6 +14,7 @@ import {
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
 import { findScriptureReferences } from '@/lib/scripture-references';
+import { NoteSharePanel } from '@/components/notes/note-share-panel';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -24,6 +25,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [duplicating, setDuplicating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
+  const [groupShares, setGroupShares] = useState<NoteGroupShare[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -180,6 +182,18 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteTypeGuidance(note.type)}</span>
         </div>
 
+        <div className="status-card" style={{ padding: '1rem' }}>
+          <span className="eyebrow">Visibility</span>
+          <strong style={{ fontSize: '1.05rem' }}>
+            {groupShares.length > 0 ? `Shared to ${groupShares.length} group${groupShares.length === 1 ? '' : 's'}` : 'Private note'}
+          </strong>
+          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+            {groupShares.length > 0
+              ? groupShares.map((share) => share.group_name).join(', ')
+              : 'This note is currently visible only to you.'}
+          </span>
+        </div>
+
         {detectedReferences.length > 0 ? (
           <div style={{ display: 'grid', gap: '0.55rem' }}>
             <span className="eyebrow">Detected references</span>
@@ -218,6 +232,8 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
           )}
         </div>
       </section>
+
+      <NoteSharePanel note={note} onSharesUpdated={setGroupShares} />
 
       <div className="cta-row">
         <Link className="button button-primary" href={`/notes/${note.id}/edit`}>
