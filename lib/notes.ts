@@ -346,3 +346,41 @@ export async function replaceOwnedGroupShares(input: {
     throw new Error(noteError.message);
   }
 }
+
+export async function removeOwnedGroupShare(noteId: string, groupId: string) {
+  const { supabase, userId } = await getAuthenticatedUserId();
+
+  const { error: deleteError } = await supabase
+    .from('note_shares')
+    .delete()
+    .eq('note_id', noteId)
+    .eq('shared_by', userId)
+    .eq('shared_with_type', 'group')
+    .eq('shared_with', groupId);
+
+  if (deleteError) {
+    throw new Error(deleteError.message);
+  }
+
+  const remainingShares = await listOwnedGroupShares(noteId);
+  const shareTargets = remainingShares.map((share) => ({
+    id: share.group_id,
+    name: share.group_name,
+    type: 'group',
+    permissions: share.permissions,
+  }));
+
+  const { error: noteError } = await supabase
+    .from('notes')
+    .update({
+      shared: remainingShares.length > 0,
+      share_targets: remainingShares.length > 0 ? shareTargets : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', noteId)
+    .eq('user_id', userId);
+
+  if (noteError) {
+    throw new Error(noteError.message);
+  }
+}

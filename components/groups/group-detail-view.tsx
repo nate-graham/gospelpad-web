@@ -94,6 +94,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Group created successfully.';
     if (searchParams.get('left') === '1') return 'You left the group.';
+    if (searchParams.get('unshared') === '1') return 'Shared note removed from this group.';
     return null;
   }, [searchParams]);
 
