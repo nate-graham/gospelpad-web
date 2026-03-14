@@ -7,12 +7,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } from '@/lib/notes';
 import {
   DEFAULT_NOTE_TYPE,
-  getNoteTypeGuidance,
   getScriptureReferenceCount,
   getNoteWordCount,
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
-import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 import { findScriptureReferences } from '@/lib/scripture-references';
 
 type NoteFormProps = {
@@ -47,6 +45,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
+  const [manualReference, setManualReference] = useState('');
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   const draftKey = getDraftStorageKey(mode, note?.id);
@@ -92,6 +91,12 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
   const onChange = <K extends keyof DraftState>(key: K, value: DraftState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const openManualReferencePreview = () => {
+    const nextReference = manualReference.trim();
+    if (!nextReference) return;
+    setActiveReference(nextReference);
   };
 
   const clearDraft = () => {
@@ -261,12 +266,48 @@ export function NoteForm({ mode, note }: NoteFormProps) {
           </section>
 
           <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-            <ScriptureSearchPanel onInsert={insertScripture} />
-            <div className="status-card" style={{ padding: '1rem' }}>
-              <span className="eyebrow">Note type guidance</span>
-              <strong style={{ fontSize: '1.05rem' }}>{form.type}</strong>
-              <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteTypeGuidance(form.type)}</span>
-            </div>
+            <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+              <div style={{ display: 'grid', gap: '0.4rem' }}>
+                <span className="eyebrow">Scripture preview</span>
+                <strong style={{ fontSize: '1.05rem' }}>Preview and insert a verse by reference</strong>
+                <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+                  Use a direct reference like <code>John 3:16</code> or <code>Matt 6:26</code>, then preview it before inserting it into the note.
+                </span>
+              </div>
+
+              <div
+                className="search-row"
+                style={{
+                  display: 'grid',
+                  gap: '0.85rem',
+                  gridTemplateColumns: 'minmax(0, 1fr) auto',
+                  alignItems: 'end',
+                }}
+              >
+                <label style={fieldStyle}>
+                  <span className="eyebrow" style={labelTextStyle}>Verse reference</span>
+                  <input
+                    value={manualReference}
+                    onChange={(event) => setManualReference(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter') return;
+                      event.preventDefault();
+                      openManualReferencePreview();
+                    }}
+                    placeholder="John 3:16"
+                    style={inputStyle}
+                  />
+                </label>
+                <button
+                  className="button button-secondary"
+                  disabled={!manualReference.trim()}
+                  onClick={openManualReferencePreview}
+                  type="button"
+                >
+                  Preview
+                </button>
+              </div>
+            </section>
             {detectedReferences.length > 0 ? (
               <div style={{ display: 'grid', gap: '0.55rem' }}>
                 <span className="eyebrow">Detected references in this note</span>
