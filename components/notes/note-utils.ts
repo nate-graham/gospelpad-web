@@ -44,6 +44,8 @@ export function getNoteTypeGuidance(type: string | null | undefined) {
       return 'Journal notes work best when you record reflection, prayer, and application clearly in your own words.';
     case 'Dream':
       return 'Dream notes benefit from immediacy. Capture symbols, sequence, tone, and interpretation questions while they are fresh.';
+    case 'Prayer Requests':
+      return 'Prayer requests work best when you keep the request focused, track whether it is ongoing or answered, and update the outcome over time.';
     default:
       return 'This note is stored in the current plain-text V1 format for reliable capture and review.';
   }
@@ -68,6 +70,12 @@ export function getNoteTypePlaceholders(type: string | null | undefined) {
         title: 'Dream title or summary',
         speaker: 'Optional person or source in the dream',
         body: 'Record the dream sequence, symbols, emotions, and interpretation notes while it is still fresh...',
+      };
+    case 'Prayer Requests':
+      return {
+        title: 'Prayer request title',
+        speaker: 'Optional person or source connected to this request',
+        body: 'Write the request, context, and any updates or answered details...',
       };
     case 'Church notes':
     default:

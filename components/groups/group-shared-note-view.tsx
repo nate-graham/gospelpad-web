@@ -111,6 +111,9 @@ export function GroupSharedNoteView({
         type: NOTE_TYPES.includes((('type' in note ? note.type : null) ?? '') as (typeof NOTE_TYPES)[number])
           ? (('type' in note ? note.type : NOTE_TYPES[0]) as (typeof NOTE_TYPES)[number])
           : NOTE_TYPES[0],
+        status: 'status' in note ? note.status : null,
+        is_lucid_dream: false,
+        dream_role: null,
       });
       router.push(`/notes/${duplicateId}?created=1`);
     } catch (duplicateError) {

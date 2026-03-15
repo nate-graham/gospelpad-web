@@ -246,7 +246,7 @@ export function NotesListView() {
           <span style={{ color: 'var(--muted)' }}>
             {activeFilterCount > 0
               ? 'Try broadening your search or resetting the current note filters.'
-              : 'Start with a church note, study note, journal entry, or dream note.'}
+              : 'Start with a church note, study note, journal entry, dream note, or prayer request.'}
           </span>
           <div className="cta-row">
             {activeFilterCount > 0 ? (
@@ -278,6 +278,9 @@ export function NotesListView() {
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'start' }}>
                 <div style={{ display: 'grid', gap: '0.35rem' }}>
                   <span className="badge">{note.type ?? 'Note'}</span>
+                  {note.type === 'Prayer Requests' && note.status ? (
+                    <span style={{ color: 'var(--muted)', fontSize: '0.86rem' }}>Prayer status: {note.status}</span>
+                  ) : null}
                   <strong style={{ fontSize: '1.1rem', lineHeight: 1.3 }}>
                     {note.title?.trim() || 'Untitled'}
                   </strong>

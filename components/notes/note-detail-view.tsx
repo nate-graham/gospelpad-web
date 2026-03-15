@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { duplicateNote, getNoteById, type NoteGroupShare, softDeleteNote, type NoteRecord } from '@/lib/notes';
+import { duplicateNote, getNoteById, updateNote, type NoteGroupShare, softDeleteNote, type NoteRecord } from '@/lib/notes';
 import {
   formatNoteDate,
   getNoteReadingTimeMinutes,
@@ -15,6 +15,7 @@ import { ScriptureReferencePreview } from '@/components/notes/scripture-referenc
 import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
 import { findScriptureReferences } from '@/lib/scripture-references';
 import { NoteSharePanel } from '@/components/notes/note-share-panel';
+import { getPrayerRequestById, type PrayerRequestRecord, type PrayerRequestStatus, upsertPrayerRequest } from '@/lib/prayer-requests';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -26,6 +27,8 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
   const [groupShares, setGroupShares] = useState<NoteGroupShare[]>([]);
+  const [prayerRequest, setPrayerRequest] = useState<PrayerRequestRecord | null>(null);
+  const [updatingPrayerStatus, setUpdatingPrayerStatus] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -51,6 +54,32 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       active = false;
     };
   }, [noteId]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (note?.type !== 'Prayer Requests' || !note.prayer_request_id) {
+      setPrayerRequest(null);
+      return;
+    }
+
+    const loadPrayerRequest = async () => {
+      try {
+        const data = await getPrayerRequestById(note.prayer_request_id as string);
+        if (!active) return;
+        setPrayerRequest(data);
+      } catch {
+        if (!active) return;
+        setPrayerRequest(null);
+      }
+    };
+
+    void loadPrayerRequest();
+
+    return () => {
+      active = false;
+    };
+  }, [note?.prayer_request_id, note?.type]);
 
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Note created successfully.';
@@ -90,6 +119,50 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
     } catch (duplicateError) {
       setError(duplicateError instanceof Error ? duplicateError.message : 'Failed to duplicate note.');
       setDuplicating(false);
+    }
+  };
+
+  const onPrayerStatusChange = async (nextStatus: PrayerRequestStatus) => {
+    if (!note || note.type !== 'Prayer Requests') return;
+
+    try {
+      setUpdatingPrayerStatus(true);
+      const nextPrayerRequestId = await upsertPrayerRequest({
+        id: note.prayer_request_id ?? undefined,
+        title: note.title ?? 'Untitled prayer request',
+        body: note.body ?? '',
+        status: nextStatus,
+        groupId: null,
+        shared: false,
+        accepted: false,
+      });
+
+      await updateNote(note.id, {
+        title: note.title ?? '',
+        body: note.body ?? '',
+        speaker: note.speaker ?? '',
+        type: 'Prayer Requests',
+        prayerStatus: nextStatus,
+        prayerRequestId: nextPrayerRequestId,
+      });
+
+      setNote((current) =>
+        current
+          ? {
+              ...current,
+              status: nextStatus,
+              prayer_request_id: nextPrayerRequestId,
+              updated_at: new Date().toISOString(),
+            }
+          : current
+      );
+
+      const refreshedPrayerRequest = await getPrayerRequestById(nextPrayerRequestId);
+      setPrayerRequest(refreshedPrayerRequest);
+    } catch (statusError) {
+      setError(statusError instanceof Error ? statusError.message : 'Failed to update prayer status.');
+    } finally {
+      setUpdatingPrayerStatus(false);
     }
   };
 
@@ -176,6 +249,17 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
             <strong style={{ fontSize: '1.2rem' }}>{note.type ?? 'Note'}</strong>
             <span style={{ color: 'var(--muted)' }}>{note.status?.trim() || 'No explicit status set'}</span>
           </article>
+          {note.type === 'Prayer Requests' ? (
+            <article className="status-card" style={{ padding: '1rem' }}>
+              <span className="eyebrow">Prayer request</span>
+              <strong style={{ fontSize: '1.2rem' }}>{prayerRequest?.status ?? note.status ?? 'Ongoing'}</strong>
+              <span style={{ color: 'var(--muted)' }}>
+                {prayerRequest?.answered_at
+                  ? `Answered ${formatNoteDate(prayerRequest.answered_at)}`
+                  : 'Still active and waiting for an answer.'}
+              </span>
+            </article>
+          ) : null}
           {note.type === 'Dream' ? (
             <article className="status-card" style={{ padding: '1rem' }}>
               <span className="eyebrow">Dream metadata</span>
@@ -194,6 +278,36 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
           <strong style={{ fontSize: '1.05rem' }}>Built for {note.type ?? 'general note'} reading</strong>
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteTypeGuidance(note.type)}</span>
         </div>
+
+        {note.type === 'Prayer Requests' ? (
+          <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+            <span className="eyebrow">Prayer workflow</span>
+            <strong style={{ fontSize: '1.05rem' }}>
+              {prayerRequest?.status ?? note.status ?? 'Ongoing'}
+            </strong>
+            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+              Prayer requests now persist as linked prayer-request records on web, matching the existing mobile product model. Browser reminders stay deferred for now.
+            </span>
+            <div className="cta-row">
+              <button
+                className="button button-secondary"
+                disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Ongoing'}
+                onClick={() => onPrayerStatusChange('Ongoing')}
+                type="button"
+              >
+                {updatingPrayerStatus ? 'Updating…' : 'Mark ongoing'}
+              </button>
+              <button
+                className="button button-primary"
+                disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Answered'}
+                onClick={() => onPrayerStatusChange('Answered')}
+                type="button"
+              >
+                {updatingPrayerStatus ? 'Updating…' : 'Mark answered'}
+              </button>
+            </div>
+          </div>
+        ) : null}
 
         <div className="status-card" style={{ padding: '1rem' }}>
           <span className="eyebrow">Visibility</span>

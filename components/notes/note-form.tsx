@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { CSSProperties, FormEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } from '@/lib/notes';
+import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
 import {
   DEFAULT_NOTE_TYPE,
   getScriptureReferenceCount,
@@ -39,6 +40,8 @@ export function NoteForm({ mode, note }: NoteFormProps) {
         : DEFAULT_NOTE_TYPE,
       isLucidDream: Boolean(note?.is_lucid_dream),
       dreamRole: note?.dream_role === 'involved' ? 'involved' : 'observing',
+      prayerStatus: note?.type === 'Prayer Requests' && note?.status === 'Answered' ? 'Answered' : 'Ongoing',
+      prayerRequestId: note?.prayer_request_id ?? null,
     }),
     [note]
   );
@@ -77,6 +80,14 @@ export function NoteForm({ mode, note }: NoteFormProps) {
             parsed.dreamRole === 'involved' || parsed.dreamRole === 'observing'
               ? parsed.dreamRole
               : initialState.dreamRole,
+          prayerStatus:
+            parsed.prayerStatus === 'Answered' || parsed.prayerStatus === 'Ongoing'
+              ? parsed.prayerStatus
+              : initialState.prayerStatus,
+          prayerRequestId:
+            typeof parsed.prayerRequestId === 'string' || parsed.prayerRequestId === null
+              ? parsed.prayerRequestId
+              : initialState.prayerRequestId,
         });
         setDraftNotice('Recovered a saved local draft for this form.');
       }
@@ -99,6 +110,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const scriptureCount = useMemo(() => getScriptureReferenceCount({ body: form.body } as NoteRecord), [form.body]);
   const placeholders = useMemo(() => getNoteTypePlaceholders(form.type), [form.type]);
   const isDreamNote = form.type === 'Dream';
+  const isPrayerRequest = form.type === 'Prayer Requests';
 
   const onChange = <K extends keyof DraftState>(key: K, value: DraftState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -138,8 +150,27 @@ export function NoteForm({ mode, note }: NoteFormProps) {
     setError(null);
 
     try {
+      let nextPrayerRequestId = form.prayerRequestId ?? null;
+
+      if (form.type === 'Prayer Requests') {
+        nextPrayerRequestId = await upsertPrayerRequest({
+          id: form.prayerRequestId ?? undefined,
+          title: form.title,
+          body: form.body,
+          status: form.prayerStatus ?? 'Ongoing',
+          groupId: null,
+          shared: false,
+          accepted: false,
+        });
+      }
+
+      const payload = {
+        ...form,
+        prayerRequestId: nextPrayerRequestId,
+      };
+
       if (mode === 'create') {
-        const noteId = await createNote(form);
+        const noteId = await createNote(payload);
         if (typeof window !== 'undefined') {
           window.localStorage.removeItem(draftKey);
         }
@@ -151,7 +182,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
         throw new Error('This note could not be loaded for editing.');
       }
 
-      await updateNote(note.id, form);
+      await updateNote(note.id, payload);
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(draftKey);
       }
@@ -291,6 +322,48 @@ export function NoteForm({ mode, note }: NoteFormProps) {
                   <option value="involved">Involved</option>
                 </select>
               </label>
+            </section>
+          ) : null}
+
+          {isPrayerRequest ? (
+            <section
+              className="panel"
+              style={{
+                padding: '1rem',
+                display: 'grid',
+                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              }}
+            >
+              <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
+                <span className="eyebrow">Prayer request</span>
+                <strong style={{ fontSize: '1.05rem' }}>
+                  {form.prayerStatus === 'Answered' ? 'Answered request' : 'Ongoing request'}
+                </strong>
+                <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+                  The current mobile product tracks prayer requests as a linked note plus prayer-request record. This web pass keeps that same structure.
+                </span>
+              </div>
+
+              <label style={fieldStyle}>
+                <span className="eyebrow" style={labelTextStyle}>Prayer status</span>
+                <select
+                  value={form.prayerStatus ?? 'Ongoing'}
+                  onChange={(event) => onChange('prayerStatus', event.target.value as PrayerRequestStatus)}
+                  style={inputStyle}
+                >
+                  <option value="Ongoing">Ongoing</option>
+                  <option value="Answered">Answered</option>
+                </select>
+              </label>
+
+              <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
+                <span className="eyebrow">Reminders</span>
+                <strong style={{ fontSize: '1.05rem' }}>Deferred on web</strong>
+                <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+                  The repo already has prayer reminder tables and notification functions, but the web app does not yet have the browser notification and device-token flow needed to expose reminders honestly.
+                </span>
+              </div>
             </section>
           ) : null}
 
