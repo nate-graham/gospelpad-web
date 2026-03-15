@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import type { CSSProperties, FormEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } from '@/lib/notes';
@@ -30,6 +30,7 @@ function getDraftStorageKey(mode: 'create' | 'edit', noteId?: string) {
 
 export function NoteForm({ mode, note }: NoteFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const initialState = useMemo<DraftState>(
     () => ({
@@ -56,6 +57,23 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   const draftKey = getDraftStorageKey(mode, note?.id);
+  const handoffMessage = useMemo(() => {
+    if (mode !== 'edit') return null;
+    if (searchParams.get('dictated') === '1') {
+      return 'Transcription imported. Review the note, make any edits you want, then save to finalize it.';
+    }
+    if (searchParams.get('copied') === '1') {
+      const source = searchParams.get('from');
+      if (source === 'group-share') {
+        return 'This note was copied from a group note or shared group surface. Edit it here to make it your own.';
+      }
+      if (source === 'direct-share') {
+        return 'This note was copied from a note shared directly with you. Edit it here to keep your own version.';
+      }
+      return 'This note was copied into your personal library. Edit it here before saving.';
+    }
+    return null;
+  }, [mode, searchParams]);
 
   useEffect(() => {
     setForm(initialState);
@@ -236,6 +254,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
       ) : null}
 
       {draftNotice ? <section className="empty-state status-message" role="status">{draftNotice}</section> : null}
+      {handoffMessage ? <section className="empty-state status-message" role="status">{handoffMessage}</section> : null}
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
 
       {!loadingDraft ? (

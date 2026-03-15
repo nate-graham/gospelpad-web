@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   getCurrentMembership,
   getGroupNativeNoteById,
@@ -34,6 +34,7 @@ export function GroupSharedNoteView({
   noteId: string;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [note, setNote] = useState<(GroupSharedNoteSummary & { source: 'shared' }) | (GroupNativeNoteSummary & { source: 'group' }) | null>(null);
   const [members, setMembers] = useState<GroupMemberSummary[]>([]);
   const [viewerId, setViewerId] = useState<string | null>(null);
@@ -100,6 +101,11 @@ export function GroupSharedNoteView({
   const canEditGroupNote = Boolean(
     note?.source === 'group' && viewerId && (note.created_by === viewerId || members.some((member) => member.user_id === viewerId && (member.is_owner || member.role === 'admin')))
   );
+  const successMessage = useMemo(() => {
+    if (searchParams.get('created') === '1') return 'Group note created successfully.';
+    if (searchParams.get('updated') === '1') return 'Group note updated successfully.';
+    return null;
+  }, [searchParams]);
 
   const onCopyToMyNotes = async () => {
     if (!note) return;
@@ -120,7 +126,7 @@ export function GroupSharedNoteView({
         is_lucid_dream: false,
         dream_role: null,
       });
-      router.push(`/notes/${duplicateId}?created=1`);
+      router.push(`/notes/${duplicateId}/edit?copied=1&from=group-share`);
     } catch (duplicateError) {
       setActionError(duplicateError instanceof Error ? duplicateError.message : 'Failed to copy note into your library.');
     } finally {
@@ -200,6 +206,7 @@ export function GroupSharedNoteView({
         </p>
       </header>
 
+      {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
       {actionNotice ? <section className="empty-state status-message" role="status">{actionNotice}</section> : null}
       {actionError ? <section className="error-state status-message" role="alert">{actionError}</section> : null}
 

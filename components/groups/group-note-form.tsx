@@ -52,7 +52,7 @@ export function GroupNoteForm({ groupId, mode, note }: GroupNoteFormProps) {
           title,
           body,
         });
-        router.replace(`/groups/${groupId}/notes/${created.id}`);
+        router.replace(`/groups/${groupId}/notes/${created.id}?created=1`);
         return;
       }
 
