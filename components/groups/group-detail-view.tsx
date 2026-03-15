@@ -5,10 +5,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   approveJoinRequest,
+  createGroupAnnouncement,
+  deleteGroupAnnouncement,
   declineJoinRequest,
   getCurrentMembership,
   getGroupById,
   leaveGroup,
+  listGroupAnnouncements,
   listGroupJoinRequests,
   listGroupMembers,
   listGroupNativeNotes,
@@ -16,6 +19,7 @@ import {
   removeGroupMember,
   updateGroupMemberRole,
   type Group,
+  type GroupAnnouncement,
   type GroupJoinRequestSummary,
   type GroupMemberSummary,
   type GroupMembership,
@@ -32,6 +36,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const [group, setGroup] = useState<Group | null>(null);
   const [membership, setMembership] = useState<GroupMembership | null>(null);
   const [members, setMembers] = useState<GroupMemberSummary[]>([]);
+  const [announcements, setAnnouncements] = useState<GroupAnnouncement[]>([]);
   const [joinRequests, setJoinRequests] = useState<GroupJoinRequestSummary[]>([]);
   const [nativeNotes, setNativeNotes] = useState<GroupNativeNoteSummary[]>([]);
   const [sharedNotes, setSharedNotes] = useState<GroupSharedNoteSummary[]>([]);
@@ -40,6 +45,8 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [announcementTitle, setAnnouncementTitle] = useState('');
+  const [announcementBody, setAnnouncementBody] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -49,10 +56,11 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         setLoading(true);
         setError(null);
 
-        const [nextGroup, nextMembership, nextMembers, nextNativeNotes, nextSharedNotes] = await Promise.all([
+        const [nextGroup, nextMembership, nextMembers, nextAnnouncements, nextNativeNotes, nextSharedNotes] = await Promise.all([
           getGroupById(groupId),
           getCurrentMembership(groupId),
           listGroupMembers(groupId),
+          listGroupAnnouncements(groupId),
           listGroupNativeNotes(groupId),
           listGroupSharedNotes(groupId),
         ]);
@@ -62,6 +70,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         setGroup(nextGroup);
         setMembership(nextMembership);
         setMembers(nextMembers);
+        setAnnouncements(nextAnnouncements);
         setNativeNotes(nextNativeNotes);
         setSharedNotes(nextSharedNotes);
 
@@ -101,8 +110,10 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const canManageRequests = Boolean(
     membership && (membership.role === 'admin' || (group?.created_by ?? null) === membership.user_id)
   );
+  const canManageAnnouncements = canManageRequests;
   const canLeaveGroup = Boolean(membership && (group?.created_by ?? null) !== membership.user_id);
   const isOwner = Boolean(membership && (group?.created_by ?? null) === membership.user_id);
+  const memberMap = useMemo(() => new Map(members.map((member) => [member.user_id, member])), [members]);
 
   const getRequestLabel = (request: GroupJoinRequestSummary) =>
     request.name?.trim() || request.display_name?.trim() || request.username?.trim() || 'Pending member';
@@ -117,6 +128,11 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
   const canToggleAdmin = (member: GroupMemberSummary) =>
     Boolean(isOwner && !member.is_owner && member.user_id !== membership?.user_id);
+
+  const getAnnouncementAuthorLabel = (announcement: GroupAnnouncement) => {
+    const author = announcement.created_by ? memberMap.get(announcement.created_by) : null;
+    return author ? getGroupMemberLabel(author) : 'Group admin';
+  };
 
   const onLeaveGroup = async () => {
     if (!group || !canLeaveGroup) return;
@@ -233,6 +249,55 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
     }
   };
 
+  const onCreateAnnouncement = async () => {
+    if (!canManageAnnouncements || !group) return;
+    const title = announcementTitle.trim();
+
+    if (!title) {
+      setActionError('Announcement title is required.');
+      return;
+    }
+
+    try {
+      setPendingAction('create-announcement');
+      setActionError(null);
+      setActionNotice(null);
+      const created = await createGroupAnnouncement({
+        groupId: group.id,
+        title,
+        body: announcementBody,
+      });
+      setAnnouncements((current) => [created, ...current]);
+      setAnnouncementTitle('');
+      setAnnouncementBody('');
+      setActionNotice('Announcement posted.');
+    } catch (announcementError) {
+      setActionError(announcementError instanceof Error ? announcementError.message : 'Failed to post announcement.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const onDeleteAnnouncement = async (announcement: GroupAnnouncement) => {
+    if (!canManageAnnouncements) return;
+    if (!window.confirm(`Delete "${announcement.title}"?`)) {
+      return;
+    }
+
+    try {
+      setPendingAction(`delete-announcement-${announcement.id}`);
+      setActionError(null);
+      setActionNotice(null);
+      await deleteGroupAnnouncement(announcement.id);
+      setAnnouncements((current) => current.filter((item) => item.id !== announcement.id));
+      setActionNotice('Announcement deleted.');
+    } catch (announcementError) {
+      setActionError(announcementError instanceof Error ? announcementError.message : 'Failed to delete announcement.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
   if (loading) {
     return (
       <section className="loading-state status-message" role="status" aria-live="polite">
@@ -306,6 +371,107 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       </section>
 
       <GroupInvitePanel group={group} membership={membership} />
+
+      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+        <div className="page-header" style={{ gap: '0.35rem' }}>
+          <span className="eyebrow">Announcements</span>
+          <strong style={{ fontSize: '1.1rem' }}>
+            {announcements.length} {announcements.length === 1 ? 'announcement' : 'announcements'}
+          </strong>
+          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+            Group-wide communication already exists in the repo through `group_announcements`. This web pass exposes the same lightweight overview pattern the mobile group screen already uses.
+          </span>
+        </div>
+
+        {canManageAnnouncements ? (
+          <div
+            className="status-card"
+            style={{
+              padding: '1rem',
+              display: 'grid',
+              gap: '0.85rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            }}
+          >
+            <label style={fieldStyle}>
+              <span className="eyebrow" style={labelTextStyle}>Announcement title</span>
+              <input
+                value={announcementTitle}
+                onChange={(event) => setAnnouncementTitle(event.target.value)}
+                placeholder="Announcement title"
+                style={inputStyle}
+              />
+            </label>
+
+            <label style={{ ...fieldStyle, gridColumn: '1 / -1' }}>
+              <span className="eyebrow" style={labelTextStyle}>Announcement details</span>
+              <textarea
+                value={announcementBody}
+                onChange={(event) => setAnnouncementBody(event.target.value)}
+                placeholder="Optional details for the group"
+                style={textareaStyle}
+              />
+            </label>
+
+            <div className="cta-row">
+              <button
+                className="button button-primary"
+                type="button"
+                disabled={pendingAction === 'create-announcement'}
+                onClick={onCreateAnnouncement}
+              >
+                {pendingAction === 'create-announcement' ? 'Posting…' : 'Post announcement'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <section className="status-card" style={{ padding: '1rem' }}>
+            <strong>Member view</strong>
+            <span style={{ color: 'var(--muted)' }}>
+              Only the group owner and admins can post or delete announcements.
+            </span>
+          </section>
+        )}
+
+        {announcements.length === 0 ? (
+          <section className="empty-state status-message" role="status">
+            <strong>No announcements yet</strong>
+            <span style={{ color: 'var(--muted)' }}>
+              Group-wide updates posted by the owner or admins will appear here.
+            </span>
+          </section>
+        ) : (
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            {announcements.map((announcement) => (
+              <article className="status-card" key={announcement.id} style={{ padding: '1rem', display: 'grid', gap: '0.6rem' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'grid', gap: '0.3rem' }}>
+                    <strong>{announcement.title}</strong>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
+                      Posted by {getAnnouncementAuthorLabel(announcement)} on {formatGroupDate(announcement.created_at)}
+                    </span>
+                  </div>
+                  {canManageAnnouncements ? (
+                    <button
+                      className="button button-secondary"
+                      type="button"
+                      disabled={pendingAction === `delete-announcement-${announcement.id}`}
+                      onClick={() => onDeleteAnnouncement(announcement)}
+                    >
+                      {pendingAction === `delete-announcement-${announcement.id}` ? 'Deleting…' : 'Delete'}
+                    </button>
+                  ) : null}
+                </div>
+                {announcement.body?.trim() ? (
+                  <span style={{ color: 'var(--muted)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
+                    {announcement.body.trim()}
+                  </span>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>
@@ -567,3 +733,31 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
     </div>
   );
 }
+
+const fieldStyle: React.CSSProperties = {
+  display: 'grid',
+  gap: '0.45rem',
+};
+
+const labelTextStyle: React.CSSProperties = {
+  fontSize: '0.72rem',
+};
+
+const inputStyle: React.CSSProperties = {
+  minHeight: 48,
+  borderRadius: 14,
+  border: '1px solid var(--line)',
+  padding: '0.85rem 1rem',
+  background: 'rgba(255,255,255,0.72)',
+  color: 'var(--text)',
+};
+
+const textareaStyle: React.CSSProperties = {
+  minHeight: 120,
+  borderRadius: 18,
+  border: '1px solid var(--line)',
+  padding: '1rem',
+  background: 'rgba(255,255,255,0.72)',
+  color: 'var(--text)',
+  resize: 'vertical',
+};

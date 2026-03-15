@@ -79,6 +79,15 @@ export type GroupJoinRequestSummary = {
   avatar_url: string | null;
 };
 
+export type GroupAnnouncement = {
+  id: string;
+  group_id: string;
+  created_by: string | null;
+  title: string;
+  body: string | null;
+  created_at: string;
+};
+
 async function getAuthenticatedContext() {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
@@ -475,6 +484,57 @@ export async function listGroupNativeNotes(groupId: string) {
   }
 
   return (data ?? []) as GroupNativeNoteSummary[];
+}
+
+export async function listGroupAnnouncements(groupId: string) {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { data, error } = await supabase
+    .from('group_announcements')
+    .select('id, group_id, created_by, title, body, created_at')
+    .eq('group_id', groupId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as GroupAnnouncement[];
+}
+
+export async function createGroupAnnouncement(input: {
+  groupId: string;
+  title: string;
+  body?: string;
+}) {
+  const { supabase, userId } = await getAuthenticatedContext();
+
+  const { data, error } = await supabase
+    .from('group_announcements')
+    .insert({
+      group_id: input.groupId,
+      created_by: userId,
+      title: input.title.trim(),
+      body: input.body?.trim() || null,
+    })
+    .select('id, group_id, created_by, title, body, created_at')
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as GroupAnnouncement;
+}
+
+export async function deleteGroupAnnouncement(announcementId: string) {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { error } = await supabase.from('group_announcements').delete().eq('id', announcementId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function getGroupNativeNoteById(groupId: string, noteId: string) {
