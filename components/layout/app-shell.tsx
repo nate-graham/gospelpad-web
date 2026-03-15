@@ -30,6 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div
+      className="app-shell-root"
       style={{
         minHeight: '100vh',
         padding: '1rem',
@@ -104,7 +105,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </header>
 
-          <main className="panel" id="main-content" style={{ minHeight: '72vh', padding: '1.2rem' }} tabIndex={-1}>
+          <main className="panel app-main-panel" id="main-content" style={{ minHeight: '72vh', padding: '1.2rem' }} tabIndex={-1}>
             {children}
           </main>
         </div>
@@ -168,6 +169,36 @@ export function AppShell({ children }: { children: ReactNode }) {
         @media (max-width: 979px) {
           .shell-page {
             grid-template-columns: minmax(0, 1fr);
+          }
+        }
+
+        @media (max-width: 767px) {
+          .app-shell-root {
+            padding: 0;
+          }
+
+          .shell-page {
+            width: 100%;
+            gap: 0.75rem;
+          }
+
+          .mobile-topbar {
+            margin: 0.5rem 0.5rem 0;
+          }
+
+          .app-main-panel {
+            min-height: calc(100vh - 7.5rem);
+            padding: 1rem;
+            border-left: 0;
+            border-right: 0;
+            border-radius: 0;
+            box-shadow: none;
+          }
+
+          .mobile-bottom-nav {
+            left: 0.5rem;
+            right: 0.5rem;
+            bottom: 0.5rem;
           }
         }
       `}</style>
