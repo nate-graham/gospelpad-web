@@ -8,9 +8,11 @@ Standalone Next.js web app for GospelPad.
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_STORAGE_BUCKET_RECORDINGS=recordings
 ```
 
 `NEXT_PUBLIC_APP_URL` should be the exact public base URL for the deployed web app, with no trailing slash.
+`NEXT_PUBLIC_STORAGE_BUCKET_RECORDINGS` is optional and defaults to `recordings`, which is the same bucket name used by the existing mobile transcription flow.
 
 ## Local development
 

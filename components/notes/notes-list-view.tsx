@@ -110,6 +110,9 @@ export function NotesListView() {
           </p>
         </div>
         <div className="cta-row">
+          <Link className="button button-secondary" href="/notes/dictate">
+            Dictate note
+          </Link>
           <Link className="button button-primary" href="/notes/new">
             New note
           </Link>
