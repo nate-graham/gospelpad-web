@@ -26,6 +26,10 @@ export function getRequiredEnvState(): EnvState {
 }
 
 export function getPublicAppUrl() {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin;
+  }
+
   const value = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
   if (!value) {

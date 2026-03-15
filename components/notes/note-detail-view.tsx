@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { duplicateNote, getNoteById, updateNote, type NoteGroupShare, softDeleteNote, type NoteRecord } from '@/lib/notes';
+import { duplicateNote, getNoteById, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteRecord, type NoteUserShare } from '@/lib/notes';
 import {
   formatNoteDate,
   getNoteReadingTimeMinutes,
@@ -30,6 +30,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
   const [groupShares, setGroupShares] = useState<NoteGroupShare[]>([]);
+  const [userShares, setUserShares] = useState<NoteUserShare[]>([]);
   const [prayerRequest, setPrayerRequest] = useState<PrayerRequestRecord | null>(null);
   const [updatingPrayerStatus, setUpdatingPrayerStatus] = useState(false);
 
@@ -84,6 +85,32 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
     };
   }, [note?.prayer_request_id, note?.type]);
 
+  useEffect(() => {
+    let active = true;
+
+    if (!note) {
+      setUserShares([]);
+      return;
+    }
+
+    const loadUserShares = async () => {
+      try {
+        const data = await listOwnedUserShares(note.id);
+        if (!active) return;
+        setUserShares(data);
+      } catch {
+        if (!active) return;
+        setUserShares([]);
+      }
+    };
+
+    void loadUserShares();
+
+    return () => {
+      active = false;
+    };
+  }, [note?.id]);
+
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Note created successfully.';
     if (searchParams.get('updated') === '1') return 'Note updated successfully.';
@@ -118,7 +145,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
     try {
       setDuplicating(true);
       const duplicateId = await duplicateNote(note);
-      router.replace(`/notes/${duplicateId}?created=1`);
+      router.replace(`/notes/${duplicateId}/edit?copied=1&from=personal-note`);
     } catch (duplicateError) {
       setError(duplicateError instanceof Error ? duplicateError.message : 'Failed to duplicate note.');
       setDuplicating(false);
@@ -317,11 +344,16 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
         <div className="status-card" style={{ padding: '1rem' }}>
           <span className="eyebrow">Visibility</span>
           <strong style={{ fontSize: '1.05rem' }}>
-            {groupShares.length > 0 ? `Shared to ${groupShares.length} group${groupShares.length === 1 ? '' : 's'}` : 'Private note'}
+            {groupShares.length + userShares.length > 0
+              ? `Shared to ${groupShares.length} group${groupShares.length === 1 ? '' : 's'} and ${userShares.length} user${userShares.length === 1 ? '' : 's'}`
+              : 'Private note'}
           </strong>
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            {groupShares.length > 0
-              ? groupShares.map((share) => share.group_name).join(', ')
+            {groupShares.length + userShares.length > 0
+              ? [
+                  ...groupShares.map((share) => share.group_name),
+                  ...userShares.map((share) => share.user_label),
+                ].join(', ')
               : 'This note is currently visible only to you.'}
           </span>
         </div>
@@ -369,7 +401,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
         <NoteClipsList clips={note.clips} />
       ) : null}
 
-      <NoteSharePanel note={note} onSharesUpdated={setGroupShares} />
+      <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
 
       {note.shared || groupShares.length > 0 ? (
         <SharedNoteComments noteId={note.id} />

@@ -71,18 +71,27 @@ export async function createRecordingSignedUrl(path: string, bucket = getRecordi
 
 export async function transcribeRecording(fileUrl: string, path?: string, bucket?: string): Promise<TranscriptionResponse> {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabase = getSupabaseBrowserClient();
 
-  if (!base || !anon) {
-    throw new Error('Missing Supabase env vars');
+  if (!base || !supabase) {
+    throw new Error('Supabase is not configured for this browser session.');
+  }
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  const accessToken = session?.access_token;
+  if (sessionError || !accessToken) {
+    throw new Error('You must be signed in to transcribe audio.');
   }
 
   const response = await fetch(`${base}/functions/v1/transcribe_audio`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      apikey: anon,
-      Authorization: `Bearer ${anon}`,
+      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({ fileUrl, path, bucket }),
   });

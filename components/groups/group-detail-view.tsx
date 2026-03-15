@@ -336,7 +336,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       <section className="error-state status-message" role="alert">
         <strong>Group access is limited</strong>
         <span style={{ color: 'var(--muted)' }}>
-          This V1 detail page is intended for groups you belong to. Group notes and comments remain deferred until the broader collaboration policies are tightened.
+          This group detail page is intended for groups you belong to. Access to member, note, and announcement surfaces is limited to current members.
         </span>
         <Link className="button button-secondary" href="/groups">
           Back to groups
@@ -379,7 +379,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             {announcements.length} {announcements.length === 1 ? 'announcement' : 'announcements'}
           </strong>
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            Group-wide communication already exists in the repo through `group_announcements`. This web pass exposes the same lightweight overview pattern the mobile group screen already uses.
+            Group-wide communication runs through the existing `group_announcements` table and stays visible to every current member here.
           </span>
         </div>
 
@@ -480,7 +480,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             {membership ? `You are a ${membership.role}` : 'Access inherited from owner visibility'}
           </strong>
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            This pass adds non-owner leave-group, private-group join-request review, owner-managed admin toggles, and safe member removal. Ownership transfer still stays deferred.
+            Leave-group, private-group join-request review, owner-managed admin toggles, and safe member removal are all available here. Ownership transfer still stays deferred.
           </span>
         </div>
 
@@ -731,10 +731,10 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       </section>
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-        <span className="eyebrow">V1 boundary</span>
-        <strong>Leave-group and join-request handling are in scope; deeper admin tooling still stays deferred.</strong>
+        <span className="eyebrow">Current scope</span>
+        <strong>Groups now cover announcements, members, shared notes, and dedicated group notes in one place.</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          This pass exposes member-visible `group_notes`, shared personal notes, lightweight shared-note comments, non-owner leave-group, private-group join-request review, owner-only admin toggles, and safe member removal. Invitations and ownership transfer still need a separate safe pass.
+          Dedicated `group_note_comments`, broader permission-management UI, and ownership transfer still stay deferred until their backend policies are tightened further.
         </span>
       </section>
 

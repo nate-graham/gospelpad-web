@@ -25,10 +25,10 @@ export function SettingsView() {
   return (
     <div className="page-section">
       <header className="page-header">
-        <span className="eyebrow">Settings V1</span>
+        <span className="eyebrow">Settings</span>
         <h1>Settings</h1>
         <p className="page-description">
-          This V1 settings area keeps to realistic launch needs: appearance preference, session access, and deployment-relevant account assumptions.
+          Manage appearance, session access, and the current deployment assumptions that affect your GospelPad web account.
         </p>
       </header>
 
@@ -90,7 +90,7 @@ export function SettingsView() {
         <DetailRow label="Base URL" value={appUrl} />
         <DetailRow label="Auth callback" value={getWebAuthCallbackUrl('/notes')} />
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Production deploys must register the matching callback URL in Supabase Auth and keep `NEXT_PUBLIC_APP_URL` aligned with the deployed domain.
+          Production deploys must register the matching callback URL in Supabase Auth and keep the canonical deployed host consistent with `NEXT_PUBLIC_APP_URL`.
         </span>
       </section>
     </div>

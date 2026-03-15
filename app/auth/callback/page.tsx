@@ -22,17 +22,33 @@ export default function AuthCallbackPage() {
 
       const url = new URL(window.location.href);
       const code = url.searchParams.get('code');
+      const hashParams = new URLSearchParams(url.hash.startsWith('#') ? url.hash.slice(1) : url.hash);
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
       const next = getSafeNextPath(url.searchParams.get('next') || searchParams.get('next'));
 
-      if (!code) {
-        setMessage('No auth code was found in this callback URL.');
+      const authResult = code
+        ? await supabase.auth.exchangeCodeForSession(code)
+        : accessToken && refreshToken
+          ? await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            })
+          : null;
+
+      if (!authResult) {
+        setMessage('No auth callback credentials were found in this URL.');
         return;
       }
 
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      const { error } = authResult;
       if (error) {
         setMessage(error.message);
         return;
+      }
+
+      if (url.hash) {
+        window.history.replaceState({}, document.title, `${url.pathname}${url.search}`);
       }
 
       const {

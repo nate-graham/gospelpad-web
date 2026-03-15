@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { listNotes, NOTE_TYPES, type NoteListQuery, type NoteRecord } from '@/lib/notes';
+import { listNotes, listReceivedSharedNotes, NOTE_TYPES, type NoteListQuery, type NoteRecord, type ReceivedSharedNoteSummary } from '@/lib/notes';
 import { formatNoteDate, getNoteExcerpt } from '@/components/notes/note-utils';
 
 export function NotesListView() {
@@ -11,6 +11,7 @@ export function NotesListView() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [notes, setNotes] = useState<NoteRecord[]>([]);
+  const [receivedSharedNotes, setReceivedSharedNotes] = useState<ReceivedSharedNoteSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,9 +33,13 @@ export function NotesListView() {
       try {
         setLoading(true);
         setError(null);
-        const data = await listNotes(query);
+        const [data, received] = await Promise.all([
+          listNotes(query),
+          listReceivedSharedNotes(),
+        ]);
         if (!active) return;
         setNotes(data);
+        setReceivedSharedNotes(received);
       } catch (loadError) {
         if (!active) return;
         setError(loadError instanceof Error ? loadError.message : 'Failed to load notes.');
@@ -103,10 +108,10 @@ export function NotesListView() {
         }}
       >
         <div className="page-header">
-          <span className="eyebrow">V1 Notes</span>
+          <span className="eyebrow">Notes</span>
           <h1>Your notes</h1>
           <p className="page-description">
-            Simple, reliable note capture for web. This V1 deliberately focuses on durable CRUD and responsive reading/editing.
+            Capture, organize, dictate, share, and revisit notes across phone, tablet, and desktop with the current GospelPad web experience.
           </p>
         </div>
         <div className="cta-row">
@@ -132,15 +137,24 @@ export function NotesListView() {
           </span>
         </article>
         <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
+          <span className="eyebrow">Shared with you</span>
+          <strong style={{ fontSize: '1.5rem' }}>
+            {receivedSharedNotes.length} {receivedSharedNotes.length === 1 ? 'note' : 'notes'}
+          </strong>
+          <span style={{ color: 'var(--muted)' }}>
+            Direct user shares now show up here through the existing `note_shares` path.
+          </span>
+        </article>
+        <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
           <span className="eyebrow">Editor Scope</span>
-          <strong style={{ fontSize: '1.5rem' }}>V1 plain editor</strong>
-          <span style={{ color: 'var(--muted)' }}>Rich text, audio, and advanced attachments stay deferred for now.</span>
+          <strong style={{ fontSize: '1.5rem' }}>Scripture-aware editor</strong>
+          <span style={{ color: 'var(--muted)' }}>Typing, dictation handoff, prayer and dream metadata, and persisted audio clips are all available in the current web flow.</span>
         </article>
       </section>
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Discovery V1</span>
+          <span className="eyebrow">Discovery</span>
           <strong style={{ fontSize: '1.1rem' }}>Search, filter, and sort your notes</strong>
         </div>
 
@@ -316,6 +330,63 @@ export function NotesListView() {
               </div>
             </article>
           ))}
+        </section>
+      ) : null}
+
+      {!loading && !error ? (
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Shared with you</span>
+            <strong style={{ fontSize: '1.1rem' }}>Notes other people shared directly with your account</strong>
+            <span style={{ color: 'var(--muted)' }}>
+              This uses the same direct user-share path the mobile app already supports.
+            </span>
+          </div>
+
+          {receivedSharedNotes.length === 0 ? (
+            <section className="empty-state status-message" role="status">
+              <strong>No direct shares yet</strong>
+              <span style={{ color: 'var(--muted)' }}>
+                When another user shares a note directly with you, it will appear here.
+              </span>
+            </section>
+          ) : (
+            <section className="responsive-grid">
+              {receivedSharedNotes.map((share) => (
+                <article
+                  key={share.note.id}
+                  className="panel"
+                  style={{
+                    padding: '1rem',
+                    display: 'grid',
+                    gap: '0.85rem',
+                    alignContent: 'start',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'start' }}>
+                    <div style={{ display: 'grid', gap: '0.35rem' }}>
+                      <span className="badge">{share.note.type ?? 'Shared note'}</span>
+                      <strong style={{ fontSize: '1.1rem', lineHeight: 1.3 }}>
+                        {share.note.title?.trim() || 'Untitled'}
+                      </strong>
+                    </div>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'right' }}>
+                      {formatNoteDate(share.shared_at)}
+                    </span>
+                  </div>
+                  <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteExcerpt(share.note)}</span>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
+                    Shared by {share.shared_by_label} • Permission: {share.permissions.join(', ')}
+                  </span>
+                  <div className="cta-row">
+                    <Link className="button button-primary" href={`/notes/shared/${share.note.id}`}>
+                      Open shared note
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </section>
+          )}
         </section>
       ) : null}
     </div>

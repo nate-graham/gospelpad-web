@@ -28,7 +28,7 @@ Rules:
 Examples:
 - local: `http://localhost:3000`
 - preview: `https://gospelpad-web-git-branch-owner.vercel.app`
-- production: `https://app.gospelpad.com`
+- production: use the canonical deployed host, for example `https://www.gospelpad.com`
 
 ## Supabase Auth configuration
 
@@ -38,7 +38,7 @@ In Supabase Auth settings:
 2. Add redirect URLs for every environment that can receive auth callbacks:
    - `http://localhost:3000/auth/callback`
    - preview callback URL if applicable
-   - production callback URL such as `https://app.gospelpad.com/auth/callback`
+   - production callback URL for the canonical host, such as `https://www.gospelpad.com/auth/callback`
 
 Password recovery should route through:
 
@@ -47,6 +47,7 @@ Password recovery should route through:
 ```
 
 This app already generates those callback URLs from `NEXT_PUBLIC_APP_URL`.
+In the browser, callback and invite-link generation now also follows the current `window.location.origin`, which helps when production canonicalizes to `www` or another host.
 
 ## Production verification
 
@@ -61,6 +62,8 @@ Apply the latest Supabase migrations before pointing production traffic at the w
 
 ```bash
 supabase db push
+supabase functions deploy fetch_scripture
+supabase functions deploy transcribe_audio
 ```
 
 Then verify:
@@ -71,16 +74,18 @@ Then verify:
 - password reset callback
 - protected route redirect from `/notes`
 - authenticated redirect away from `/auth/sign-in`
+- dictation upload/transcription/save
+- audio clip playback on owned and shared notes
 - notes, groups, profile, and settings load correctly
 
 ## Current production assumptions
 
 - Supabase anon key is safe to expose in the browser as intended by Supabase
-- deeper group collaboration remains deferred until backend RLS is tightened
+- `fetch_scripture` and `transcribe_audio` are both deployed and healthy
+- the `recordings` bucket exists and matches current storage policies
 - the web app is deployed as a separate frontend and does not share runtime code with `mobile/`
 - `next` redirect parameters are limited to internal paths only
 
 ## Current non-infra blockers outside this app
 
-- group notes/comments are still intentionally out of scope for V1 due to backend policy risk
 - any production domain used here must also be registered in Supabase Auth before launch

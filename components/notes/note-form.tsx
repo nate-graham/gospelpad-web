@@ -70,6 +70,9 @@ export function NoteForm({ mode, note }: NoteFormProps) {
       if (source === 'direct-share') {
         return 'This note was copied from a note shared directly with you. Edit it here to keep your own version.';
       }
+      if (source === 'personal-note') {
+        return 'This note was duplicated from one of your existing notes. Edit it here before saving your new version.';
+      }
       return 'This note was copied into your personal library. Edit it here before saving.';
     }
     return null;
