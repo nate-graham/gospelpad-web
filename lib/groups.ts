@@ -486,6 +486,52 @@ export async function listGroupNativeNotes(groupId: string) {
   return (data ?? []) as GroupNativeNoteSummary[];
 }
 
+export async function createGroupNote(input: {
+  groupId: string;
+  title: string;
+  body: string;
+}) {
+  const { supabase, userId } = await getAuthenticatedContext();
+
+  const { data, error } = await supabase
+    .from('group_notes')
+    .insert({
+      group_id: input.groupId,
+      created_by: userId,
+      title: input.title.trim() || 'Untitled',
+      body: input.body,
+      updated_at: new Date().toISOString(),
+    })
+    .select('id, group_id, created_by, title, body, created_at, updated_at')
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as GroupNativeNoteSummary;
+}
+
+export async function updateGroupNote(noteId: string, input: {
+  title: string;
+  body: string;
+}) {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { error } = await supabase
+    .from('group_notes')
+    .update({
+      title: input.title.trim() || 'Untitled',
+      body: input.body,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', noteId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function listGroupAnnouncements(groupId: string) {
   const { supabase } = await getAuthenticatedContext();
 

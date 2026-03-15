@@ -96,6 +96,9 @@ export function GroupSharedNoteView({
     || (note?.source === 'shared' ? 'Shared note owner' : 'Group member');
   const canManageShare = Boolean(note?.source === 'shared' && note.shared_by && viewerId === note.shared_by);
   const canOpenOriginal = Boolean(note?.source === 'shared' && note.shared_by && viewerId === note.shared_by);
+  const canEditGroupNote = Boolean(
+    note?.source === 'group' && viewerId && (note.created_by === viewerId || members.some((member) => member.user_id === viewerId && (member.is_owner || member.role === 'admin')))
+  );
 
   const onCopyToMyNotes = async () => {
     if (!note) return;
@@ -339,6 +342,12 @@ export function GroupSharedNoteView({
             >
               {unsharing ? 'Removing…' : 'Remove from this group'}
             </button>
+          ) : null}
+
+          {canEditGroupNote && note.source === 'group' ? (
+            <Link className="button button-secondary" href={`/groups/${groupId}/notes/${note.id}/edit`}>
+              Edit group note
+            </Link>
           ) : null}
         </div>
       </section>

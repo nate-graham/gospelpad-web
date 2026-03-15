@@ -591,6 +591,12 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             </span>
           </div>
 
+          <div className="cta-row">
+            <Link className="button button-primary" href={`/groups/${group.id}/notes/new`}>
+              New group note
+            </Link>
+          </div>
+
           {nativeNotes.length === 0 ? (
             <section className="empty-state status-message" role="status">
               <strong>No group notes yet</strong>
@@ -611,9 +617,16 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
                     <span>Updated {formatGroupDate(note.updated_at)}</span>
                     <span>{getScriptureReferenceCount(note)} scripture refs</span>
                   </div>
-                  <Link className="button button-secondary" href={`/groups/${group.id}/notes/${note.id}`}>
-                    Open group note
-                  </Link>
+                  <div className="cta-row">
+                    <Link className="button button-secondary" href={`/groups/${group.id}/notes/${note.id}`}>
+                      Open group note
+                    </Link>
+                    {membership && (membership.role === 'admin' || membership.user_id === note.created_by) ? (
+                      <Link className="button button-secondary" href={`/groups/${group.id}/notes/${note.id}/edit`}>
+                        Edit group note
+                      </Link>
+                    ) : null}
+                  </div>
                 </article>
               ))}
             </div>
