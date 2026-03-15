@@ -10,12 +10,14 @@ import {
   getNoteTypeGuidance,
   getNoteWordCount,
   getScriptureReferenceCount,
+  supportsSpeakerField,
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
 import { findScriptureReferences } from '@/lib/scripture-references';
 import { NoteSharePanel } from '@/components/notes/note-share-panel';
 import { getPrayerRequestById, type PrayerRequestRecord, type PrayerRequestStatus, upsertPrayerRequest } from '@/lib/prayer-requests';
+import { SharedNoteComments } from '@/components/notes/shared-note-comments';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -204,10 +206,12 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       <header className="page-header">
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', alignItems: 'center' }}>
           <span className="badge">{note.type ?? 'Note'}</span>
-          {note.speaker ? <span style={{ color: 'var(--muted)' }}>Speaker: {note.speaker}</span> : null}
+          {note.speaker && supportsSpeakerField(note.type) ? <span style={{ color: 'var(--muted)' }}>Speaker: {note.speaker}</span> : null}
           {note.status ? <span style={{ color: 'var(--muted)' }}>Status: {note.status}</span> : null}
           {note.type === 'Dream' && note.is_lucid_dream ? <span style={{ color: 'var(--muted)' }}>Lucid dream</span> : null}
+          {note.type === 'Dream' && !note.is_lucid_dream ? <span style={{ color: 'var(--muted)' }}>Not lucid</span> : null}
           {note.type === 'Dream' && note.dream_role ? <span style={{ color: 'var(--muted)' }}>Role: {note.dream_role}</span> : null}
+          {note.shared ? <span style={{ color: 'var(--muted)' }}>Shared</span> : null}
         </div>
         <h1>{note.title?.trim() || 'Untitled'}</h1>
         <p className="page-description">
@@ -361,6 +365,10 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       </section>
 
       <NoteSharePanel note={note} onSharesUpdated={setGroupShares} />
+
+      {note.shared || groupShares.length > 0 ? (
+        <SharedNoteComments noteId={note.id} />
+      ) : null}
 
       <div className="cta-row">
         <Link className="button button-primary" href={`/notes/${note.id}/edit`}>

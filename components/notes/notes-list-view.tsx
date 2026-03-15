@@ -278,9 +278,19 @@ export function NotesListView() {
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'start' }}>
                 <div style={{ display: 'grid', gap: '0.35rem' }}>
                   <span className="badge">{note.type ?? 'Note'}</span>
-                  {note.type === 'Prayer Requests' && note.status ? (
-                    <span style={{ color: 'var(--muted)', fontSize: '0.86rem' }}>Prayer status: {note.status}</span>
-                  ) : null}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
+                    {note.type === 'Prayer Requests' && note.status ? (
+                      <span style={{ color: 'var(--muted)', fontSize: '0.86rem' }}>Prayer status: {note.status}</span>
+                    ) : null}
+                    {note.type === 'Dream' ? (
+                      <span style={{ color: 'var(--muted)', fontSize: '0.86rem' }}>
+                        {note.is_lucid_dream ? 'Lucid' : 'Not lucid'}
+                      </span>
+                    ) : null}
+                    {note.shared ? (
+                      <span style={{ color: 'var(--muted)', fontSize: '0.86rem' }}>Shared</span>
+                    ) : null}
+                  </div>
                   <strong style={{ fontSize: '1.1rem', lineHeight: 1.3 }}>
                     {note.title?.trim() || 'Untitled'}
                   </strong>

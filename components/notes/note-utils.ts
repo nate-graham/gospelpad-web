@@ -51,6 +51,10 @@ export function getNoteTypeGuidance(type: string | null | undefined) {
   }
 }
 
+export function supportsSpeakerField(type: string | null | undefined) {
+  return type === 'Church notes' || type === 'Study';
+}
+
 export function getNoteTypePlaceholders(type: string | null | undefined) {
   switch (type) {
     case 'Study':

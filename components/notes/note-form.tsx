@@ -11,6 +11,7 @@ import {
   getScriptureReferenceCount,
   getNoteTypePlaceholders,
   getNoteWordCount,
+  supportsSpeakerField,
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { insertTextIntoEditable, ScriptureEditableField } from '@/components/notes/scripture-editable-field';
@@ -111,6 +112,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const placeholders = useMemo(() => getNoteTypePlaceholders(form.type), [form.type]);
   const isDreamNote = form.type === 'Dream';
   const isPrayerRequest = form.type === 'Prayer Requests';
+  const showSpeakerField = supportsSpeakerField(form.type);
 
   const onChange = <K extends keyof DraftState>(key: K, value: DraftState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -257,15 +259,17 @@ export function NoteForm({ mode, note }: NoteFormProps) {
                 style={inputStyle}
               />
             </label>
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Speaker</span>
-              <input
-                value={form.speaker}
-                onChange={(event) => onChange('speaker', event.target.value)}
-                placeholder={placeholders.speaker}
-                style={inputStyle}
-              />
-            </label>
+            {showSpeakerField ? (
+              <label style={fieldStyle}>
+                <span className="eyebrow" style={labelTextStyle}>Speaker</span>
+                <input
+                  value={form.speaker}
+                  onChange={(event) => onChange('speaker', event.target.value)}
+                  placeholder={placeholders.speaker}
+                  style={inputStyle}
+                />
+              </label>
+            ) : null}
             <label style={fieldStyle}>
               <span className="eyebrow" style={labelTextStyle}>Type</span>
               <select
@@ -368,6 +372,15 @@ export function NoteForm({ mode, note }: NoteFormProps) {
           ) : null}
 
           <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+            {!showSpeakerField ? (
+              <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.45rem' }}>
+                <span className="eyebrow">Type-specific composer</span>
+                <strong style={{ fontSize: '1.05rem' }}>{form.type}</strong>
+                <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+                  This note type follows the mobile composer pattern and does not use the separate speaker field.
+                </span>
+              </div>
+            ) : null}
             {detectedReferences.length > 0 ? (
               <div style={{ display: 'grid', gap: '0.55rem' }}>
                 <span className="eyebrow">Detected references in this note</span>
