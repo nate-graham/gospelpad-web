@@ -8,6 +8,7 @@ import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } f
 import {
   DEFAULT_NOTE_TYPE,
   getScriptureReferenceCount,
+  getNoteTypePlaceholders,
   getNoteWordCount,
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
@@ -36,6 +37,8 @@ export function NoteForm({ mode, note }: NoteFormProps) {
       type: NOTE_TYPES.includes((note?.type ?? '') as (typeof NOTE_TYPES)[number])
         ? (note?.type as (typeof NOTE_TYPES)[number])
         : DEFAULT_NOTE_TYPE,
+      isLucidDream: Boolean(note?.is_lucid_dream),
+      dreamRole: note?.dream_role === 'involved' ? 'involved' : 'observing',
     }),
     [note]
   );
@@ -68,6 +71,12 @@ export function NoteForm({ mode, note }: NoteFormProps) {
           type: NOTE_TYPES.includes((parsed.type ?? '') as (typeof NOTE_TYPES)[number])
             ? (parsed.type as (typeof NOTE_TYPES)[number])
             : initialState.type,
+          isLucidDream:
+            typeof parsed.isLucidDream === 'boolean' ? parsed.isLucidDream : initialState.isLucidDream,
+          dreamRole:
+            parsed.dreamRole === 'involved' || parsed.dreamRole === 'observing'
+              ? parsed.dreamRole
+              : initialState.dreamRole,
         });
         setDraftNotice('Recovered a saved local draft for this form.');
       }
@@ -88,6 +97,8 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const detectedReferences = useMemo(() => findScriptureReferences(form.body), [form.body]);
   const wordCount = useMemo(() => getNoteWordCount({ body: form.body } as NoteRecord), [form.body]);
   const scriptureCount = useMemo(() => getScriptureReferenceCount({ body: form.body } as NoteRecord), [form.body]);
+  const placeholders = useMemo(() => getNoteTypePlaceholders(form.type), [form.type]);
+  const isDreamNote = form.type === 'Dream';
 
   const onChange = <K extends keyof DraftState>(key: K, value: DraftState[K]) => {
     setForm((current) => ({ ...current, [key]: value }));
@@ -160,7 +171,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
           {mode === 'create' ? 'Capture a new note' : 'Update your note'}
         </h1>
         <p className="page-description">
-          V1 uses a clean plain-text note editor with local draft recovery. Rich formatting and media workflows stay deferred.
+          This composer keeps the current scripture-aware editor and local draft recovery while now surfacing the most important structured fields already used by the mobile product.
         </p>
       </header>
 
@@ -210,7 +221,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
               <input
                 value={form.title}
                 onChange={(event) => onChange('title', event.target.value)}
-                placeholder="Sunday service notes"
+                placeholder={placeholders.title}
                 required
                 style={inputStyle}
               />
@@ -220,7 +231,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
               <input
                 value={form.speaker}
                 onChange={(event) => onChange('speaker', event.target.value)}
-                placeholder="Pastor, teacher, or source"
+                placeholder={placeholders.speaker}
                 style={inputStyle}
               />
             </label>
@@ -239,6 +250,49 @@ export function NoteForm({ mode, note }: NoteFormProps) {
               </select>
             </label>
           </section>
+
+          {isDreamNote ? (
+            <section
+              className="panel"
+              style={{
+                padding: '1rem',
+                display: 'grid',
+                gap: '1rem',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              }}
+            >
+              <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
+                <span className="eyebrow">Dream note</span>
+                <strong style={{ fontSize: '1.05rem' }}>
+                  {form.isLucidDream ? 'Lucid dream' : 'Standard dream'}
+                </strong>
+                <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+                  Mobile already tracks whether a dream was lucid and whether you were observing or involved.
+                </span>
+              </div>
+
+              <label style={{ display: 'flex', gap: '0.7rem', alignItems: 'center' }}>
+                <input
+                  checked={Boolean(form.isLucidDream)}
+                  onChange={(event) => onChange('isLucidDream', event.target.checked)}
+                  type="checkbox"
+                />
+                <span style={{ color: 'var(--muted)', lineHeight: 1.5 }}>Mark this as a lucid dream</span>
+              </label>
+
+              <label style={fieldStyle}>
+                <span className="eyebrow" style={labelTextStyle}>In the dream</span>
+                <select
+                  value={form.dreamRole ?? 'observing'}
+                  onChange={(event) => onChange('dreamRole', event.target.value as 'observing' | 'involved')}
+                  style={inputStyle}
+                >
+                  <option value="observing">Observing</option>
+                  <option value="involved">Involved</option>
+                </select>
+              </label>
+            </section>
+          ) : null}
 
           <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
             {detectedReferences.length > 0 ? (
@@ -272,6 +326,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
                 value={form.body}
                 onChange={(nextBody) => onChange('body', nextBody)}
                 onReferenceClick={setActiveReference}
+                placeholder={placeholders.body}
               />
             </label>
           </section>

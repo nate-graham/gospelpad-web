@@ -48,3 +48,33 @@ export function getNoteTypeGuidance(type: string | null | undefined) {
       return 'This note is stored in the current plain-text V1 format for reliable capture and review.';
   }
 }
+
+export function getNoteTypePlaceholders(type: string | null | undefined) {
+  switch (type) {
+    case 'Study':
+      return {
+        title: 'Enter study topic',
+        speaker: 'Study group, teacher, or source',
+        body: 'Capture observations, interpretations, and questions from your study...',
+      };
+    case 'Journal':
+      return {
+        title: 'Journal entry title',
+        speaker: 'Optional source or conversation',
+        body: 'Write your reflection, prayer, or personal response...',
+      };
+    case 'Dream':
+      return {
+        title: 'Dream title or summary',
+        speaker: 'Optional person or source in the dream',
+        body: 'Record the dream sequence, symbols, emotions, and interpretation notes while it is still fresh...',
+      };
+    case 'Church notes':
+    default:
+      return {
+        title: 'Sunday service notes',
+        speaker: 'Pastor, teacher, or source',
+        body: 'Capture sermon points, scripture references, and takeaways...',
+      };
+  }
+}

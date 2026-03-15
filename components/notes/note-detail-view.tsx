@@ -133,6 +133,8 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
           <span className="badge">{note.type ?? 'Note'}</span>
           {note.speaker ? <span style={{ color: 'var(--muted)' }}>Speaker: {note.speaker}</span> : null}
           {note.status ? <span style={{ color: 'var(--muted)' }}>Status: {note.status}</span> : null}
+          {note.type === 'Dream' && note.is_lucid_dream ? <span style={{ color: 'var(--muted)' }}>Lucid dream</span> : null}
+          {note.type === 'Dream' && note.dream_role ? <span style={{ color: 'var(--muted)' }}>Role: {note.dream_role}</span> : null}
         </div>
         <h1>{note.title?.trim() || 'Untitled'}</h1>
         <p className="page-description">
@@ -174,6 +176,17 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
             <strong style={{ fontSize: '1.2rem' }}>{note.type ?? 'Note'}</strong>
             <span style={{ color: 'var(--muted)' }}>{note.status?.trim() || 'No explicit status set'}</span>
           </article>
+          {note.type === 'Dream' ? (
+            <article className="status-card" style={{ padding: '1rem' }}>
+              <span className="eyebrow">Dream metadata</span>
+              <strong style={{ fontSize: '1.2rem' }}>
+                {note.is_lucid_dream ? 'Lucid dream' : 'Standard dream'}
+              </strong>
+              <span style={{ color: 'var(--muted)' }}>
+                {note.dream_role ? `You were ${note.dream_role} in the dream.` : 'No dream role recorded.'}
+              </span>
+            </article>
+          ) : null}
         </div>
 
         <div className="status-card" style={{ padding: '1rem' }}>
