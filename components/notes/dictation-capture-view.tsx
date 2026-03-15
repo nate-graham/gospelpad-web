@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, type NoteInput } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
-import { uploadRecordingBlob, transcribeRecording } from '@/lib/transcription';
+import { uploadRecordingBlob, transcribeRecording, type UploadedRecording } from '@/lib/transcription';
 import { getNoteTypePlaceholders, supportsSpeakerField } from '@/components/notes/note-utils';
 
 type DictationDraft = Pick<NoteInput, 'title' | 'speaker' | 'type' | 'isLucidDream' | 'dreamRole' | 'prayerStatus'> & {
@@ -32,11 +32,13 @@ export function DictationCaptureView() {
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioName, setAudioName] = useState('Dictation clip');
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [transcribing, setTranscribing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadedClip, setUploadedClip] = useState<UploadedRecording | null>(null);
 
   useEffect(() => {
     if (!recording) return undefined;
@@ -75,6 +77,7 @@ export function DictationCaptureView() {
     }
     setAudioBlob(null);
     setAudioUrl(null);
+    setUploadedClip(null);
     setRecordSeconds(0);
   };
 
@@ -101,6 +104,7 @@ export function DictationCaptureView() {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' });
         const nextUrl = URL.createObjectURL(blob);
         setAudioBlob(blob);
+        setAudioName(`Dictation clip ${new Date().toLocaleString('en-GB')}`);
         setAudioUrl((current) => {
           if (current) URL.revokeObjectURL(current);
           return nextUrl;
@@ -130,6 +134,7 @@ export function DictationCaptureView() {
     resetAudio();
     const url = URL.createObjectURL(file);
     setAudioBlob(file);
+    setAudioName(file.name || 'Uploaded audio');
     setAudioUrl(url);
     setNotice(`Loaded ${file.name} for transcription.`);
   };
@@ -142,6 +147,7 @@ export function DictationCaptureView() {
       setError(null);
       setNotice(null);
       const upload = await uploadRecordingBlob(audioBlob);
+      setUploadedClip(upload);
       const result = await transcribeRecording(upload.signedUrl, upload.path, upload.bucket);
       setDraft((current) => ({
         ...current,
@@ -187,6 +193,17 @@ export function DictationCaptureView() {
         dreamRole: draft.type === 'Dream' ? draft.dreamRole ?? 'observing' : undefined,
         prayerStatus: draft.type === 'Prayer Requests' ? draft.prayerStatus ?? 'Ongoing' : undefined,
         prayerRequestId,
+        clips:
+          uploadedClip
+            ? [
+                {
+                  id: `clip-${Date.now()}`,
+                  uri: uploadedClip.path,
+                  duration: recordSeconds * 1000,
+                  name: audioName || 'Dictation clip',
+                },
+              ]
+            : undefined,
       });
 
       router.replace(`/notes/${noteId}/edit?dictated=1`);

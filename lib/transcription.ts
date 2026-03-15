@@ -4,6 +4,12 @@ export type TranscriptionResponse = {
   text: string;
 };
 
+export type UploadedRecording = {
+  bucket: string;
+  path: string;
+  signedUrl: string;
+};
+
 function getRecordingBucket() {
   return process.env.NEXT_PUBLIC_STORAGE_BUCKET_RECORDINGS?.trim() || 'recordings';
 }
@@ -18,7 +24,7 @@ function guessExtension(type: string) {
   return 'webm';
 }
 
-export async function uploadRecordingBlob(blob: Blob) {
+export async function uploadRecordingBlob(blob: Blob): Promise<UploadedRecording> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
     throw new Error('Supabase is not configured for this browser session.');
@@ -47,6 +53,20 @@ export async function uploadRecordingBlob(blob: Blob) {
     path: data.path,
     signedUrl: signed.data.signedUrl,
   };
+}
+
+export async function createRecordingSignedUrl(path: string, bucket = getRecordingBucket()) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    throw new Error('Supabase is not configured for this browser session.');
+  }
+
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 60 * 60);
+  if (error || !data?.signedUrl) {
+    throw error || new Error('Failed to create a signed URL for this clip.');
+  }
+
+  return data.signedUrl;
 }
 
 export async function transcribeRecording(fileUrl: string, path?: string, bucket?: string): Promise<TranscriptionResponse> {

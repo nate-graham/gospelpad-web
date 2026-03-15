@@ -18,6 +18,7 @@ import { findScriptureReferences } from '@/lib/scripture-references';
 import { NoteSharePanel } from '@/components/notes/note-share-panel';
 import { getPrayerRequestById, type PrayerRequestRecord, type PrayerRequestStatus, upsertPrayerRequest } from '@/lib/prayer-requests';
 import { SharedNoteComments } from '@/components/notes/shared-note-comments';
+import { NoteClipsList } from '@/components/notes/note-clips-list';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -363,6 +364,10 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
           )}
         </div>
       </section>
+
+      {note.clips?.length ? (
+        <NoteClipsList clips={note.clips} />
+      ) : null}
 
       <NoteSharePanel note={note} onSharesUpdated={setGroupShares} />
 

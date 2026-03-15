@@ -24,6 +24,7 @@ import { findScriptureReferences } from '@/lib/scripture-references';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
 import { GroupNoteComments } from '@/components/groups/group-note-comments';
+import { NoteClipsList } from '@/components/notes/note-clips-list';
 
 export function GroupSharedNoteView({
   groupId,
@@ -115,6 +116,7 @@ export function GroupSharedNoteView({
           ? (('type' in note ? note.type : NOTE_TYPES[0]) as (typeof NOTE_TYPES)[number])
           : NOTE_TYPES[0],
         status: 'status' in note ? note.status : null,
+        clips: 'clips' in note ? note.clips ?? null : null,
         is_lucid_dream: false,
         dream_role: null,
       });
@@ -286,6 +288,14 @@ export function GroupSharedNoteView({
           )}
         </div>
       </section>
+
+      {note.source === 'shared' && note.clips?.length ? (
+        <NoteClipsList
+          clips={note.clips}
+          title="Shared audio clips"
+          description="These clips stay attached to the original shared note and can be previewed or downloaded here."
+        />
+      ) : null}
 
       {note.source === 'shared' ? (
         <GroupNoteComments

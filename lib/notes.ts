@@ -16,6 +16,7 @@ export type NoteRecord = {
   is_lucid_dream: boolean | null;
   dream_role: 'observing' | 'involved' | null;
   prayer_request_id: string | null;
+  clips: Array<{ id: string; uri: string; duration: number; name: string }> | null;
   shared: boolean;
   share_targets: unknown[] | null;
   group_note_id: string | null;
@@ -44,6 +45,7 @@ export type NoteInput = {
   dreamRole?: 'observing' | 'involved';
   prayerStatus?: PrayerRequestStatus;
   prayerRequestId?: string | null;
+  clips?: Array<{ id: string; uri: string; duration: number; name: string }>;
 };
 
 export type NoteListQuery = {
@@ -77,7 +79,7 @@ export async function listNotes(query: NoteListQuery = {}) {
 
   let request = supabase
     .from('notes')
-    .select('id, user_id, title, body, speaker, type, status, is_lucid_dream, dream_role, prayer_request_id, shared, share_targets, group_note_id, created_at, updated_at, deleted_at')
+    .select('id, user_id, title, body, speaker, type, status, is_lucid_dream, dream_role, prayer_request_id, clips, shared, share_targets, group_note_id, created_at, updated_at, deleted_at')
     .eq('user_id', userId)
     .is('deleted_at', null)
     .order('updated_at', { ascending: false });
@@ -141,7 +143,7 @@ export async function getNoteById(noteId: string) {
 
   const { data, error } = await supabase
     .from('notes')
-    .select('id, user_id, title, body, speaker, type, status, is_lucid_dream, dream_role, prayer_request_id, shared, share_targets, group_note_id, created_at, updated_at, deleted_at')
+    .select('id, user_id, title, body, speaker, type, status, is_lucid_dream, dream_role, prayer_request_id, clips, shared, share_targets, group_note_id, created_at, updated_at, deleted_at')
     .eq('id', noteId)
     .eq('user_id', userId)
     .maybeSingle();
@@ -166,6 +168,7 @@ export async function createNote(input: NoteInput) {
     is_lucid_dream: input.type === 'Dream' ? Boolean(input.isLucidDream) : null,
     dream_role: input.type === 'Dream' ? input.dreamRole ?? 'observing' : null,
     prayer_request_id: input.type === 'Prayer Requests' ? input.prayerRequestId ?? null : null,
+    clips: input.clips ?? null,
     shared: false,
     share_targets: null,
     group_note_id: null,
@@ -200,6 +203,7 @@ export async function updateNote(noteId: string, input: NoteInput) {
       is_lucid_dream: input.type === 'Dream' ? Boolean(input.isLucidDream) : null,
       dream_role: input.type === 'Dream' ? input.dreamRole ?? 'observing' : null,
       prayer_request_id: input.type === 'Prayer Requests' ? input.prayerRequestId ?? null : null,
+      clips: input.clips ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', noteId);
@@ -225,7 +229,7 @@ export async function softDeleteNote(noteId: string) {
   }
 }
 
-export async function duplicateNote(note: Pick<NoteRecord, 'title' | 'body' | 'speaker' | 'type' | 'status' | 'is_lucid_dream' | 'dream_role'>) {
+export async function duplicateNote(note: Pick<NoteRecord, 'title' | 'body' | 'speaker' | 'type' | 'status' | 'is_lucid_dream' | 'dream_role' | 'clips'>) {
   const { supabase, userId } = await getAuthenticatedUserId();
 
   const baseTitle = note.title?.trim() || 'Untitled';
@@ -241,6 +245,7 @@ export async function duplicateNote(note: Pick<NoteRecord, 'title' | 'body' | 's
     is_lucid_dream: note.type === 'Dream' ? Boolean(note.is_lucid_dream) : null,
     dream_role: note.type === 'Dream' ? note.dream_role ?? 'observing' : null,
     prayer_request_id: null,
+    clips: note.clips ?? null,
     shared: false,
     share_targets: null,
     group_note_id: null,

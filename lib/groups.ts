@@ -43,6 +43,7 @@ export type GroupSharedNoteSummary = {
   speaker: string | null;
   type: string | null;
   status: string | null;
+  clips: Array<{ id: string; uri: string; duration: number; name: string }> | null;
   created_at: string;
   updated_at: string;
   permissions: 'view' | 'comment' | 'edit';
@@ -436,7 +437,7 @@ export async function listGroupSharedNotes(groupId: string) {
   const noteIds = Array.from(new Set(shares.map((share) => share.note_id)));
   const { data: notes, error: notesError } = await supabase
     .from('notes')
-    .select('id, title, body, speaker, type, status, created_at, updated_at, deleted_at')
+    .select('id, title, body, speaker, type, status, clips, created_at, updated_at, deleted_at')
     .in('id', noteIds)
     .is('deleted_at', null);
 
@@ -460,6 +461,7 @@ export async function listGroupSharedNotes(groupId: string) {
         speaker: note.speaker,
         type: note.type,
         status: note.status,
+        clips: note.clips ?? null,
         created_at: note.created_at,
         updated_at: note.updated_at,
         permissions: share.permissions,
@@ -622,7 +624,7 @@ export async function getGroupSharedNoteById(groupId: string, noteId: string) {
 
   const { data: note, error: noteError } = await supabase
     .from('notes')
-    .select('id, title, body, speaker, type, status, created_at, updated_at, deleted_at')
+    .select('id, title, body, speaker, type, status, clips, created_at, updated_at, deleted_at')
     .eq('id', noteId)
     .is('deleted_at', null)
     .maybeSingle();
@@ -642,6 +644,7 @@ export async function getGroupSharedNoteById(groupId: string, noteId: string) {
     speaker: note.speaker,
     type: note.type,
     status: note.status,
+    clips: note.clips ?? null,
     created_at: note.created_at,
     updated_at: note.updated_at,
     permissions: shareRow.permissions,
