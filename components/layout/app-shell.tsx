@@ -44,7 +44,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         style={{
           display: 'grid',
           gap: '1rem',
-          gridTemplateColumns: 'var(--sidebar-width) minmax(0, 1fr)',
         }}
       >
         <aside className="panel app-sidebar">
@@ -172,6 +171,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           }
         }
 
+        @media (min-width: 980px) {
+          .shell-page {
+            grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+          }
+        }
+
         @media (max-width: 767px) {
           .app-shell-root {
             padding: 0;
@@ -189,10 +194,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           .app-main-panel {
             min-height: calc(100vh - 7.5rem);
             padding: 1rem;
-            border-left: 0;
-            border-right: 0;
+            border: 0;
+            background: transparent;
             border-radius: 0;
             box-shadow: none;
+            backdrop-filter: none;
           }
 
           .mobile-bottom-nav {
