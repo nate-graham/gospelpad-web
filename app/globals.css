@@ -241,14 +241,21 @@ select[disabled] {
 }
 
 .scripture-ref-button {
-  display: inline;
+  display: inline-block;
   padding: 0;
+  margin: 0;
   border: 0;
   background: transparent;
   color: var(--accent-strong);
   font-weight: 700;
+  font: inherit;
+  line-height: inherit;
   text-decoration: underline;
   text-underline-offset: 0.18em;
+  vertical-align: baseline;
+  cursor: pointer;
+  width: auto;
+  max-width: max-content;
 }
 
 .scripture-ref-button:hover {
