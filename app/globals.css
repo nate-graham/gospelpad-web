@@ -310,6 +310,20 @@ select[disabled] {
     padding-bottom: 5.5rem;
   }
 
+  .page-section {
+    gap: 1rem;
+  }
+
+  .page-description {
+    max-width: none;
+  }
+
+  .responsive-grid,
+  .responsive-grid.compact,
+  .two-column-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .cta-row {
     width: 100%;
   }
@@ -319,6 +333,7 @@ select[disabled] {
   }
 
   .panel {
+    width: 100%;
     border-radius: 18px;
   }
 }
