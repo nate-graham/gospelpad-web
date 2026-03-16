@@ -36,6 +36,7 @@ type SpeechRecognitionLike = EventTarget & {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
+  onstart?: (() => void) | null;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
   onerror: ((event: Event & { error?: string }) => void) | null;
   onend: (() => void) | null;
@@ -66,6 +67,7 @@ export function DictationCaptureView() {
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const liveResultReceivedRef = useRef(false);
   const [draft, setDraft] = useState<DictationDraft>(initialDraft);
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -197,7 +199,13 @@ export function DictationCaptureView() {
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = navigator.language || 'en-GB';
+        recognition.onstart = () => {
+          setLiveListening(true);
+          setLiveError(null);
+          setNotice('Live dictation is listening. You can keep editing the transcript while it adds new text.');
+        };
         recognition.onresult = (event) => {
+          liveResultReceivedRef.current = true;
           let finalText = '';
           let interimText = '';
 
@@ -224,15 +232,18 @@ export function DictationCaptureView() {
         recognition.onend = () => {
           setLiveListening(false);
           setLiveInterim('');
+          if (!liveResultReceivedRef.current) {
+            setLiveError('This browser did not return live speech results here. Use record and transcribe instead.');
+          }
         };
         speechRecognitionRef.current = recognition;
       }
 
+      liveResultReceivedRef.current = false;
       setLiveError(null);
       setError(null);
-      setNotice('Live dictation is listening. You can keep editing the transcript while it adds new text.');
       speechRecognitionRef.current.start();
-      setLiveListening(true);
+      setNotice('Starting live dictation…');
     } catch (speechError) {
       setLiveListening(false);
       setLiveError(speechError instanceof Error ? speechError.message : 'Could not start live dictation.');
