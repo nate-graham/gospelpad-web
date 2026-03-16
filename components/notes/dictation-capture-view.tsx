@@ -68,6 +68,10 @@ export function DictationCaptureView() {
   const chunksRef = useRef<BlobPart[]>([]);
   const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const liveResultReceivedRef = useRef(false);
+  const keepLiveDictationRunningRef = useRef(false);
+  const lastCommittedLiveSegmentRef = useRef('');
+  const lastCommittedLiveSegmentAtRef = useRef(0);
+  const restartTimerRef = useRef<number | null>(null);
   const [draft, setDraft] = useState<DictationDraft>(initialDraft);
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -102,6 +106,10 @@ export function DictationCaptureView() {
         URL.revokeObjectURL(audioUrl);
       }
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      if (restartTimerRef.current) {
+        window.clearTimeout(restartTimerRef.current);
+      }
+      keepLiveDictationRunningRef.current = false;
       speechRecognitionRef.current?.stop();
     };
   }, [audioUrl]);
@@ -206,32 +214,56 @@ export function DictationCaptureView() {
         };
         recognition.onresult = (event) => {
           liveResultReceivedRef.current = true;
-          let finalText = '';
+          const finalSegments: string[] = [];
           let interimText = '';
 
           for (let index = event.resultIndex; index < event.results.length; index += 1) {
             const result = event.results[index];
-            const transcript = result[0]?.transcript ?? result.item(0)?.transcript ?? '';
+            const transcript = (result[0]?.transcript ?? result.item(0)?.transcript ?? '').trim();
             if (result.isFinal) {
-              finalText += `${transcript} `;
+              const normalizedTranscript = transcript.replace(/\s+/g, ' ').toLowerCase();
+              const isImmediateDuplicate =
+                normalizedTranscript &&
+                normalizedTranscript === lastCommittedLiveSegmentRef.current &&
+                Date.now() - lastCommittedLiveSegmentAtRef.current < 4000;
+              if (normalizedTranscript && !isImmediateDuplicate) {
+                finalSegments.push(transcript);
+                lastCommittedLiveSegmentRef.current = normalizedTranscript;
+                lastCommittedLiveSegmentAtRef.current = Date.now();
+              }
             } else {
               interimText += transcript;
             }
           }
 
-          if (finalText.trim()) {
-            appendTranscriptText(finalText);
+          if (finalSegments.length > 0) {
+            appendTranscriptText(finalSegments.join(' '));
           }
           setLiveInterim(interimText.trim());
         };
         recognition.onerror = (event) => {
           setLiveListening(false);
           setLiveInterim('');
+          const fatalError = event.error === 'not-allowed' || event.error === 'service-not-allowed' || event.error === 'audio-capture';
+          if (fatalError) {
+            keepLiveDictationRunningRef.current = false;
+          }
           setLiveError(event.error ? `Live dictation stopped: ${event.error}.` : 'Live dictation stopped unexpectedly.');
         };
         recognition.onend = () => {
           setLiveListening(false);
           setLiveInterim('');
+          if (keepLiveDictationRunningRef.current) {
+            restartTimerRef.current = window.setTimeout(() => {
+              try {
+                speechRecognitionRef.current?.start();
+              } catch {
+                setLiveError('Live dictation paused here. Try starting it again or use record and transcribe instead.');
+                keepLiveDictationRunningRef.current = false;
+              }
+            }, 250);
+            return;
+          }
           if (!liveResultReceivedRef.current) {
             setLiveError('This browser did not return live speech results here. Use record and transcribe instead.');
           }
@@ -240,6 +272,7 @@ export function DictationCaptureView() {
       }
 
       liveResultReceivedRef.current = false;
+      keepLiveDictationRunningRef.current = true;
       setLiveError(null);
       setError(null);
       speechRecognitionRef.current.start();
@@ -251,6 +284,10 @@ export function DictationCaptureView() {
   };
 
   const stopLiveDictation = () => {
+    keepLiveDictationRunningRef.current = false;
+    if (restartTimerRef.current) {
+      window.clearTimeout(restartTimerRef.current);
+    }
     speechRecognitionRef.current?.stop();
     setLiveListening(false);
     setLiveInterim('');
