@@ -15,6 +15,7 @@ import {
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { insertTextIntoEditable, ScriptureEditableField } from '@/components/notes/scripture-editable-field';
+import { NoteClipsList } from '@/components/notes/note-clips-list';
 import { findScriptureReferences } from '@/lib/scripture-references';
 
 type NoteFormProps = {
@@ -259,6 +260,14 @@ export function NoteForm({ mode, note }: NoteFormProps) {
       {draftNotice ? <section className="empty-state status-message" role="status">{draftNotice}</section> : null}
       {handoffMessage ? <section className="empty-state status-message" role="status">{handoffMessage}</section> : null}
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
+
+      {note?.clips?.length ? (
+        <NoteClipsList
+          clips={note.clips}
+          title="Attached audio"
+          description="This note includes saved audio from dictation or upload."
+        />
+      ) : null}
 
       {!loadingDraft ? (
         <form onSubmit={onSubmit} style={{ display: 'grid', gap: '1rem' }}>

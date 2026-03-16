@@ -219,17 +219,17 @@ export function DictationCaptureView() {
         <span className="eyebrow">Dictation mode</span>
         <h1>Capture a note by voice</h1>
         <p className="page-description">
-          This separate capture flow records or uploads audio, runs it through the existing transcription backend, then hands the result into the standard note editor for final cleanup.
+          This capture flow records first, then transcribes after you stop or upload audio, and finally hands the result into the note editor for cleanup.
         </p>
       </header>
 
       <section className="responsive-grid compact">
         <article className="status-card" style={{ padding: '1rem' }}>
           <span className="eyebrow">Capture mode</span>
-          <strong style={{ fontSize: '1.1rem' }}>{canRecord ? 'Browser recording available' : 'Upload-first fallback'}</strong>
+          <strong style={{ fontSize: '1.1rem' }}>{canRecord ? 'Record, then transcribe' : 'Upload-first fallback'}</strong>
           <span style={{ color: 'var(--muted)' }}>
             {canRecord
-              ? 'Use the microphone directly in this browser, or upload an audio file instead.'
+              ? 'Use the microphone directly in this browser, then run transcription after you stop recording.'
               : 'This browser does not support live recording here, so use the audio upload fallback.'}
           </span>
         </article>
