@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { duplicateNote, getNoteById, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteRecord, type NoteUserShare } from '@/lib/notes';
+import { duplicateNote, getNoteById, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteInput, type NoteRecord, type NoteUserShare } from '@/lib/notes';
 import {
   formatNoteDate,
   getNoteReadingTimeMinutes,
@@ -19,6 +19,7 @@ import { NoteSharePanel } from '@/components/notes/note-share-panel';
 import { getPrayerRequestById, type PrayerRequestRecord, type PrayerRequestStatus, upsertPrayerRequest } from '@/lib/prayer-requests';
 import { SharedNoteComments } from '@/components/notes/shared-note-comments';
 import { NoteClipsList } from '@/components/notes/note-clips-list';
+import { createRecordingSignedUrl, transcribeRecording } from '@/lib/transcription';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -33,6 +34,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [userShares, setUserShares] = useState<NoteUserShare[]>([]);
   const [prayerRequest, setPrayerRequest] = useState<PrayerRequestRecord | null>(null);
   const [updatingPrayerStatus, setUpdatingPrayerStatus] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -196,6 +198,43 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
     }
   };
 
+  const onTranscribeClip = async (clip: NonNullable<NoteRecord['clips']>[number]) => {
+    if (!note) return;
+
+    const clipUrl = /^https?:\/\//i.test(clip.uri) ? clip.uri : await createRecordingSignedUrl(clip.uri);
+    const result = await transcribeRecording(clipUrl, clip.uri);
+    const transcript = result.text?.trim();
+
+    if (!transcript) {
+      throw new Error('No transcription text was returned for this clip.');
+    }
+
+    const nextBody = note.body?.trim() ? `${note.body.trimEnd()}\n\n${transcript}` : transcript;
+
+    await updateNote(note.id, {
+      title: note.title ?? '',
+      body: nextBody,
+      speaker: note.speaker ?? '',
+      type: ((note.type as NoteInput['type']) ?? 'Church notes'),
+      isLucidDream: note.type === 'Dream' ? Boolean(note.is_lucid_dream) : undefined,
+      dreamRole: note.type === 'Dream' ? note.dream_role ?? 'observing' : undefined,
+      prayerStatus: note.type === 'Prayer Requests' ? (prayerRequest?.status ?? note.status ?? 'Ongoing') as PrayerRequestStatus : undefined,
+      prayerRequestId: note.type === 'Prayer Requests' ? note.prayer_request_id : undefined,
+      clips: note.clips ?? undefined,
+    });
+
+    setNote((current) =>
+      current
+        ? {
+            ...current,
+            body: nextBody,
+            updated_at: new Date().toISOString(),
+          }
+        : current
+    );
+    setNotice(`Transcription added from ${clip.name || 'audio clip'}.`);
+  };
+
   if (loading) {
     return (
       <section className="loading-state status-message" role="status" aria-live="polite">
@@ -248,6 +287,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       </header>
 
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
+      {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
 
       {activeReference ? (
         <ScriptureReferencePreview
@@ -398,7 +438,10 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       </section>
 
       {note.clips?.length ? (
-        <NoteClipsList clips={note.clips} />
+        <NoteClipsList
+          clips={note.clips}
+          onTranscribeClip={onTranscribeClip}
+        />
       ) : null}
 
       <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
