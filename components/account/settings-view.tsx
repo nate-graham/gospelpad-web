@@ -65,6 +65,19 @@ export function SettingsView() {
                 <span style={{ color: 'var(--muted)' }}>Stronger text and borders for easier reading.</span>
               </span>
             </label>
+            <label style={choiceRowStyle}>
+              <input
+                checked={appearance === 'dark'}
+                name="appearance"
+                onChange={() => setAppearance('dark')}
+                type="radio"
+              />
+              <span>
+                <strong>Dark</strong>
+                <br />
+                <span style={{ color: 'var(--muted)' }}>A lower-glare theme for evening reading and dim rooms.</span>
+              </span>
+            </label>
           </fieldset>
         </section>
 

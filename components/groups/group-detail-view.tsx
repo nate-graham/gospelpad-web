@@ -761,7 +761,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 14,
   border: '1px solid var(--line)',
   padding: '0.85rem 1rem',
-  background: 'rgba(255,255,255,0.72)',
+  background: 'var(--field-bg)',
   color: 'var(--text)',
 };
 
@@ -770,7 +770,7 @@ const textareaStyle: React.CSSProperties = {
   borderRadius: 18,
   border: '1px solid var(--line)',
   padding: '1rem',
-  background: 'rgba(255,255,255,0.72)',
+  background: 'var(--field-bg)',
   color: 'var(--text)',
   resize: 'vertical',
 };

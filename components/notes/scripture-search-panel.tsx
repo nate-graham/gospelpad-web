@@ -101,7 +101,7 @@ export function ScriptureSearchPanel({
             border: '1px solid var(--line)',
             borderRadius: '16px',
             padding: '1rem',
-            background: 'rgba(255,255,255,0.52)',
+            background: 'var(--field-bg-soft)',
           }}
         >
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
@@ -150,6 +150,6 @@ const inputStyle: CSSProperties = {
   borderRadius: 14,
   border: '1px solid var(--line)',
   padding: '0.85rem 1rem',
-  background: 'rgba(255,255,255,0.72)',
+  background: 'var(--field-bg)',
   color: 'var(--text)',
 };

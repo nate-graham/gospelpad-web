@@ -173,7 +173,7 @@ export function GroupNoteComments({
               width: '100%',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--line)',
-              background: 'rgba(255, 255, 255, 0.75)',
+              background: 'var(--field-bg)',
               color: 'var(--text)',
               padding: '0.9rem 1rem',
               resize: 'vertical',

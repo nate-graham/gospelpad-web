@@ -12,6 +12,44 @@ type DictationDraft = Pick<NoteInput, 'title' | 'speaker' | 'type' | 'isLucidDre
   transcript: string;
 };
 
+type SpeechRecognitionAlternativeLike = {
+  transcript: string;
+};
+
+type SpeechRecognitionResultLike = {
+  isFinal: boolean;
+  length: number;
+  item: (index: number) => SpeechRecognitionAlternativeLike;
+  [index: number]: SpeechRecognitionAlternativeLike;
+};
+
+type SpeechRecognitionEventLike = Event & {
+  resultIndex: number;
+  results: {
+    length: number;
+    item: (index: number) => SpeechRecognitionResultLike;
+    [index: number]: SpeechRecognitionResultLike;
+  };
+};
+
+type SpeechRecognitionLike = EventTarget & {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: Event & { error?: string }) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognitionLike;
+    webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+  }
+}
+
 const initialDraft: DictationDraft = {
   title: '',
   speaker: '',
@@ -27,6 +65,7 @@ export function DictationCaptureView() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
+  const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const [draft, setDraft] = useState<DictationDraft>(initialDraft);
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -39,6 +78,9 @@ export function DictationCaptureView() {
   const [transcribing, setTranscribing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadedClip, setUploadedClip] = useState<UploadedRecording | null>(null);
+  const [liveListening, setLiveListening] = useState(false);
+  const [liveInterim, setLiveInterim] = useState('');
+  const [liveError, setLiveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!recording) return undefined;
@@ -58,6 +100,7 @@ export function DictationCaptureView() {
         URL.revokeObjectURL(audioUrl);
       }
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      speechRecognitionRef.current?.stop();
     };
   }, [audioUrl]);
 
@@ -66,6 +109,8 @@ export function DictationCaptureView() {
   const isDream = draft.type === 'Dream';
   const isPrayerRequest = draft.type === 'Prayer Requests';
   const canRecord = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
+  const canLiveDictate =
+    typeof window !== 'undefined' && (typeof window.SpeechRecognition !== 'undefined' || typeof window.webkitSpeechRecognition !== 'undefined');
 
   const updateDraft = <K extends keyof DictationDraft>(key: K, value: DictationDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -79,6 +124,18 @@ export function DictationCaptureView() {
     setAudioUrl(null);
     setUploadedClip(null);
     setRecordSeconds(0);
+  };
+
+  const appendTranscriptText = (nextText: string) => {
+    const cleaned = formatTranscriptText(nextText).trim();
+    if (!cleaned) return;
+
+    setDraft((current) => ({
+      ...current,
+      transcript: current.transcript.trim()
+        ? `${current.transcript.trimEnd()}\n\n${cleaned}`
+        : cleaned,
+    }));
   };
 
   const startRecording = async () => {
@@ -125,6 +182,67 @@ export function DictationCaptureView() {
 
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
+  };
+
+  const startLiveDictation = () => {
+    const SpeechRecognitionCtor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
+    if (!SpeechRecognitionCtor) {
+      setLiveError('Live dictation is not supported in this browser.');
+      return;
+    }
+
+    try {
+      if (!speechRecognitionRef.current) {
+        const recognition = new SpeechRecognitionCtor();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = navigator.language || 'en-GB';
+        recognition.onresult = (event) => {
+          let finalText = '';
+          let interimText = '';
+
+          for (let index = event.resultIndex; index < event.results.length; index += 1) {
+            const result = event.results[index];
+            const transcript = result[0]?.transcript ?? result.item(0)?.transcript ?? '';
+            if (result.isFinal) {
+              finalText += `${transcript} `;
+            } else {
+              interimText += transcript;
+            }
+          }
+
+          if (finalText.trim()) {
+            appendTranscriptText(finalText);
+          }
+          setLiveInterim(interimText.trim());
+        };
+        recognition.onerror = (event) => {
+          setLiveListening(false);
+          setLiveInterim('');
+          setLiveError(event.error ? `Live dictation stopped: ${event.error}.` : 'Live dictation stopped unexpectedly.');
+        };
+        recognition.onend = () => {
+          setLiveListening(false);
+          setLiveInterim('');
+        };
+        speechRecognitionRef.current = recognition;
+      }
+
+      setLiveError(null);
+      setError(null);
+      setNotice('Live dictation is listening. You can keep editing the transcript while it adds new text.');
+      speechRecognitionRef.current.start();
+      setLiveListening(true);
+    } catch (speechError) {
+      setLiveListening(false);
+      setLiveError(speechError instanceof Error ? speechError.message : 'Could not start live dictation.');
+    }
+  };
+
+  const stopLiveDictation = () => {
+    speechRecognitionRef.current?.stop();
+    setLiveListening(false);
+    setLiveInterim('');
   };
 
   const onAudioFileSelected = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -225,18 +343,22 @@ export function DictationCaptureView() {
         <span className="eyebrow">Dictation mode</span>
         <h1>Capture a note by voice</h1>
         <p className="page-description">
-          This capture flow records first, then transcribes after you stop or upload audio, and finally hands the result into the note editor for cleanup.
+          Use live dictation for text that appears while you speak, or record audio first and transcribe it after you stop. Both paths still hand the result into the note editor for cleanup.
         </p>
       </header>
 
       <section className="responsive-grid compact">
         <article className="status-card" style={{ padding: '1rem' }}>
           <span className="eyebrow">Capture mode</span>
-          <strong style={{ fontSize: '1.1rem' }}>{canRecord ? 'Record, then transcribe' : 'Upload-first fallback'}</strong>
+          <strong style={{ fontSize: '1.1rem' }}>
+            {canLiveDictate ? 'Live dictation and recording' : canRecord ? 'Record, then transcribe' : 'Upload-first fallback'}
+          </strong>
           <span style={{ color: 'var(--muted)' }}>
-            {canRecord
-              ? 'Use the microphone directly in this browser, then run transcription after you stop recording.'
-              : 'This browser does not support live recording here, so use the audio upload fallback.'}
+            {canLiveDictate
+              ? 'Start live dictation for text as you speak, or keep using the saved-audio path when you want playback and retranscription later.'
+              : canRecord
+                ? 'Use the microphone directly in this browser, then run transcription after you stop recording.'
+                : 'This browser does not support microphone capture here, so use the audio upload fallback.'}
           </span>
         </article>
         <article className="status-card" style={{ padding: '1rem' }}>
@@ -250,7 +372,44 @@ export function DictationCaptureView() {
 
       {permissionError ? <section className="error-state status-message" role="alert">{permissionError}</section> : null}
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
+      {liveError ? <section className="error-state status-message" role="alert">{liveError}</section> : null}
       {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
+
+      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+        <div className="page-header" style={{ gap: '0.35rem' }}>
+          <span className="eyebrow">Live dictation</span>
+          <strong style={{ fontSize: '1.1rem' }}>{liveListening ? 'Listening now' : 'Speak and watch text appear'}</strong>
+        </div>
+
+        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+          Live dictation adds recognized phrases into the transcript while you can still edit manually. This mode does not save an audio clip for playback later.
+        </span>
+
+        <div className="cta-row">
+          {canLiveDictate ? (
+            liveListening ? (
+              <button className="button button-primary" onClick={stopLiveDictation} type="button">
+                Stop live dictation
+              </button>
+            ) : (
+              <button className="button button-primary" onClick={startLiveDictation} type="button">
+                Start live dictation
+              </button>
+            )
+          ) : (
+            <span style={{ color: 'var(--muted)' }}>
+              This browser does not expose the live speech-recognition API here. Use the record-and-transcribe flow below instead.
+            </span>
+          )}
+        </div>
+
+        {liveInterim ? (
+          <div className="status-card" style={{ padding: '1rem' }}>
+            <span className="eyebrow">Listening preview</span>
+            <strong style={{ fontSize: '1rem', lineHeight: 1.6 }}>{liveInterim}</strong>
+          </div>
+        ) : null}
+      </section>
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>
@@ -450,7 +609,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 14,
   border: '1px solid var(--line)',
   padding: '0.85rem 1rem',
-  background: 'rgba(255,255,255,0.72)',
+  background: 'var(--field-bg)',
   color: 'var(--text)',
 };
 
@@ -459,7 +618,7 @@ const textareaStyle: React.CSSProperties = {
   borderRadius: 18,
   border: '1px solid var(--line)',
   padding: '1rem',
-  background: 'rgba(255,255,255,0.72)',
+  background: 'var(--field-bg)',
   color: 'var(--text)',
   resize: 'vertical',
 };

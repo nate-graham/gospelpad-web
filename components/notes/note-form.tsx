@@ -503,7 +503,7 @@ const inputStyle: CSSProperties = {
   borderRadius: 14,
   border: '1px solid var(--line)',
   padding: '0.85rem 1rem',
-  background: 'rgba(255,255,255,0.72)',
+  background: 'var(--field-bg)',
   color: 'var(--text)',
 };
 

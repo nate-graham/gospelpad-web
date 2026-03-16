@@ -9,7 +9,7 @@ import {
   useState,
 } from 'react';
 
-export type AppearancePreference = 'warm' | 'contrast';
+export type AppearancePreference = 'warm' | 'contrast' | 'dark';
 
 type DisplayPreferencesValue = {
   appearance: AppearancePreference;
@@ -26,13 +26,14 @@ export function DisplayPreferencesProvider({ children }: { children: ReactNode }
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === 'warm' || stored === 'contrast') {
+    if (stored === 'warm' || stored === 'contrast' || stored === 'dark') {
       setAppearanceState(stored);
     }
   }, []);
 
   useEffect(() => {
     document.documentElement.dataset.appearance = appearance;
+    document.documentElement.style.colorScheme = appearance === 'dark' ? 'dark' : 'light';
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_KEY, appearance);
     }
@@ -60,4 +61,3 @@ export function useDisplayPreferences() {
   }
   return context;
 }
-
