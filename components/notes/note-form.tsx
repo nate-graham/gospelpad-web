@@ -40,6 +40,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
       title: note?.title ?? '',
       body: note?.body ?? '',
       speaker: note?.speaker ?? '',
+      clips: note?.clips ?? undefined,
       type: NOTE_TYPES.includes((note?.type ?? '') as (typeof NOTE_TYPES)[number])
         ? (note?.type as (typeof NOTE_TYPES)[number])
         : DEFAULT_NOTE_TYPE,
@@ -96,6 +97,10 @@ export function NoteForm({ mode, note }: NoteFormProps) {
           title: typeof parsed.title === 'string' ? parsed.title : initialState.title,
           body: typeof parsed.body === 'string' ? parsed.body : initialState.body,
           speaker: typeof parsed.speaker === 'string' ? parsed.speaker : initialState.speaker,
+          clips:
+            Array.isArray(parsed.clips)
+              ? parsed.clips
+              : initialState.clips,
           type: NOTE_TYPES.includes((parsed.type ?? '') as (typeof NOTE_TYPES)[number])
             ? (parsed.type as (typeof NOTE_TYPES)[number])
             : initialState.type,
