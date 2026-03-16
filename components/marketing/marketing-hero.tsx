@@ -13,13 +13,12 @@ export function MarketingHero({ actions }: { actions: ReactNode }) {
       }}
     >
       <div style={{ display: 'grid', gap: '1rem', alignContent: 'center' }}>
-        <span className="badge">GospelPad Web Foundation</span>
+        <span className="badge">GospelPad</span>
         <h1 style={{ margin: 0, fontSize: 'clamp(2.5rem, 7vw, 5rem)', lineHeight: 0.95 }}>
           A browser-ready GospelPad for phone, tablet, and desktop.
         </h1>
         <p style={{ margin: 0, color: 'var(--muted)', maxWidth: '60ch', lineHeight: 1.75 }}>
-          This standalone web frontend is intentionally separate from the mobile app so web shipping can move now
-          without disturbing the native launch path.
+          Keep your notes, groups, prayer requests, and shared conversations with you wherever you open GospelPad.
         </p>
         <div className="cta-row">{actions}</div>
       </div>
@@ -38,12 +37,12 @@ export function MarketingHero({ actions }: { actions: ReactNode }) {
         }}
       >
         <div className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.5rem' }}>
-          <strong>V1-ready sections</strong>
-          <span style={{ color: 'var(--muted)' }}>Notes, groups, profile, settings, and an authenticated shell are already routed.</span>
+          <strong>Keep your thoughts together</strong>
+          <span style={{ color: 'var(--muted)' }}>Write notes, capture scripture, and return to what matters most.</span>
         </div>
         <div className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.5rem' }}>
-          <strong>Backend-safe baseline</strong>
-          <span style={{ color: 'var(--muted)' }}>The web app uses browser-safe Supabase env vars and keeps all mobile code isolated.</span>
+          <strong>Stay connected in groups</strong>
+          <span style={{ color: 'var(--muted)' }}>Share notes, post announcements, and follow conversations with your people.</span>
         </div>
       </div>
     </section>

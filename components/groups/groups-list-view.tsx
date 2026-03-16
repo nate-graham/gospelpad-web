@@ -119,10 +119,10 @@ export function GroupsListView() {
         }}
       >
         <div className="page-header">
-          <span className="eyebrow">Groups V1</span>
+          <span className="eyebrow">Groups</span>
           <h1>Your groups</h1>
           <p className="page-description">
-            This V1 covers membership-focused groups: list, create, join by invite code, and group detail. Group notes and comments stay deferred because the current policies are too broad.
+            Create a group, join with an invite, and keep up with shared notes, announcements, and member activity.
           </p>
         </div>
       </header>
@@ -198,7 +198,7 @@ export function GroupsListView() {
       {loading ? (
         <section className="loading-state status-message" role="status" aria-live="polite">
           <strong>Loading groups…</strong>
-          <span style={{ color: 'var(--muted)' }}>Fetching groups linked to your authenticated account.</span>
+          <span style={{ color: 'var(--muted)' }}>Fetching the groups connected to your account.</span>
         </section>
       ) : null}
 

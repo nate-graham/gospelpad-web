@@ -74,9 +74,9 @@ export default function SignInPage() {
 
   return (
     <AuthFrame
-      eyebrow="Web Sign In"
+      eyebrow="Sign in"
       title="Use GospelPad from any screen"
-      description="This standalone web app shares the existing GospelPad backend while staying separate from the mobile app."
+      description="Sign in to open your notes, groups, and shared activity."
     >
       {!envState.ok ? (
         <div className="error-state">

@@ -13,10 +13,9 @@ export default function NotFound() {
           Back to home
         </Link>
         <Link className="button button-secondary" href="/notes">
-          Open app shell
+          Open GospelPad
         </Link>
       </div>
     </AuthFrame>
   );
 }
-

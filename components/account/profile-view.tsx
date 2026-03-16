@@ -90,7 +90,7 @@ export function ProfileView() {
     return (
       <section className="loading-state status-message" role="status" aria-live="polite">
         <strong>Loading profile…</strong>
-        <span style={{ color: 'var(--muted)' }}>Fetching account details from the current Supabase session.</span>
+        <span style={{ color: 'var(--muted)' }}>Fetching your account details.</span>
       </section>
     );
   }
@@ -107,10 +107,10 @@ export function ProfileView() {
   return (
     <div className="page-section">
       <header className="page-header">
-        <span className="eyebrow">Profile V1</span>
+        <span className="eyebrow">Profile</span>
         <h1>Your account</h1>
         <p className="page-description">
-          This V1 profile surface uses the existing auth metadata and `profiles` table only. Username stays read-only here.
+          Keep your profile details up to date and choose the note type you want to start with most often.
         </p>
       </header>
 
@@ -185,7 +185,7 @@ export function ProfileView() {
           <DetailRow label="Username" value={profile?.username ?? 'Not set'} />
           <DetailRow label="Onboarding" value={profile?.onboardingCompleted ? 'Complete' : 'Not completed'} />
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            Username editing is deferred for V1 because the existing profile model and uniqueness handling should be tightened before exposing self-service changes on the web.
+            Your username is shown here so other people can recognize you in shared notes and groups.
           </span>
         </aside>
       </section>

@@ -238,8 +238,8 @@ export function GroupSharedNoteView({
           <strong style={{ fontSize: '1.05rem' }}>{getNoteExcerpt(note)}</strong>
           <span style={{ color: 'var(--muted)' }}>
             {note.source === 'shared'
-              ? 'This note is visible through the existing note sharing model.'
-              : 'This note comes from the dedicated group note sessions already stored in the repo.'}
+              ? 'This note is available in the group because it was shared here.'
+              : 'This note belongs to the group note space.'}
           </span>
         </article>
         <article className="status-card" style={{ padding: '1rem' }}>
@@ -314,9 +314,9 @@ export function GroupSharedNoteView({
       ) : (
         <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
           <span className="eyebrow">Comments</span>
-          <strong>Dedicated group-note comments stay deferred.</strong>
+          <strong>Comments are not available for this note yet.</strong>
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            This note lives in `group_notes`. The separate `group_note_comments` table is still too open for a safe web launch, so this pass only enables comments on shared personal notes.
+            You can still read and reuse this group note, but commenting is currently limited to shared personal notes.
           </span>
         </section>
       )}
@@ -329,8 +329,8 @@ export function GroupSharedNoteView({
           </strong>
           <span style={{ color: 'var(--muted)' }}>
             {note.source === 'shared'
-              ? 'This helps group members understand whether the note is a shared personal note or a dedicated group note, and what they can do next.'
-              : 'Dedicated group notes are still separate from personal notes, but you can copy the content into your own library.'}
+              ? 'Choose what you want to do next with this shared note.'
+              : 'You can copy this group note into your own notes if you want to keep working with it personally.'}
           </span>
         </div>
 

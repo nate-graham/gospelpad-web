@@ -81,7 +81,7 @@ export function SharedNoteComments({ noteId }: SharedNoteCommentsProps) {
         <span className="eyebrow">Shared note comments</span>
         <strong style={{ fontSize: '1.1rem' }}>{commentCountLabel}</strong>
         <span style={{ color: 'var(--muted)' }}>
-          This mirrors the existing mobile shared-note discussion flow using the repo’s `note_comments` path.
+          Keep the conversation going with everyone who can access this shared note.
         </span>
       </div>
 

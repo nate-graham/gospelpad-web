@@ -11,11 +11,10 @@ export default function GlobalError({
 }) {
   return (
     <AppErrorState
-      title="The app shell hit an unexpected error"
+      title="Something went wrong"
       description={error.message || 'Try reloading the page.'}
       actionLabel="Retry"
       onAction={reset}
     />
   );
 }
-

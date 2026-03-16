@@ -318,7 +318,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
               {prayerRequest?.status ?? note.status ?? 'Ongoing'}
             </strong>
             <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-              Prayer requests now persist as linked prayer-request records on web, matching the existing mobile product model. Browser reminders stay deferred for now.
+              Update the request as it changes so you can see what is still ongoing and what has been answered.
             </span>
             <div className="cta-row">
               <button

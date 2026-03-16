@@ -103,7 +103,7 @@ export function GroupNoteComments({
           {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
         </strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          This lightweight V1 uses the existing `note_comments` path for notes shared into a group. Dedicated `group_note_comments` stay deferred until their policies are tightened.
+          Group members can talk about shared notes here.
         </span>
       </div>
 

@@ -111,7 +111,7 @@ export function NotesListView() {
           <span className="eyebrow">Notes</span>
           <h1>Your notes</h1>
           <p className="page-description">
-            Capture, organize, dictate, share, and revisit notes across phone, tablet, and desktop with the current GospelPad web experience.
+            Capture, organize, dictate, share, and revisit your notes across phone, tablet, and desktop.
           </p>
         </div>
         <div className="cta-row">
@@ -133,7 +133,7 @@ export function NotesListView() {
           <span style={{ color: 'var(--muted)' }}>
             {activeFilterCount > 0
               ? `${activeFilterCount} active discovery filter${activeFilterCount === 1 ? '' : 's'}.`
-              : 'All notes are loaded from the existing Supabase `notes` table.'}
+              : 'Everything you have saved is ready to browse here.'}
           </span>
         </article>
         <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
@@ -142,13 +142,13 @@ export function NotesListView() {
             {receivedSharedNotes.length} {receivedSharedNotes.length === 1 ? 'note' : 'notes'}
           </strong>
           <span style={{ color: 'var(--muted)' }}>
-            Direct user shares now show up here through the existing `note_shares` path.
+            Notes other people share with you will appear here.
           </span>
         </article>
         <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Editor Scope</span>
+          <span className="eyebrow">Writing tools</span>
           <strong style={{ fontSize: '1.5rem' }}>Scripture-aware editor</strong>
-          <span style={{ color: 'var(--muted)' }}>Typing, dictation handoff, prayer and dream metadata, and persisted audio clips are all available in the current web flow.</span>
+          <span style={{ color: 'var(--muted)' }}>Write by typing or dictation, add scripture references, and keep note details together in one place.</span>
         </article>
       </section>
 
@@ -243,7 +243,7 @@ export function NotesListView() {
       {loading ? (
         <section className="loading-state status-message" role="status" aria-live="polite">
           <strong>Loading notes…</strong>
-          <span style={{ color: 'var(--muted)' }}>Fetching your latest notes from Supabase.</span>
+          <span style={{ color: 'var(--muted)' }}>Fetching your latest notes.</span>
         </section>
       ) : null}
 

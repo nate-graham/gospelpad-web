@@ -62,7 +62,7 @@ export default function SignUpPage() {
         return;
       }
 
-      setSuccess('Your account is ready. Open the app shell to continue.');
+      setSuccess('Your account is ready. Open your notes to continue.');
       setPending(false);
       return;
     }
@@ -73,9 +73,9 @@ export default function SignUpPage() {
 
   return (
     <AuthFrame
-      eyebrow="Web Sign Up"
+      eyebrow="Sign up"
       title="Create a GospelPad web account"
-      description="This standalone frontend reuses the existing Supabase project while keeping the mobile app unchanged."
+      description="Create an account to start writing notes, joining groups, and sharing with others."
     >
       {!envState.ok ? (
         <div className="error-state">
@@ -151,4 +151,3 @@ const inputStyle: CSSProperties = {
   background: 'rgba(255,255,255,0.72)',
   color: 'var(--text)',
 };
-

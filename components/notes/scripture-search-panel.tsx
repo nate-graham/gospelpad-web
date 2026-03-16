@@ -53,10 +53,10 @@ export function ScriptureSearchPanel({
   return (
     <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
       <div style={{ display: 'grid', gap: '0.4rem' }}>
-        <span className="eyebrow">Scripture Search V1</span>
+        <span className="eyebrow">Scripture search</span>
         <strong style={{ fontSize: '1.05rem' }}>Insert a verse by reference</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Use a direct reference like <code>John 3:16</code> or <code>Psalm 23:1-4</code>. Rough text search is deferred from this V1.
+          Use a direct reference like <code>John 3:16</code> or <code>Psalm 23:1-4</code> to preview the passage before adding it to your note.
         </span>
       </div>
 

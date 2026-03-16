@@ -367,7 +367,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
                   {form.prayerStatus === 'Answered' ? 'Answered request' : 'Ongoing request'}
                 </strong>
                 <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-                  The current mobile product tracks prayer requests as a linked note plus prayer-request record. This web pass keeps that same structure.
+                  Keep the request connected to its note so you can update it as you pray and revisit it later.
                 </span>
               </div>
 
@@ -385,9 +385,9 @@ export function NoteForm({ mode, note }: NoteFormProps) {
 
               <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
                 <span className="eyebrow">Reminders</span>
-                <strong style={{ fontSize: '1.05rem' }}>Deferred on web</strong>
+                <strong style={{ fontSize: '1.05rem' }}>Coming later</strong>
                 <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-                  The repo already has prayer reminder tables and notification functions, but the web app does not yet have the browser notification and device-token flow needed to expose reminders honestly.
+                  Prayer reminders are not available in the web app yet.
                 </span>
               </div>
             </section>
@@ -399,7 +399,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
                 <span className="eyebrow">Type-specific composer</span>
                 <strong style={{ fontSize: '1.05rem' }}>{form.type}</strong>
                 <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-                  This note type follows the mobile composer pattern and does not use the separate speaker field.
+                  This note type does not use a separate speaker field.
                 </span>
               </div>
             ) : null}

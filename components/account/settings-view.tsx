@@ -28,7 +28,7 @@ export function SettingsView() {
         <span className="eyebrow">Settings</span>
         <h1>Settings</h1>
         <p className="page-description">
-          Manage appearance, session access, and the current deployment assumptions that affect your GospelPad web account.
+          Adjust how GospelPad looks and manage your account access.
         </p>
       </header>
 
@@ -84,13 +84,13 @@ export function SettingsView() {
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.9rem' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Production assumptions</span>
-          <strong style={{ fontSize: '1.1rem' }}>Config reminders</strong>
+          <span className="eyebrow">Account links</span>
+          <strong style={{ fontSize: '1.1rem' }}>Sign-in and recovery</strong>
         </div>
         <DetailRow label="Base URL" value={appUrl} />
         <DetailRow label="Auth callback" value={getWebAuthCallbackUrl('/notes')} />
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Production deploys must register the matching callback URL in Supabase Auth and keep the canonical deployed host consistent with `NEXT_PUBLIC_APP_URL`.
+          These links support sign-in, password recovery, and secure account access across your devices.
         </span>
       </section>
     </div>

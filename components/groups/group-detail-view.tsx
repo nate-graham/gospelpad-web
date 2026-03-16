@@ -480,7 +480,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             {membership ? `You are a ${membership.role}` : 'Access inherited from owner visibility'}
           </strong>
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            Leave-group, private-group join-request review, owner-managed admin toggles, and safe member removal are all available here. Ownership transfer still stays deferred.
+            Manage your place in the group, review requests, and keep member roles organized.
           </span>
         </div>
 
@@ -499,7 +499,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
               <strong>{group.created_by === membership?.user_id ? 'Owner cannot leave yet' : 'Membership action unavailable'}</strong>
               <span style={{ color: 'var(--muted)' }}>
                 {group.created_by === membership?.user_id
-                  ? 'Ownership transfer is not implemented yet, so the current group owner stays in the group.'
+                  ? 'The group owner needs to stay connected to the group right now.'
                   : 'This account does not currently have a leave action available.'}
               </span>
             </div>
@@ -515,7 +515,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
               {members.length} {members.length === 1 ? 'member' : 'members'}
             </strong>
             <span style={{ color: 'var(--muted)' }}>
-              This surface uses a narrow backend helper to show member names and roles without reopening broad profile access.
+              See who is in the group and what role they hold.
             </span>
           </div>
 
@@ -523,7 +523,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             <section className="empty-state status-message" role="status">
               <strong>No members found</strong>
               <span style={{ color: 'var(--muted)' }}>
-                The current account can access this group, but no visible memberships were returned.
+                No visible members were returned for this group.
               </span>
             </section>
           ) : (
@@ -587,7 +587,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
               {nativeNotes.length} {nativeNotes.length === 1 ? 'group note' : 'group notes'}
             </strong>
             <span style={{ color: 'var(--muted)' }}>
-              These are the dedicated note sessions already stored in the repo’s `group_notes` table.
+              Keep shared study notes and meeting notes together for the whole group.
             </span>
           </div>
 
@@ -601,7 +601,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             <section className="empty-state status-message" role="status">
               <strong>No group notes yet</strong>
               <span style={{ color: 'var(--muted)' }}>
-                This group does not currently have any dedicated note sessions stored in `group_notes`.
+                This group does not have any dedicated group notes yet.
               </span>
             </section>
           ) : (
@@ -692,19 +692,19 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Shared personal notes</span>
-          <strong style={{ fontSize: '1.1rem' }}>
-            {sharedNotes.length} {sharedNotes.length === 1 ? 'shared note' : 'shared notes'}
-          </strong>
-          <span style={{ color: 'var(--muted)' }}>
-            These are personal notes explicitly shared into the group through the existing `note_shares` path.
-          </span>
+            <strong style={{ fontSize: '1.1rem' }}>
+              {sharedNotes.length} {sharedNotes.length === 1 ? 'shared note' : 'shared notes'}
+            </strong>
+            <span style={{ color: 'var(--muted)' }}>
+              These are personal notes that people have shared into the group.
+            </span>
         </div>
 
         {sharedNotes.length === 0 ? (
           <section className="empty-state status-message" role="status">
             <strong>No shared personal notes yet</strong>
             <span style={{ color: 'var(--muted)' }}>
-              This section only shows notes explicitly shared to the group from someone’s personal note library.
+              Shared notes will appear here when someone shares one into the group.
             </span>
           </section>
         ) : (
@@ -732,9 +732,9 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
         <span className="eyebrow">Current scope</span>
-        <strong>Groups now cover announcements, members, shared notes, and dedicated group notes in one place.</strong>
+        <strong>Groups bring announcements, members, shared notes, and group notes together in one place.</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Dedicated `group_note_comments`, broader permission-management UI, and ownership transfer still stay deferred until their backend policies are tightened further.
+          More advanced group management options will be added over time.
         </span>
       </section>
 

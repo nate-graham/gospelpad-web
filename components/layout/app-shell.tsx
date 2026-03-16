@@ -50,11 +50,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         <aside className="panel app-sidebar">
           <div style={{ padding: '1.2rem', display: 'grid', gap: '1.25rem' }}>
             <div style={{ display: 'grid', gap: '0.55rem' }}>
-              <span className="badge">Standalone Web App</span>
+              <span className="badge">GospelPad</span>
               <div>
                 <div style={{ fontSize: '1.4rem', fontWeight: 800 }}>GospelPad</div>
                 <div style={{ color: 'var(--muted)', lineHeight: 1.5 }}>
-                  Responsive shell for notes, groups, and account workflows.
+                  Keep your notes, groups, and account details close at hand.
                 </div>
               </div>
             </div>
@@ -79,7 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     }}
                   >
                     <span>{item.label}</span>
-                    <span style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>V1</span>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>Open</span>
                   </Link>
                 );
               })}
@@ -99,7 +99,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center' }}>
               <div>
                 <div className="eyebrow">GospelPad Web</div>
-                <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>V1 App Shell</div>
+                <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>Your workspace</div>
               </div>
               <span className="badge">Responsive</span>
             </div>

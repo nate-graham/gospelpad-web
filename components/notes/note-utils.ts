@@ -47,7 +47,7 @@ export function getNoteTypeGuidance(type: string | null | undefined) {
     case 'Prayer Requests':
       return 'Prayer requests work best when you keep the request focused, track whether it is ongoing or answered, and update the outcome over time.';
     default:
-      return 'This note is stored in the current plain-text V1 format for reliable capture and review.';
+      return 'Keep your note clear and easy to revisit later.';
   }
 }
 

@@ -235,9 +235,9 @@ export function DictationCaptureView() {
         </article>
         <article className="status-card" style={{ padding: '1rem' }}>
           <span className="eyebrow">Transcription backend</span>
-          <strong style={{ fontSize: '1.1rem' }}>Existing Supabase flow</strong>
+          <strong style={{ fontSize: '1.1rem' }}>Secure transcription</strong>
           <span style={{ color: 'var(--muted)' }}>
-            Audio uploads to the existing recordings bucket and is transcribed through the repo’s `transcribe_audio` edge function.
+            Your audio is uploaded securely, transcribed, and then handed into the note editor for cleanup.
           </span>
         </article>
       </section>
