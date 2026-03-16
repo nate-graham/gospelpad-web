@@ -172,6 +172,12 @@ export function DictationCaptureView() {
       setSaving(true);
       setError(null);
       let prayerRequestId: string | null = null;
+      let nextUploadedClip = uploadedClip;
+
+      if (audioBlob && !nextUploadedClip) {
+        nextUploadedClip = await uploadRecordingBlob(audioBlob);
+        setUploadedClip(nextUploadedClip);
+      }
 
       if (draft.type === 'Prayer Requests') {
         prayerRequestId = await upsertPrayerRequest({
@@ -194,11 +200,11 @@ export function DictationCaptureView() {
         prayerStatus: draft.type === 'Prayer Requests' ? draft.prayerStatus ?? 'Ongoing' : undefined,
         prayerRequestId,
         clips:
-          uploadedClip
+          nextUploadedClip
             ? [
                 {
                   id: `clip-${Date.now()}`,
-                  uri: uploadedClip.path,
+                  uri: nextUploadedClip.path,
                   duration: recordSeconds * 1000,
                   name: audioName || 'Dictation clip',
                 },
