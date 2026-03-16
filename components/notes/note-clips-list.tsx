@@ -14,15 +14,21 @@ type NoteClipsListProps = {
   clips: NoteClip[];
   title?: string;
   description?: string;
+  onTranscribeClip?: (clip: NoteClip) => Promise<void>;
+  transcribeLabel?: string;
 };
 
 export function NoteClipsList({
   clips,
   title = 'Audio clips',
   description = 'These clips are attached through the existing note `clips` field and recordings storage bucket.',
+  onTranscribeClip,
+  transcribeLabel = 'Transcribe again',
 }: NoteClipsListProps) {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  const [transcribingClipId, setTranscribingClipId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -71,6 +77,7 @@ export function NoteClipsList({
       </div>
 
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
+      {actionError ? <section className="error-state status-message" role="alert">{actionError}</section> : null}
 
       <div style={{ display: 'grid', gap: '0.75rem' }}>
         {clips.map((clip) => (
@@ -83,9 +90,31 @@ export function NoteClipsList({
                 </span>
               </div>
               {urls[clip.id] ? (
-                <a className="button button-secondary" href={urls[clip.id]} download target="_blank" rel="noreferrer">
-                  Download
-                </a>
+                <div className="cta-row">
+                  {onTranscribeClip ? (
+                    <button
+                      className="button button-secondary"
+                      disabled={transcribingClipId === clip.id}
+                      onClick={async () => {
+                        try {
+                          setActionError(null);
+                          setTranscribingClipId(clip.id);
+                          await onTranscribeClip(clip);
+                        } catch (clipError) {
+                          setActionError(clipError instanceof Error ? clipError.message : 'Failed to transcribe this clip.');
+                        } finally {
+                          setTranscribingClipId(null);
+                        }
+                      }}
+                      type="button"
+                    >
+                      {transcribingClipId === clip.id ? 'Transcribing…' : transcribeLabel}
+                    </button>
+                  ) : null}
+                  <a className="button button-secondary" href={urls[clip.id]} download target="_blank" rel="noreferrer">
+                    Download
+                  </a>
+                </div>
               ) : null}
             </div>
 

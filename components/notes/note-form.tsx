@@ -6,6 +6,7 @@ import type { CSSProperties, FormEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
+import { createRecordingSignedUrl, transcribeRecording } from '@/lib/transcription';
 import {
   DEFAULT_NOTE_TYPE,
   getScriptureReferenceCount,
@@ -24,6 +25,7 @@ type NoteFormProps = {
 };
 
 type DraftState = NoteInput;
+type NoteClip = NonNullable<NoteRecord['clips']>[number];
 
 function getDraftStorageKey(mode: 'create' | 'edit', noteId?: string) {
   return mode === 'create' ? 'gospelpad-web-note-draft:new' : `gospelpad-web-note-draft:${noteId ?? 'unknown'}`;
@@ -149,6 +151,22 @@ export function NoteForm({ mode, note }: NoteFormProps) {
     setLastSavedAt(null);
   };
 
+  const transcribeSavedClip = async (clip: NoteClip) => {
+    const clipUrl = /^https?:\/\//i.test(clip.uri) ? clip.uri : await createRecordingSignedUrl(clip.uri);
+    const result = await transcribeRecording(clipUrl, clip.uri);
+    const transcript = result.text?.trim();
+
+    if (!transcript) {
+      throw new Error('No transcription text was returned for this clip.');
+    }
+
+    setForm((current) => ({
+      ...current,
+      body: current.body.trim() ? `${current.body.trimEnd()}\n\n${transcript}` : transcript,
+    }));
+    setDraftNotice(`Transcription added from ${clip.name || 'audio clip'}. Review the text, then save the note.`);
+  };
+
   const insertScripture = (payload: string) => {
     const editor = bodyRef.current;
 
@@ -266,6 +284,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
           clips={note.clips}
           title="Attached audio"
           description="This note includes saved audio from dictation or upload."
+          onTranscribeClip={transcribeSavedClip}
         />
       ) : null}
 
