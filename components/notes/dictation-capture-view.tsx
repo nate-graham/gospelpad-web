@@ -61,6 +61,40 @@ const initialDraft: DictationDraft = {
   prayerStatus: 'Ongoing',
 };
 
+function normalizeLiveSegment(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function removeOverlapFromAppend(existingText: string, nextText: string) {
+  const existingNormalized = normalizeLiveSegment(existingText);
+  const nextNormalized = normalizeLiveSegment(nextText);
+  if (!existingNormalized || !nextNormalized) return nextText.trim();
+
+  const existingWords = existingNormalized.split(' ');
+  const nextWords = nextNormalized.split(' ');
+  const maxOverlap = Math.min(existingWords.length, nextWords.length, 20);
+
+  let overlapWords = 0;
+  for (let count = maxOverlap; count >= 1; count -= 1) {
+    const existingTail = existingWords.slice(-count).join(' ');
+    const nextHead = nextWords.slice(0, count).join(' ');
+    if (existingTail === nextHead) {
+      overlapWords = count;
+      break;
+    }
+  }
+
+  if (!overlapWords) return nextText.trim();
+
+  const originalWords = nextText.trim().split(/\s+/);
+  if (overlapWords >= originalWords.length) return '';
+  return originalWords.slice(overlapWords).join(' ').trim();
+}
+
 export function DictationCaptureView() {
   const router = useRouter();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -140,12 +174,18 @@ export function DictationCaptureView() {
     const cleaned = formatTranscriptText(nextText).trim();
     if (!cleaned) return;
 
-    setDraft((current) => ({
-      ...current,
-      transcript: current.transcript.trim()
-        ? `${current.transcript.trimEnd()}\n\n${cleaned}`
-        : cleaned,
-    }));
+    setDraft((current) => {
+      const currentTranscript = current.transcript.trim();
+      const dedupedText = currentTranscript ? removeOverlapFromAppend(currentTranscript, cleaned) : cleaned;
+      if (!dedupedText) return current;
+
+      return {
+        ...current,
+        transcript: currentTranscript
+          ? `${current.transcript.trimEnd()}\n\n${dedupedText}`
+          : dedupedText,
+      };
+    });
   };
 
   const startRecording = async () => {
@@ -221,7 +261,7 @@ export function DictationCaptureView() {
             const result = event.results[index];
             const transcript = (result[0]?.transcript ?? result.item(0)?.transcript ?? '').trim();
             if (result.isFinal) {
-              const normalizedTranscript = transcript.replace(/\s+/g, ' ').toLowerCase();
+              const normalizedTranscript = normalizeLiveSegment(transcript);
               const isImmediateDuplicate =
                 normalizedTranscript &&
                 normalizedTranscript === lastCommittedLiveSegmentRef.current &&
