@@ -6,7 +6,7 @@ import type { CSSProperties, FormEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
-import { createRecordingSignedUrl, transcribeRecording } from '@/lib/transcription';
+import { createRecordingSignedUrl, formatTranscriptText, transcribeRecording } from '@/lib/transcription';
 import {
   DEFAULT_NOTE_TYPE,
   getScriptureReferenceCount,
@@ -159,7 +159,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   const transcribeSavedClip = async (clip: NoteClip) => {
     const clipUrl = /^https?:\/\//i.test(clip.uri) ? clip.uri : await createRecordingSignedUrl(clip.uri);
     const result = await transcribeRecording(clipUrl, clip.uri);
-    const transcript = result.text?.trim();
+    const transcript = formatTranscriptText(result.text?.trim() || '');
 
     if (!transcript) {
       throw new Error('No transcription text was returned for this clip.');

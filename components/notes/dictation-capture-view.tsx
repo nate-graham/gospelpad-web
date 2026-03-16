@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, type NoteInput } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
-import { uploadRecordingBlob, transcribeRecording, type UploadedRecording } from '@/lib/transcription';
+import { formatTranscriptText, uploadRecordingBlob, transcribeRecording, type UploadedRecording } from '@/lib/transcription';
 import { getNoteTypePlaceholders, supportsSpeakerField } from '@/components/notes/note-utils';
 
 type DictationDraft = Pick<NoteInput, 'title' | 'speaker' | 'type' | 'isLucidDream' | 'dreamRole' | 'prayerStatus'> & {
@@ -151,7 +151,7 @@ export function DictationCaptureView() {
       const result = await transcribeRecording(upload.signedUrl, upload.path, upload.bucket);
       setDraft((current) => ({
         ...current,
-        transcript: result.text?.trim() || '',
+        transcript: formatTranscriptText(result.text?.trim() || ''),
       }));
       setNotice('Transcription complete. Review and edit the text before saving.');
     } catch (transcriptionError) {

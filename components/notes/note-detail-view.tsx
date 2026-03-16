@@ -19,7 +19,7 @@ import { NoteSharePanel } from '@/components/notes/note-share-panel';
 import { getPrayerRequestById, type PrayerRequestRecord, type PrayerRequestStatus, upsertPrayerRequest } from '@/lib/prayer-requests';
 import { SharedNoteComments } from '@/components/notes/shared-note-comments';
 import { NoteClipsList } from '@/components/notes/note-clips-list';
-import { createRecordingSignedUrl, transcribeRecording } from '@/lib/transcription';
+import { createRecordingSignedUrl, formatTranscriptText, transcribeRecording } from '@/lib/transcription';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -203,7 +203,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
 
     const clipUrl = /^https?:\/\//i.test(clip.uri) ? clip.uri : await createRecordingSignedUrl(clip.uri);
     const result = await transcribeRecording(clipUrl, clip.uri);
-    const transcript = result.text?.trim();
+    const transcript = formatTranscriptText(result.text?.trim() || '');
 
     if (!transcript) {
       throw new Error('No transcription text was returned for this clip.');
