@@ -336,4 +336,18 @@ select[disabled] {
     width: 100%;
     border-radius: 18px;
   }
+
+  .app-main-panel .panel,
+  .app-main-panel .status-card,
+  .app-main-panel .empty-state,
+  .app-main-panel .error-state,
+  .app-main-panel .loading-state {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    border-radius: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
