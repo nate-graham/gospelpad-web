@@ -176,6 +176,26 @@ export function DictationCaptureView() {
     }));
   };
 
+  const appendLiveTranscriptText = (nextText: string) => {
+    const cleaned = nextText.replace(/\s+/g, ' ').trim();
+    if (!cleaned) return;
+
+    setDraft((current) => {
+      const currentTranscript = current.transcript.trimEnd();
+      const needsSpace =
+        currentTranscript.length > 0 &&
+        !/[\s\n]$/.test(current.transcript) &&
+        !/^[,.;:!?)]/.test(cleaned);
+
+      return {
+        ...current,
+        transcript: currentTranscript
+          ? `${currentTranscript}${needsSpace ? ' ' : ''}${cleaned}`
+          : cleaned,
+      };
+    });
+  };
+
   const startRecording = async () => {
     try {
       setPermissionError(null);
@@ -261,7 +281,7 @@ export function DictationCaptureView() {
             const fullFinalTranscript = finalSegments.join(' ').trim();
             const nextSuffix = getTranscriptSuffix(liveCommittedTranscriptRef.current, fullFinalTranscript);
             if (nextSuffix) {
-              appendTranscriptText(nextSuffix);
+              appendLiveTranscriptText(nextSuffix);
             }
             liveCommittedTranscriptRef.current = fullFinalTranscript;
           }
