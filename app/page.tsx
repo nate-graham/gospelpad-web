@@ -3,7 +3,7 @@ import { MarketingHero } from '@/components/marketing/marketing-hero';
 
 export default function LandingPage() {
   return (
-    <main style={{ padding: '1.25rem', minHeight: '100vh', display: 'grid', alignItems: 'center' }}>
+    <main className="landing-page" style={{ padding: '1.25rem', minHeight: '100vh', display: 'grid', alignItems: 'center' }}>
       <MarketingHero
         actions={
           <>
@@ -19,4 +19,3 @@ export default function LandingPage() {
     </main>
   );
 }
-

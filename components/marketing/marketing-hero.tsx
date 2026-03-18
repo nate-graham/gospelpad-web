@@ -9,21 +9,21 @@ export function MarketingHero({ actions }: { actions: ReactNode }) {
         display: 'grid',
         gap: '1.25rem',
         padding: 'clamp(1.25rem, 4vw, 3rem)',
-        gridTemplateColumns: '1.2fr 0.8fr',
       }}
     >
-      <div style={{ display: 'grid', gap: '1rem', alignContent: 'center' }}>
+      <div className="marketing-hero-copy" style={{ display: 'grid', gap: '1rem', alignContent: 'center', minWidth: 0 }}>
         <span className="badge">GospelPad</span>
-        <h1 style={{ margin: 0, fontSize: 'clamp(2.5rem, 7vw, 5rem)', lineHeight: 0.95 }}>
+        <h1 className="marketing-hero-title" style={{ margin: 0, fontSize: 'clamp(2.5rem, 7vw, 5rem)', lineHeight: 0.95 }}>
           A browser-ready GospelPad for phone, tablet, and desktop.
         </h1>
-        <p style={{ margin: 0, color: 'var(--muted)', maxWidth: '60ch', lineHeight: 1.75 }}>
+        <p className="marketing-hero-description" style={{ margin: 0, color: 'var(--muted)', maxWidth: '60ch', lineHeight: 1.75 }}>
           Keep your notes, groups, prayer requests, and shared conversations with you wherever you open GospelPad.
         </p>
-        <div className="cta-row">{actions}</div>
+        <div className="cta-row marketing-hero-actions">{actions}</div>
       </div>
 
       <div
+        className="marketing-hero-rail"
         style={{
           minHeight: '320px',
           borderRadius: '24px',

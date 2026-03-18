@@ -354,6 +354,48 @@ html[data-appearance='dark'] .button-secondary:hover {
 }
 
 @media (max-width: 767px) {
+  .landing-page {
+    padding: 0.75rem !important;
+    align-items: start !important;
+  }
+
+  .marketing-hero {
+    width: 100%;
+    gap: 1rem;
+    padding: 1rem !important;
+  }
+
+  .marketing-hero-copy,
+  .marketing-hero-rail {
+    min-width: 0;
+  }
+
+  .marketing-hero-title {
+    font-size: clamp(2.1rem, 12vw, 3.5rem) !important;
+    line-height: 0.98 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .marketing-hero-description {
+    font-size: 1rem;
+    line-height: 1.65 !important;
+  }
+
+  .marketing-hero-actions {
+    width: 100%;
+  }
+
+  .marketing-hero-actions .button {
+    width: 100%;
+  }
+
+  .marketing-hero-rail {
+    min-height: 0 !important;
+    padding: 0.85rem !important;
+  }
+}
+
+@media (max-width: 767px) {
   body {
     padding-bottom: 5.5rem;
   }
