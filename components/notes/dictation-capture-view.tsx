@@ -69,30 +69,25 @@ function normalizeLiveSegment(value: string) {
     .trim();
 }
 
-function removeOverlapFromAppend(existingText: string, nextText: string) {
-  const existingNormalized = normalizeLiveSegment(existingText);
-  const nextNormalized = normalizeLiveSegment(nextText);
-  if (!existingNormalized || !nextNormalized) return nextText.trim();
+function getTranscriptSuffix(previousText: string, nextText: string) {
+  const previousWords = previousText.trim().split(/\s+/).filter(Boolean);
+  const nextWords = nextText.trim().split(/\s+/).filter(Boolean);
 
-  const existingWords = existingNormalized.split(' ');
-  const nextWords = nextNormalized.split(' ');
-  const maxOverlap = Math.min(existingWords.length, nextWords.length, 20);
+  if (!nextWords.length) return '';
+  if (!previousWords.length) return nextWords.join(' ');
 
-  let overlapWords = 0;
-  for (let count = maxOverlap; count >= 1; count -= 1) {
-    const existingTail = existingWords.slice(-count).join(' ');
-    const nextHead = nextWords.slice(0, count).join(' ');
-    if (existingTail === nextHead) {
-      overlapWords = count;
+  const maxPrefix = Math.min(previousWords.length, nextWords.length);
+  let sharedPrefixWords = 0;
+
+  for (let index = 0; index < maxPrefix; index += 1) {
+    if (normalizeLiveSegment(previousWords[index]) !== normalizeLiveSegment(nextWords[index])) {
       break;
     }
+    sharedPrefixWords += 1;
   }
 
-  if (!overlapWords) return nextText.trim();
-
-  const originalWords = nextText.trim().split(/\s+/);
-  if (overlapWords >= originalWords.length) return '';
-  return originalWords.slice(overlapWords).join(' ').trim();
+  if (sharedPrefixWords >= nextWords.length) return '';
+  return nextWords.slice(sharedPrefixWords).join(' ').trim();
 }
 
 export function DictationCaptureView() {
@@ -103,8 +98,7 @@ export function DictationCaptureView() {
   const speechRecognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const liveResultReceivedRef = useRef(false);
   const keepLiveDictationRunningRef = useRef(false);
-  const lastCommittedLiveSegmentRef = useRef('');
-  const lastCommittedLiveSegmentAtRef = useRef(0);
+  const liveCommittedTranscriptRef = useRef('');
   const restartTimerRef = useRef<number | null>(null);
   const [draft, setDraft] = useState<DictationDraft>(initialDraft);
   const [recording, setRecording] = useState(false);
@@ -174,18 +168,12 @@ export function DictationCaptureView() {
     const cleaned = formatTranscriptText(nextText).trim();
     if (!cleaned) return;
 
-    setDraft((current) => {
-      const currentTranscript = current.transcript.trim();
-      const dedupedText = currentTranscript ? removeOverlapFromAppend(currentTranscript, cleaned) : cleaned;
-      if (!dedupedText) return current;
-
-      return {
-        ...current,
-        transcript: currentTranscript
-          ? `${current.transcript.trimEnd()}\n\n${dedupedText}`
-          : dedupedText,
-      };
-    });
+    setDraft((current) => ({
+      ...current,
+      transcript: current.transcript.trim()
+        ? `${current.transcript.trimEnd()}\n\n${cleaned}`
+        : cleaned,
+    }));
   };
 
   const startRecording = async () => {
@@ -261,15 +249,8 @@ export function DictationCaptureView() {
             const result = event.results[index];
             const transcript = (result[0]?.transcript ?? result.item(0)?.transcript ?? '').trim();
             if (result.isFinal) {
-              const normalizedTranscript = normalizeLiveSegment(transcript);
-              const isImmediateDuplicate =
-                normalizedTranscript &&
-                normalizedTranscript === lastCommittedLiveSegmentRef.current &&
-                Date.now() - lastCommittedLiveSegmentAtRef.current < 4000;
-              if (normalizedTranscript && !isImmediateDuplicate) {
+              if (transcript) {
                 finalSegments.push(transcript);
-                lastCommittedLiveSegmentRef.current = normalizedTranscript;
-                lastCommittedLiveSegmentAtRef.current = Date.now();
               }
             } else {
               interimText += transcript;
@@ -277,7 +258,12 @@ export function DictationCaptureView() {
           }
 
           if (finalSegments.length > 0) {
-            appendTranscriptText(finalSegments.join(' '));
+            const fullFinalTranscript = finalSegments.join(' ').trim();
+            const nextSuffix = getTranscriptSuffix(liveCommittedTranscriptRef.current, fullFinalTranscript);
+            if (nextSuffix) {
+              appendTranscriptText(nextSuffix);
+            }
+            liveCommittedTranscriptRef.current = fullFinalTranscript;
           }
           setLiveInterim(interimText.trim());
         };
@@ -312,6 +298,7 @@ export function DictationCaptureView() {
       }
 
       liveResultReceivedRef.current = false;
+      liveCommittedTranscriptRef.current = '';
       keepLiveDictationRunningRef.current = true;
       setLiveError(null);
       setError(null);
@@ -325,6 +312,7 @@ export function DictationCaptureView() {
 
   const stopLiveDictation = () => {
     keepLiveDictationRunningRef.current = false;
+    liveCommittedTranscriptRef.current = '';
     if (restartTimerRef.current) {
       window.clearTimeout(restartTimerRef.current);
     }
