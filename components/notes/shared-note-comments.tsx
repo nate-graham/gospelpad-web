@@ -89,11 +89,7 @@ export function SharedNoteComments({ noteId }: SharedNoteCommentsProps) {
           <strong>Loading comments…</strong>
           <span style={{ color: 'var(--muted)' }}>Fetching the current shared-note discussion.</span>
         </section>
-      ) : comments.length === 0 ? (
-        <section className="empty-state status-message" role="status">
-          <strong>No comments yet</strong>
-        </section>
-      ) : (
+      ) : comments.length > 0 ? (
         <div style={{ display: 'grid', gap: '0.75rem' }}>
           {comments.map((comment) => (
             <article className="status-card" key={comment.id} style={{ padding: '1rem', display: 'grid', gap: '0.45rem' }}>
@@ -104,7 +100,7 @@ export function SharedNoteComments({ noteId }: SharedNoteCommentsProps) {
             </article>
           ))}
         </div>
-      )}
+      ) : null}
 
       <label style={fieldStyle}>
         <span className="eyebrow" style={labelTextStyle}>Add comment</span>
