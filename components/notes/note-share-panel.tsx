@@ -43,6 +43,7 @@ export function NoteSharePanel({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const canUseNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   useEffect(() => {
     let active = true;
@@ -232,6 +233,29 @@ export function NoteSharePanel({
     }
   };
 
+  const onSharePublicLink = async () => {
+    if (!publicShareUrl) return;
+
+    if (!canUseNativeShare) {
+      await onCopyPublicLink();
+      return;
+    }
+
+    try {
+      await navigator.share({
+        title: note.title?.trim() || 'Shared GospelPad note',
+        text: 'Open this shared GospelPad note.',
+        url: publicShareUrl,
+      });
+      setNotice('Share sheet opened.');
+    } catch (shareError) {
+      if (shareError instanceof Error && shareError.name === 'AbortError') {
+        return;
+      }
+      setError('Could not open the phone share sheet from this browser.');
+    }
+  };
+
   return (
     <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
       <div className="page-header" style={{ gap: '0.35rem' }}>
@@ -403,6 +427,9 @@ export function NoteSharePanel({
           <div style={{ display: 'grid', gap: '0.55rem' }}>
             <strong style={{ fontSize: '0.95rem', overflowWrap: 'anywhere' }}>{publicShareUrl}</strong>
             <div className="cta-row">
+              <button className="button button-primary" onClick={onSharePublicLink} type="button">
+                {canUseNativeShare ? 'Share link' : 'Copy public link'}
+              </button>
               <button className="button button-primary" onClick={onCopyPublicLink} type="button">
                 Copy public link
               </button>
