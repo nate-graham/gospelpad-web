@@ -355,25 +355,35 @@ export function NotesListView() {
               key={note.id}
               className="panel"
               onClick={() => {
-                if (!selectionMode) {
-                  router.push(`/notes/${note.id}`);
+                if (selectionMode) {
+                  toggleSelectedNote(note.id);
+                  return;
                 }
+                router.push(`/notes/${note.id}`);
               }}
               onKeyDown={(event) => {
-                if (selectionMode) return;
                 if (event.key === 'Enter' || event.key === ' ') {
                   event.preventDefault();
+                  if (selectionMode) {
+                    toggleSelectedNote(note.id);
+                    return;
+                  }
                   router.push(`/notes/${note.id}`);
                 }
               }}
               role="button"
-              tabIndex={selectionMode ? -1 : 0}
+              aria-pressed={selectionMode ? selectedNoteIds.includes(note.id) : undefined}
+              tabIndex={0}
               style={{
                 padding: '1rem',
                 display: 'grid',
                 gap: '0.85rem',
                 alignContent: 'start',
                 cursor: selectionMode ? 'default' : 'pointer',
+                outline: selectionMode && selectedNoteIds.includes(note.id) ? '2px solid var(--accent)' : undefined,
+                background: selectionMode && selectedNoteIds.includes(note.id)
+                  ? 'color-mix(in srgb, var(--field-bg) 72%, var(--accent-soft) 28%)'
+                  : undefined,
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'start' }}>
@@ -408,7 +418,7 @@ export function NotesListView() {
                         onChange={() => toggleSelectedNote(note.id)}
                         type="checkbox"
                       />
-                      Select
+                      {selectedNoteIds.includes(note.id) ? 'Selected' : 'Select'}
                     </label>
                   ) : null}
                 </div>
