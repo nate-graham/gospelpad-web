@@ -22,6 +22,11 @@ import { findScriptureReferences } from '@/lib/scripture-references';
 type NoteFormProps = {
   mode: 'create' | 'edit';
   note?: NoteRecord | null;
+  onSaveOverride?: (payload: NoteInput) => Promise<string | void>;
+  cancelHref?: string;
+  editEyebrow?: string;
+  editTitle?: string;
+  editDescription?: string;
 };
 
 type DraftState = NoteInput;
@@ -31,7 +36,15 @@ function getDraftStorageKey(mode: 'create' | 'edit', noteId?: string) {
   return mode === 'create' ? 'gospelpad-web-note-draft:new' : `gospelpad-web-note-draft:${noteId ?? 'unknown'}`;
 }
 
-export function NoteForm({ mode, note }: NoteFormProps) {
+export function NoteForm({
+  mode,
+  note,
+  onSaveOverride,
+  cancelHref,
+  editEyebrow,
+  editTitle,
+  editDescription,
+}: NoteFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -229,6 +242,15 @@ export function NoteForm({ mode, note }: NoteFormProps) {
         throw new Error('This note could not be loaded for editing.');
       }
 
+      if (onSaveOverride) {
+        const redirectTo = await onSaveOverride(payload);
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem(draftKey);
+        }
+        router.replace(redirectTo ?? `/notes/${note.id}?updated=1`);
+        return;
+      }
+
       await updateNote(note.id, payload);
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(draftKey);
@@ -244,12 +266,14 @@ export function NoteForm({ mode, note }: NoteFormProps) {
   return (
     <div className="page-section">
       <header className="page-header">
-        <span className="eyebrow">{mode === 'create' ? 'Create note' : 'Edit note'}</span>
+        <span className="eyebrow">{mode === 'create' ? 'Create note' : editEyebrow ?? 'Edit note'}</span>
         <h1>
-          {mode === 'create' ? 'Capture a new note' : 'Update your note'}
+          {mode === 'create' ? 'Capture a new note' : editTitle ?? 'Update your note'}
         </h1>
         <p className="page-description">
-          This composer keeps the current scripture-aware editor and local draft recovery while now surfacing the most important structured fields already used by the mobile product.
+          {mode === 'create'
+            ? 'This composer keeps the current scripture-aware editor and local draft recovery while now surfacing the most important structured fields already used by the mobile product.'
+            : editDescription ?? 'This composer keeps the current scripture-aware editor and local draft recovery while now surfacing the most important structured fields already used by the mobile product.'}
         </p>
       </header>
 
@@ -479,7 +503,7 @@ export function NoteForm({ mode, note }: NoteFormProps) {
             <button className="button button-ghost" onClick={clearDraft} type="button">
               Clear local draft
             </button>
-            <Link className="button button-secondary" href={mode === 'create' ? '/notes' : `/notes/${note?.id}`}>
+            <Link className="button button-secondary" href={cancelHref ?? (mode === 'create' ? '/notes' : `/notes/${note?.id}`)}>
               Cancel
             </Link>
           </div>

@@ -3,16 +3,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { listUserGroups, type UserGroup } from '@/lib/groups';
 import {
+  ensureOwnedPublicShare,
+  getOwnedPublicShare,
   listOwnedGroupShares,
   listOwnedUserShares,
+  removeOwnedPublicShare,
   replaceOwnedShares,
   type NoteGroupShare,
   type NoteRecord,
   type NoteSharePermission,
+  type PublicNoteShare,
   type NoteUserShare,
   type ShareableProfile,
   searchShareableProfiles,
 } from '@/lib/notes';
+import { getPublicAppUrl } from '@/lib/env';
 
 const PERMISSIONS: NoteSharePermission[] = ['view', 'comment', 'edit'];
 
@@ -28,6 +33,7 @@ export function NoteSharePanel({
   const [groups, setGroups] = useState<UserGroup[]>([]);
   const [existingShares, setExistingShares] = useState<NoteGroupShare[]>([]);
   const [existingUserShares, setExistingUserShares] = useState<NoteUserShare[]>([]);
+  const [publicShare, setPublicShare] = useState<PublicNoteShare | null>(null);
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<ShareableProfile[]>([]);
   const [userQuery, setUserQuery] = useState('');
@@ -45,16 +51,18 @@ export function NoteSharePanel({
       try {
         setLoading(true);
         setError(null);
-        const [nextGroups, nextShares, nextUserShares] = await Promise.all([
+        const [nextGroups, nextShares, nextUserShares, nextPublicShare] = await Promise.all([
           listUserGroups(),
           listOwnedGroupShares(note.id),
           listOwnedUserShares(note.id),
+          getOwnedPublicShare(note.id),
         ]);
 
         if (!active) return;
         setGroups(nextGroups);
         setExistingShares(nextShares);
         setExistingUserShares(nextUserShares);
+        setPublicShare(nextPublicShare);
         setSelectedGroupIds(nextShares.map((share) => share.group_id));
         setSelectedUsers(
           nextUserShares.map((share) => ({
@@ -141,13 +149,56 @@ export function NoteSharePanel({
     }
   };
 
+  const publicShareUrl = publicShare ? `${getPublicAppUrl()}/s/${publicShare.share_token}` : null;
+
+  const onEnablePublicShare = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      setNotice(null);
+      const share = await ensureOwnedPublicShare(note.id);
+      setPublicShare(share);
+      setNotice('Public read-only link ready. Anyone with the link can read this note and then sign up to keep their own copy.');
+    } catch (shareError) {
+      setError(shareError instanceof Error ? shareError.message : 'Failed to create a public share link.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onDisablePublicShare = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      setNotice(null);
+      await removeOwnedPublicShare(note.id);
+      setPublicShare(null);
+      setNotice('Public link removed. People will need a signed-in share again to reach this note.');
+    } catch (shareError) {
+      setError(shareError instanceof Error ? shareError.message : 'Failed to remove the public share link.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onCopyPublicLink = async () => {
+    if (!publicShareUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(publicShareUrl);
+      setNotice('Public share link copied.');
+    } catch {
+      setError('Could not copy the public link from this browser.');
+    }
+  };
+
   return (
     <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
       <div className="page-header" style={{ gap: '0.35rem' }}>
         <span className="eyebrow">Share note</span>
         <strong style={{ fontSize: '1.05rem' }}>Share this note with your groups or directly with another user</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          This pass extends the existing `note_shares` model. Group shares still work the same way, and direct user shares now follow the same safe backend path the mobile app already uses.
+          Use direct user or group sharing when you want signed-in collaboration. Use the public link below when you want to share a read-only version with someone who does not have an account yet.
         </span>
       </div>
 
@@ -249,6 +300,9 @@ export function NoteSharePanel({
                 </button>
               ))}
             </div>
+            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+              `edit` means collaborators can change the original shared note together. Use the public link below when you want to share a read-only version instead.
+            </span>
           </div>
         </>
       ) : null}
@@ -287,6 +341,34 @@ export function NoteSharePanel({
           </div>
         </section>
       ) : null}
+
+      <section className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+        <span className="eyebrow">Public share link</span>
+        <strong style={{ fontSize: '1.05rem' }}>Read-only sharing for anyone with the link</strong>
+        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+          This is the safe path for non-users. They can read the full note, then sign up to copy it into their own library or start collaborating.
+        </span>
+
+        {publicShareUrl ? (
+          <div style={{ display: 'grid', gap: '0.55rem' }}>
+            <strong style={{ fontSize: '0.95rem', overflowWrap: 'anywhere' }}>{publicShareUrl}</strong>
+            <div className="cta-row">
+              <button className="button button-primary" onClick={onCopyPublicLink} type="button">
+                Copy public link
+              </button>
+              <button className="button button-ghost" onClick={onDisablePublicShare} type="button" disabled={saving}>
+                Remove public link
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="cta-row">
+            <button className="button button-primary" onClick={onEnablePublicShare} type="button" disabled={saving}>
+              Create public link
+            </button>
+          </div>
+        )}
+      </section>
 
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
       {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}

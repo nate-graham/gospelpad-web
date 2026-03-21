@@ -55,6 +55,7 @@ export function ReceivedSharedNoteView({ noteId }: { noteId: string }) {
   const wordCount = useMemo(() => getNoteWordCount(note ?? { body: '' }), [note]);
   const readingMinutes = useMemo(() => getNoteReadingTimeMinutes(note ?? { body: '' }), [note]);
   const scriptureCount = useMemo(() => getScriptureReferenceCount(note ?? { body: '' }), [note]);
+  const canEditSharedNote = share?.permissions.includes('edit') ?? false;
 
   const onCopyToMyNotes = async () => {
     if (!note) return;
@@ -194,6 +195,11 @@ export function ReceivedSharedNoteView({ noteId }: { noteId: string }) {
       <SharedNoteComments noteId={note.id} />
 
       <div className="cta-row">
+        {canEditSharedNote ? (
+          <Link className="button button-primary" href={`/notes/shared/${note.id}/edit`}>
+            Edit together
+          </Link>
+        ) : null}
         <button className="button button-primary" type="button" disabled={duplicating} onClick={onCopyToMyNotes}>
           {duplicating ? 'Copying…' : 'Copy to my notes'}
         </button>

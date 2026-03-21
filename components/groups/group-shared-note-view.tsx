@@ -344,6 +344,12 @@ export function GroupSharedNoteView({
             {duplicating ? 'Copying…' : 'Copy to my notes'}
           </button>
 
+          {note.source === 'shared' && note.permissions === 'edit' ? (
+            <Link className="button button-secondary" href={`/notes/shared/${note.id}/edit`}>
+              Edit together
+            </Link>
+          ) : null}
+
           {canOpenOriginal ? (
             <Link className="button button-secondary" href={`/notes/${note.id}`}>
               Open original note
