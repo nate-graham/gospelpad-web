@@ -116,6 +116,29 @@ export function NoteSharePanel({
     };
   }, [userQuery]);
 
+  const refreshShares = async () => {
+    const [refreshedGroups, refreshedUsers] = await Promise.all([
+      listOwnedGroupShares(note.id),
+      listOwnedUserShares(note.id),
+    ]);
+
+    setExistingShares(refreshedGroups);
+    setExistingUserShares(refreshedUsers);
+    setSelectedGroupIds(refreshedGroups.map((share) => share.group_id));
+    setSelectedUsers(
+      refreshedUsers.map((share) => ({
+        id: share.user_id,
+        username: null,
+        display_name: share.user_label,
+        name: share.user_label,
+      }))
+    );
+    onSharesUpdated?.(refreshedGroups);
+    onUserSharesUpdated?.(refreshedUsers);
+
+    return { refreshedGroups, refreshedUsers };
+  };
+
   const onSave = async () => {
     try {
       setSaving(true);
@@ -129,14 +152,7 @@ export function NoteSharePanel({
         permission,
       });
 
-      const [refreshed, refreshedUsers] = await Promise.all([
-        listOwnedGroupShares(note.id),
-        listOwnedUserShares(note.id),
-      ]);
-      setExistingShares(refreshed);
-      setExistingUserShares(refreshedUsers);
-      onSharesUpdated?.(refreshed);
-      onUserSharesUpdated?.(refreshedUsers);
+      const { refreshedGroups: refreshed, refreshedUsers } = await refreshShares();
       setNotice(
         refreshed.length + refreshedUsers.length > 0
           ? `Updated sharing for ${refreshed.length} group${refreshed.length === 1 ? '' : 's'} and ${refreshedUsers.length} user${refreshedUsers.length === 1 ? '' : 's'}.`
@@ -144,6 +160,30 @@ export function NoteSharePanel({
       );
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Failed to update note sharing.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onRemoveUserShare = async (userId: string, userLabel: string) => {
+    try {
+      setSaving(true);
+      setError(null);
+      setNotice(null);
+
+      const remainingUsers = selectedUsers.filter((user) => user.id !== userId);
+
+      await replaceOwnedShares({
+        noteId: note.id,
+        groups: selectedGroups.map(({ group }) => ({ id: group.id, name: group.name })),
+        users: remainingUsers,
+        permission,
+      });
+
+      await refreshShares();
+      setNotice(`${userLabel} no longer has access to this note.`);
+    } catch (removeError) {
+      setError(removeError instanceof Error ? removeError.message : 'Failed to remove this user from the shared note.');
     } finally {
       setSaving(false);
     }
@@ -333,9 +373,19 @@ export function NoteSharePanel({
           <span className="eyebrow">Currently shared with users</span>
           <div style={{ display: 'grid', gap: '0.5rem' }}>
             {existingUserShares.map((share) => (
-              <div key={share.user_id} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                <strong>{share.user_label}</strong>
-                <span className="badge">{share.permissions.join(', ')}</span>
+              <div key={share.user_id} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                  <strong>{share.user_label}</strong>
+                  <span className="badge">{share.permissions.join(', ')}</span>
+                </div>
+                <button
+                  className="button button-ghost"
+                  disabled={saving}
+                  onClick={() => onRemoveUserShare(share.user_id, share.user_label)}
+                  type="button"
+                >
+                  Remove access
+                </button>
               </div>
             ))}
           </div>
