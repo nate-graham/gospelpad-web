@@ -354,11 +354,26 @@ export function NotesListView() {
             <article
               key={note.id}
               className="panel"
+              onClick={() => {
+                if (!selectionMode) {
+                  router.push(`/notes/${note.id}`);
+                }
+              }}
+              onKeyDown={(event) => {
+                if (selectionMode) return;
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  router.push(`/notes/${note.id}`);
+                }
+              }}
+              role="button"
+              tabIndex={selectionMode ? -1 : 0}
               style={{
                 padding: '1rem',
                 display: 'grid',
                 gap: '0.85rem',
                 alignContent: 'start',
+                cursor: selectionMode ? 'default' : 'pointer',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'start' }}>
@@ -389,6 +404,7 @@ export function NotesListView() {
                     <label style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', color: 'var(--muted)', fontSize: '0.85rem' }}>
                       <input
                         checked={selectedNoteIds.includes(note.id)}
+                        onClick={(event) => event.stopPropagation()}
                         onChange={() => toggleSelectedNote(note.id)}
                         type="checkbox"
                       />
@@ -402,10 +418,10 @@ export function NotesListView() {
                 <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>Speaker: {note.speaker}</span>
               ) : null}
               <div className="cta-row">
-                <Link className="button button-primary" href={`/notes/${note.id}/edit`}>
+                <Link className="button button-primary" href={`/notes/${note.id}/edit`} onClick={(event) => event.stopPropagation()}>
                   Open
                 </Link>
-                <Link className="button button-secondary" href={`/notes/${note.id}`}>
+                <Link className="button button-secondary" href={`/notes/${note.id}`} onClick={(event) => event.stopPropagation()}>
                   View
                 </Link>
               </div>
