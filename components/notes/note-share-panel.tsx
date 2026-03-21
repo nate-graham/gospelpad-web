@@ -418,10 +418,7 @@ export function NoteSharePanel({
 
       <section className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
         <span className="eyebrow">Public share link</span>
-        <strong style={{ fontSize: '1.05rem' }}>Read-only sharing for anyone with the link</strong>
-        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          This is the safe path for non-users. They can read the full note, then sign up to copy it into their own library or start collaborating.
-        </span>
+        <span style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>Read-only</span>
 
         {publicShareUrl ? (
           <div style={{ display: 'grid', gap: '0.55rem' }}>
