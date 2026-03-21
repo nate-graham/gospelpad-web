@@ -52,7 +52,21 @@ export type NoteUserShare = {
   created_at: string;
 };
 
+export type PublicNoteShare = {
+  note_id: string;
+  share_token: string;
+  created_at: string;
+};
+
 export type ReceivedSharedNoteSummary = {
+  note: NoteRecord;
+  shared_by: string | null;
+  shared_by_label: string;
+  shared_at: string;
+  permissions: NoteSharePermission[];
+};
+
+export type SharedNoteAccessSummary = {
   note: NoteRecord;
   shared_by: string | null;
   shared_by_label: string;
@@ -339,7 +353,7 @@ export async function listOwnedGroupShares(noteId: string) {
 
   const { data, error } = await supabase
     .from('note_shares')
-    .select('id, note_id, shared_with, permissions, created_at, groups!inner(id, name)')
+    .select('id, note_id, shared_with, permissions, created_at')
     .eq('note_id', noteId)
     .eq('shared_by', userId)
     .eq('shared_with_type', 'group');
@@ -348,17 +362,36 @@ export async function listOwnedGroupShares(noteId: string) {
     throw new Error(error.message);
   }
 
-  const grouped = new Map<string, NoteGroupShare>();
-
-  for (const row of (data ?? []) as Array<{
+  const rows = (data ?? []) as Array<{
     id: string;
     note_id: string;
     shared_with: string;
     permissions: NoteSharePermission;
     created_at: string;
-    groups: { id: string; name: string } | { id: string; name: string }[] | null;
-  }>) {
-    const group = Array.isArray(row.groups) ? row.groups[0] : row.groups;
+  }>;
+
+  const groupIds = [...new Set(rows.map((row) => row.shared_with))];
+  const groupMap = new Map<string, { id: string; name: string }>();
+
+  if (groupIds.length > 0) {
+    const { data: groupsData, error: groupsError } = await supabase
+      .from('groups')
+      .select('id, name')
+      .in('id', groupIds);
+
+    if (groupsError) {
+      throw new Error(groupsError.message);
+    }
+
+    for (const group of (groupsData ?? []) as Array<{ id: string; name: string }>) {
+      groupMap.set(group.id, group);
+    }
+  }
+
+  const grouped = new Map<string, NoteGroupShare>();
+
+  for (const row of rows) {
+    const group = groupMap.get(row.shared_with);
     if (!group) continue;
 
     const existing = grouped.get(row.shared_with);
@@ -427,6 +460,49 @@ export async function listOwnedUserShares(noteId: string) {
   }
 
   return [...grouped.values()].sort((a, b) => a.user_label.localeCompare(b.user_label));
+}
+
+export async function getOwnedPublicShare(noteId: string) {
+  const { supabase, userId } = await getAuthenticatedUserId();
+
+  const { data, error } = await supabase
+    .from('note_public_shares')
+    .select('note_id, share_token, created_at')
+    .eq('note_id', noteId)
+    .eq('created_by', userId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as PublicNoteShare | null) ?? null;
+}
+
+export async function ensureOwnedPublicShare(noteId: string) {
+  const { supabase } = await getAuthenticatedUserId();
+
+  const { data, error } = await supabase.rpc('ensure_public_note_share', {
+    p_note_id: noteId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as PublicNoteShare;
+}
+
+export async function removeOwnedPublicShare(noteId: string) {
+  const { supabase } = await getAuthenticatedUserId();
+
+  const { error } = await supabase.rpc('remove_public_note_share', {
+    p_note_id: noteId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function searchShareableProfiles(query: string) {
@@ -516,6 +592,104 @@ export async function listReceivedSharedNotes() {
   ));
 }
 
+function rankPermission(permission: NoteSharePermission) {
+  if (permission === 'edit') return 3;
+  if (permission === 'comment') return 2;
+  return 1;
+}
+
+function sortPermissions(permissions: NoteSharePermission[]) {
+  return [...permissions].sort((a, b) => rankPermission(b) - rankPermission(a));
+}
+
+export async function getSharedNoteAccess(noteId: string) {
+  const { supabase, userId } = await getAuthenticatedUserId();
+  const note = await getAccessibleSharedNoteById(noteId);
+
+  if (!note) {
+    return null;
+  }
+
+  const [
+    directShareResult,
+    membershipsResult,
+  ] = await Promise.all([
+    supabase
+      .from('note_shares')
+      .select('shared_by, permissions, created_at')
+      .eq('note_id', noteId)
+      .eq('shared_with_type', 'user')
+      .eq('shared_with', userId),
+    supabase
+      .from('group_members')
+      .select('group_id')
+      .eq('user_id', userId),
+  ]);
+
+  if (directShareResult.error) {
+    throw new Error(directShareResult.error.message);
+  }
+  if (membershipsResult.error) {
+    throw new Error(membershipsResult.error.message);
+  }
+
+  const groupIds = (membershipsResult.data ?? []).map((row) => row.group_id as string);
+
+  let groupShareRows: Array<{
+    shared_by: string | null;
+    permissions: NoteSharePermission;
+    created_at: string;
+  }> = [];
+
+  if (groupIds.length > 0) {
+    const { data, error } = await supabase
+      .from('note_shares')
+      .select('shared_by, permissions, created_at')
+      .eq('note_id', noteId)
+      .eq('shared_with_type', 'group')
+      .in('shared_with', groupIds);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    groupShareRows = (data ?? []) as Array<{
+      shared_by: string | null;
+      permissions: NoteSharePermission;
+      created_at: string;
+    }>;
+  }
+
+  const allShares = [
+    ...((directShareResult.data ?? []) as Array<{
+      shared_by: string | null;
+      permissions: NoteSharePermission;
+      created_at: string;
+    }>),
+    ...groupShareRows,
+  ];
+
+  if (allShares.length === 0) {
+    return null;
+  }
+
+  const senderIds = [...new Set(allShares.map((row) => row.shared_by).filter(Boolean) as string[])];
+  const senderMap = await getProfileSummaryMap(senderIds);
+  const permissions = sortPermissions([...new Set(allShares.map((row) => row.permissions))]);
+  const latestShare = allShares.reduce((latest, row) => {
+    if (!latest) return row;
+    return new Date(row.created_at).getTime() > new Date(latest.created_at).getTime() ? row : latest;
+  }, null as (typeof allShares)[number] | null);
+
+  return {
+    note,
+    shared_by: latestShare?.shared_by ?? null,
+    shared_by_label: getProfileLabel(latestShare?.shared_by ? senderMap.get(latestShare.shared_by) : null, 'User'),
+    shared_at: latestShare?.created_at ?? note.updated_at,
+    permissions,
+  } satisfies SharedNoteAccessSummary;
+}
+
 export async function replaceOwnedShares(input: {
   noteId: string;
   groups: Array<{ id: string; name: string }>;
@@ -587,6 +761,45 @@ export async function replaceOwnedShares(input: {
 
   if (noteError) {
     throw new Error(noteError.message);
+  }
+}
+
+export async function getPublicSharedNote(shareToken: string) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) {
+    throw new Error('Supabase is not configured for this browser session.');
+  }
+
+  const { data, error } = await supabase.rpc('get_public_shared_note', {
+    share_token: shareToken,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  return (row as NoteRecord | null) ?? null;
+}
+
+export async function updateSharedNote(noteId: string, input: NoteInput) {
+  const { supabase } = await getAuthenticatedUserId();
+
+  const { error } = await supabase.rpc('update_shared_note', {
+    p_note_id: noteId,
+    p_title: input.title,
+    p_body: input.body,
+    p_speaker: input.speaker,
+    p_type: input.type,
+    p_status: input.type === 'Prayer Requests' ? input.prayerStatus ?? 'Ongoing' : null,
+    p_is_lucid_dream: input.type === 'Dream' ? Boolean(input.isLucidDream) : null,
+    p_dream_role: input.type === 'Dream' ? input.dreamRole ?? 'observing' : null,
+    p_prayer_request_id: input.type === 'Prayer Requests' ? input.prayerRequestId ?? null : null,
+    p_clips: input.clips ?? null,
+  });
+
+  if (error) {
+    throw new Error(error.message);
   }
 }
 
