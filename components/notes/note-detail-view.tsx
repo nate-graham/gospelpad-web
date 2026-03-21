@@ -126,6 +126,20 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const wordCount = useMemo(() => getNoteWordCount(note ?? { body: '' } as NoteRecord), [note]);
   const readingMinutes = useMemo(() => getNoteReadingTimeMinutes(note ?? { body: '' } as NoteRecord), [note]);
   const scriptureCount = useMemo(() => getScriptureReferenceCount(note ?? { body: '' } as NoteRecord), [note]);
+  const metadataSummary = useMemo(() => {
+    const parts = [
+      `${wordCount} words`,
+      `${readingMinutes} min read`,
+      `${scriptureCount} ref${scriptureCount === 1 ? '' : 's'}`,
+      note?.type ?? 'Note',
+    ];
+
+    if (groupShares.length + userShares.length > 0) {
+      parts.push(`shared with ${groupShares.length + userShares.length}`);
+    }
+
+    return parts.join(' • ');
+  }, [groupShares.length, note?.type, readingMinutes, scriptureCount, userShares.length, wordCount]);
 
   const onDelete = async () => {
     const confirmed = window.confirm('Delete this note? It will move into the existing soft-delete path.');
@@ -296,125 +310,117 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
         />
       ) : null}
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div
+      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+        <summary
           style={{
+            cursor: 'pointer',
+            fontWeight: 700,
+            color: 'var(--text)',
+            listStyle: 'none',
             display: 'grid',
-            gap: '0.85rem',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+            gap: '0.2rem',
           }}
         >
-          <article className="status-card" style={{ padding: '1rem' }}>
-            <span className="eyebrow">Length</span>
-            <strong style={{ fontSize: '1.2rem' }}>{wordCount} words</strong>
-            <span style={{ color: 'var(--muted)' }}>{readingMinutes} min read</span>
-          </article>
-          <article className="status-card" style={{ padding: '1rem' }}>
-            <span className="eyebrow">Scripture</span>
-            <strong style={{ fontSize: '1.2rem' }}>{scriptureCount}</strong>
-            <span style={{ color: 'var(--muted)' }}>
-              {scriptureCount === 1 ? 'reference detected' : 'references detected'}
-            </span>
-          </article>
-          <article className="status-card" style={{ padding: '1rem' }}>
-            <span className="eyebrow">Note type</span>
-            <strong style={{ fontSize: '1.2rem' }}>{note.type ?? 'Note'}</strong>
-            <span style={{ color: 'var(--muted)' }}>{note.status?.trim() || 'No explicit status set'}</span>
-          </article>
-          {note.type === 'Prayer Requests' ? (
-            <article className="status-card" style={{ padding: '1rem' }}>
-              <span className="eyebrow">Prayer request</span>
-              <strong style={{ fontSize: '1.2rem' }}>{prayerRequest?.status ?? note.status ?? 'Ongoing'}</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                {prayerRequest?.answered_at
-                  ? `Answered ${formatNoteDate(prayerRequest.answered_at)}`
-                  : 'Still active and waiting for an answer.'}
-              </span>
-            </article>
-          ) : null}
-          {note.type === 'Dream' ? (
-            <article className="status-card" style={{ padding: '1rem' }}>
-              <span className="eyebrow">Dream metadata</span>
-              <strong style={{ fontSize: '1.2rem' }}>
-                {note.is_lucid_dream ? 'Lucid dream' : 'Standard dream'}
-              </strong>
-              <span style={{ color: 'var(--muted)' }}>
-                {note.dream_role ? `You were ${note.dream_role} in the dream.` : 'No dream role recorded.'}
-              </span>
-            </article>
-          ) : null}
-        </div>
+          <span>Note details</span>
+          <span style={{ color: 'var(--muted)', fontSize: '0.92rem', fontWeight: 500 }}>{metadataSummary}</span>
+        </summary>
 
-        <div className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Reading guidance</span>
-          <strong style={{ fontSize: '1.05rem' }}>Built for {note.type ?? 'general note'} reading</strong>
-          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteTypeGuidance(note.type)}</span>
-        </div>
-
-        {note.type === 'Prayer Requests' ? (
-          <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-            <span className="eyebrow">Prayer workflow</span>
-            <strong style={{ fontSize: '1.05rem' }}>
-              {prayerRequest?.status ?? note.status ?? 'Ongoing'}
-            </strong>
-            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-              Update the request as it changes so you can see what is still ongoing and what has been answered.
-            </span>
-            <div className="cta-row">
-              <button
-                className="button button-secondary"
-                disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Ongoing'}
-                onClick={() => onPrayerStatusChange('Ongoing')}
-                type="button"
-              >
-                {updatingPrayerStatus ? 'Updating…' : 'Mark ongoing'}
-              </button>
-              <button
-                className="button button-primary"
-                disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Answered'}
-                onClick={() => onPrayerStatusChange('Answered')}
-                type="button"
-              >
-                {updatingPrayerStatus ? 'Updating…' : 'Mark answered'}
-              </button>
+        <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.9rem' }}>
+          <div
+            style={{
+              display: 'grid',
+              gap: '0.6rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            }}
+          >
+            <div className="status-card" style={{ padding: '0.9rem' }}>
+              <span className="eyebrow">Length</span>
+              <strong>{wordCount} words</strong>
+              <span style={{ color: 'var(--muted)' }}>{readingMinutes} min read</span>
+            </div>
+            <div className="status-card" style={{ padding: '0.9rem' }}>
+              <span className="eyebrow">Scripture</span>
+              <strong>{scriptureCount}</strong>
+              <span style={{ color: 'var(--muted)' }}>
+                {scriptureCount === 1 ? 'reference detected' : 'references detected'}
+              </span>
+            </div>
+            <div className="status-card" style={{ padding: '0.9rem' }}>
+              <span className="eyebrow">Type</span>
+              <strong>{note.type ?? 'Note'}</strong>
+              <span style={{ color: 'var(--muted)' }}>{note.status?.trim() || 'No status'}</span>
             </div>
           </div>
-        ) : null}
 
-        <div className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Visibility</span>
-          <strong style={{ fontSize: '1.05rem' }}>
-            {groupShares.length + userShares.length > 0
-              ? `Shared to ${groupShares.length} group${groupShares.length === 1 ? '' : 's'} and ${userShares.length} user${userShares.length === 1 ? '' : 's'}`
-              : 'Private note'}
-          </strong>
-          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            {groupShares.length + userShares.length > 0
-              ? [
-                  ...groupShares.map((share) => share.group_name),
-                  ...userShares.map((share) => share.user_label),
-                ].join(', ')
-              : 'This note is currently visible only to you.'}
-          </span>
-        </div>
+          <div className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Guidance</span>
+            <strong>Built for {note.type ?? 'general note'} reading</strong>
+            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteTypeGuidance(note.type)}</span>
+          </div>
 
-        {detectedReferences.length > 0 ? (
-          <div style={{ display: 'grid', gap: '0.55rem' }}>
-            <span className="eyebrow">Detected references</span>
-            <div className="cta-row">
-              {detectedReferences.map((reference) => (
+          {note.type === 'Prayer Requests' ? (
+            <div className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.65rem' }}>
+              <span className="eyebrow">Prayer workflow</span>
+              <strong>{prayerRequest?.status ?? note.status ?? 'Ongoing'}</strong>
+              <div className="cta-row">
                 <button
                   className="button button-secondary"
-                  key={reference}
-                  onClick={() => setActiveReference(reference)}
+                  disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Ongoing'}
+                  onClick={() => onPrayerStatusChange('Ongoing')}
                   type="button"
                 >
-                  {reference}
+                  {updatingPrayerStatus ? 'Updating…' : 'Mark ongoing'}
                 </button>
-              ))}
+                <button
+                  className="button button-primary"
+                  disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Answered'}
+                  onClick={() => onPrayerStatusChange('Answered')}
+                  type="button"
+                >
+                  {updatingPrayerStatus ? 'Updating…' : 'Mark answered'}
+                </button>
+              </div>
             </div>
+          ) : null}
+
+          <div className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Visibility</span>
+            <strong>
+              {groupShares.length + userShares.length > 0
+                ? `Shared to ${groupShares.length} group${groupShares.length === 1 ? '' : 's'} and ${userShares.length} user${userShares.length === 1 ? '' : 's'}`
+                : 'Private note'}
+            </strong>
+            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+              {groupShares.length + userShares.length > 0
+                ? [
+                    ...groupShares.map((share) => share.group_name),
+                    ...userShares.map((share) => share.user_label),
+                  ].join(', ')
+                : 'Visible only to you.'}
+            </span>
           </div>
-        ) : null}
+        </div>
+      </details>
+
+      {detectedReferences.length > 0 ? (
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
+          <span className="eyebrow">Detected references</span>
+          <div className="cta-row">
+            {detectedReferences.map((reference) => (
+              <button
+                className="button button-secondary"
+                key={reference}
+                onClick={() => setActiveReference(reference)}
+                type="button"
+              >
+                {reference}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="panel" style={{ padding: '1rem' }}>
         <div
           className="note-body-content"
           style={{
