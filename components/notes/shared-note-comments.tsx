@@ -80,9 +80,6 @@ export function SharedNoteComments({ noteId }: SharedNoteCommentsProps) {
       <div className="page-header" style={{ gap: '0.35rem' }}>
         <span className="eyebrow">Shared note comments</span>
         <strong style={{ fontSize: '1.1rem' }}>{commentCountLabel}</strong>
-        <span style={{ color: 'var(--muted)' }}>
-          Keep the conversation going with everyone who can access this shared note.
-        </span>
       </div>
 
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
@@ -95,7 +92,6 @@ export function SharedNoteComments({ noteId }: SharedNoteCommentsProps) {
       ) : comments.length === 0 ? (
         <section className="empty-state status-message" role="status">
           <strong>No comments yet</strong>
-          <span style={{ color: 'var(--muted)' }}>Start the conversation for everyone who can access this shared note.</span>
         </section>
       ) : (
         <div style={{ display: 'grid', gap: '0.75rem' }}>
