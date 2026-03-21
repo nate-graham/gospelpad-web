@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { listUserGroups, type UserGroup } from '@/lib/groups';
 import {
@@ -260,10 +261,48 @@ export function NoteSharePanel({
     <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
       <div className="page-header" style={{ gap: '0.35rem' }}>
         <span className="eyebrow">Share note</span>
-        <strong style={{ fontSize: '1.05rem' }}>Share this note with your groups or directly with another user</strong>
-        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Use direct user or group sharing when you want signed-in collaboration. Use the public link below when you want to share a read-only version with someone who does not have an account yet.
-        </span>
+        <strong style={{ fontSize: '1rem' }}>Collaborate or send a read-only link</strong>
+      </div>
+
+      <div
+        style={{
+          display: 'grid',
+          gap: '0.75rem',
+          gridTemplateColumns: 'minmax(0, 1fr) auto',
+          alignItems: 'end',
+        }}
+      >
+        <label style={{ display: 'grid', gap: '0.35rem' }}>
+          <span className="eyebrow">Permission</span>
+          <select
+            value={permission}
+            onChange={(event) => setPermission(event.target.value as NoteSharePermission)}
+            style={{
+              minHeight: 42,
+              borderRadius: 14,
+              border: '1px solid var(--line)',
+              padding: '0.75rem 0.9rem',
+              background: 'var(--field-bg)',
+              color: 'var(--text)',
+            }}
+          >
+            {PERMISSIONS.map((candidate) => (
+              <option key={candidate} value={candidate}>
+                {candidate}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <button
+          className="button button-primary"
+          type="button"
+          disabled={loading || saving}
+          onClick={onSave}
+          style={{ minHeight: 42, paddingInline: '0.9rem' }}
+        >
+          {saving ? 'Saving…' : 'Save'}
+        </button>
       </div>
 
       {loading ? (
@@ -273,107 +312,88 @@ export function NoteSharePanel({
         </section>
       ) : null}
 
-      {!loading && groups.length === 0 ? (
-        <section className="empty-state status-message" role="status">
-          <strong>No groups available</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            Join or create a group first, then you can share this note into it.
-          </span>
-        </section>
-      ) : null}
-
-      {!loading && groups.length > 0 ? (
+      {!loading ? (
         <>
-          <div style={{ display: 'grid', gap: '0.55rem' }}>
-            <span className="eyebrow">Target groups</span>
-            <div className="cta-row">
-              {groups.map(({ group, role }) => {
-                const active = selectedGroupIds.includes(group.id);
-                return (
-                  <button
-                    key={group.id}
-                    type="button"
-                    className={`button ${active ? 'button-primary' : 'button-secondary'}`}
-                    onClick={() =>
-                      setSelectedGroupIds((current) =>
-                        current.includes(group.id)
-                          ? current.filter((id) => id !== group.id)
-                          : [...current, group.id]
-                      )
-                    }
-                  >
-                    {group.name} ({role})
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <details className="panel" style={{ padding: '0.8rem 1rem' }}>
+            <summary style={summaryStyle}>Groups {selectedGroupIds.length > 0 ? `(${selectedGroupIds.length})` : ''}</summary>
+            {groups.length === 0 ? (
+              <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>No groups yet.</span>
+            ) : (
+              <div className="cta-row" style={{ marginTop: '0.85rem' }}>
+                {groups.map(({ group, role }) => {
+                  const active = selectedGroupIds.includes(group.id);
+                  return (
+                    <button
+                      key={group.id}
+                      type="button"
+                      className={`button ${active ? 'button-primary' : 'button-secondary'}`}
+                      onClick={() =>
+                        setSelectedGroupIds((current) =>
+                          current.includes(group.id)
+                            ? current.filter((id) => id !== group.id)
+                            : [...current, group.id]
+                        )
+                      }
+                      style={compactButtonStyle}
+                    >
+                      {group.name} ({role})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </details>
 
-          <div style={{ display: 'grid', gap: '0.55rem' }}>
-            <span className="eyebrow">Share with user</span>
-            <input
-              value={userQuery}
-              onChange={(event) => setUserQuery(event.target.value)}
-              placeholder="Search by username or name"
-              style={{
-                borderRadius: 18,
-                border: '1px solid var(--line)',
-                padding: '0.85rem 1rem',
-                background: 'var(--field-bg)',
-                color: 'var(--text)',
-              }}
-            />
-            <div className="cta-row">
-              {availableUsers.map((user) => {
-                const active = selectedUsers.some((candidate) => candidate.id === user.id);
-                const label = user.display_name || user.username || user.name || 'User';
-                return (
-                  <button
-                    key={user.id}
-                    type="button"
-                    className={`button ${active ? 'button-primary' : 'button-secondary'}`}
-                    onClick={() =>
-                      setSelectedUsers((current) =>
-                        current.some((candidate) => candidate.id === user.id)
-                          ? current.filter((candidate) => candidate.id !== user.id)
-                          : [...current, user]
-                      )
-                    }
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-              {availableUsers.length === 0 ? (
-                <span style={{ color: 'var(--muted)' }}>No matching users yet.</span>
-              ) : null}
+          <details className="panel" style={{ padding: '0.8rem 1rem' }}>
+            <summary style={summaryStyle}>Users {selectedUsers.length > 0 ? `(${selectedUsers.length})` : ''}</summary>
+            <div style={{ display: 'grid', gap: '0.6rem', marginTop: '0.85rem' }}>
+              <input
+                value={userQuery}
+                onChange={(event) => setUserQuery(event.target.value)}
+                placeholder="Search users"
+                style={{
+                  minHeight: 42,
+                  borderRadius: 14,
+                  border: '1px solid var(--line)',
+                  padding: '0.75rem 0.9rem',
+                  background: 'var(--field-bg)',
+                  color: 'var(--text)',
+                }}
+              />
+              <div className="cta-row">
+                {availableUsers.map((user) => {
+                  const active = selectedUsers.some((candidate) => candidate.id === user.id);
+                  const label = user.display_name || user.username || user.name || 'User';
+                  return (
+                    <button
+                      key={user.id}
+                      type="button"
+                      className={`button ${active ? 'button-primary' : 'button-secondary'}`}
+                      onClick={() =>
+                        setSelectedUsers((current) =>
+                          current.some((candidate) => candidate.id === user.id)
+                            ? current.filter((candidate) => candidate.id !== user.id)
+                            : [...current, user]
+                        )
+                      }
+                      style={compactButtonStyle}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+                {availableUsers.length === 0 ? (
+                  <span style={{ color: 'var(--muted)' }}>No matches.</span>
+                ) : null}
+              </div>
             </div>
-          </div>
-
-          <div style={{ display: 'grid', gap: '0.55rem' }}>
-            <span className="eyebrow">Permission</span>
-            <div className="cta-row">
-              {PERMISSIONS.map((candidate) => (
-                <button
-                  key={candidate}
-                  type="button"
-                  className={`button ${permission === candidate ? 'button-primary' : 'button-secondary'}`}
-                  onClick={() => setPermission(candidate)}
-                >
-                  {candidate}
-                </button>
-              ))}
-            </div>
-            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-              `edit` means collaborators can change the original shared note together. Use the public link below when you want to share a read-only version instead.
-            </span>
-          </div>
+          </details>
         </>
       ) : null}
 
       {existingShares.length > 0 ? (
-        <section className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Currently shared to groups</span>
+        <section className="status-card" style={{ padding: '0.9rem' }}>
+          <span className="eyebrow">Groups</span>
           <div style={{ display: 'grid', gap: '0.5rem' }}>
             {existingShares.map((share) => (
               <div key={share.group_id} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
@@ -393,8 +413,8 @@ export function NoteSharePanel({
       ) : null}
 
       {existingUserShares.length > 0 ? (
-        <section className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Currently shared with users</span>
+        <section className="status-card" style={{ padding: '0.9rem' }}>
+          <span className="eyebrow">Users</span>
           <div style={{ display: 'grid', gap: '0.5rem' }}>
             {existingUserShares.map((share) => (
               <div key={share.user_id} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -406,9 +426,10 @@ export function NoteSharePanel({
                   className="button button-ghost"
                   disabled={saving}
                   onClick={() => onRemoveUserShare(share.user_id, share.user_label)}
+                  style={iconButtonStyle}
                   type="button"
                 >
-                  Remove access
+                  ×
                 </button>
               </div>
             ))}
@@ -416,7 +437,8 @@ export function NoteSharePanel({
         </section>
       ) : null}
 
-      <section className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+      <details className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.75rem' }} open={Boolean(publicShareUrl)}>
+        <summary style={summaryStyle}>Public link {publicShareUrl ? '(active)' : ''}</summary>
         <span className="eyebrow">Public share link</span>
         <span style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>Read-only</span>
 
@@ -424,39 +446,49 @@ export function NoteSharePanel({
           <div style={{ display: 'grid', gap: '0.55rem' }}>
             <strong style={{ fontSize: '0.95rem', overflowWrap: 'anywhere' }}>{publicShareUrl}</strong>
             <div className="cta-row">
-              <button className="button button-primary" onClick={onSharePublicLink} type="button">
+              <button className="button button-primary" onClick={onSharePublicLink} style={compactButtonStyle} type="button">
                 {canUseNativeShare ? 'Share link' : 'Copy public link'}
               </button>
-              <button className="button button-primary" onClick={onCopyPublicLink} type="button">
-                Copy public link
+              <button className="button button-secondary" onClick={onCopyPublicLink} style={compactButtonStyle} type="button">
+                Copy
               </button>
-              <button className="button button-ghost" onClick={onDisablePublicShare} type="button" disabled={saving}>
-                Remove public link
+              <button className="button button-ghost" onClick={onDisablePublicShare} style={compactButtonStyle} type="button" disabled={saving}>
+                Remove
               </button>
             </div>
           </div>
         ) : (
           <div className="cta-row">
-            <button className="button button-primary" onClick={onEnablePublicShare} type="button" disabled={saving}>
-              Create public link
+            <button className="button button-primary" onClick={onEnablePublicShare} style={compactButtonStyle} type="button" disabled={saving}>
+              Create link
             </button>
           </div>
         )}
-      </section>
+      </details>
 
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
       {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
-
-      <div className="cta-row">
-        <button
-          className="button button-primary"
-          type="button"
-          disabled={loading || saving}
-          onClick={onSave}
-        >
-          {saving ? 'Saving…' : 'Update sharing'}
-        </button>
-      </div>
     </section>
   );
 }
+
+const summaryStyle = {
+  cursor: 'pointer',
+  fontWeight: 700,
+  color: 'var(--text)',
+  listStyle: 'none',
+} satisfies CSSProperties;
+
+const compactButtonStyle = {
+  minHeight: 36,
+  padding: '0.55rem 0.8rem',
+} satisfies CSSProperties;
+
+const iconButtonStyle = {
+  minHeight: 34,
+  minWidth: 34,
+  padding: '0.35rem',
+  borderRadius: 999,
+  fontSize: '1.1rem',
+  lineHeight: 1,
+} satisfies CSSProperties;
