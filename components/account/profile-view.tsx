@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import type { CSSProperties, FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { NOTE_TYPES } from '@/lib/notes';
+import { listDeletedNotes, restoreNote, NOTE_TYPES, type NoteRecord } from '@/lib/notes';
 import { loadAccountProfile, loadAccountSummary, updateAccountProfile, type AccountProfile, type AccountSummary } from '@/lib/account';
 
 export function ProfileView() {
@@ -22,6 +22,9 @@ export function ProfileView() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [deletedNotes, setDeletedNotes] = useState<NoteRecord[]>([]);
+  const [trashLoading, setTrashLoading] = useState(true);
+  const [restoringNoteId, setRestoringNoteId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -31,14 +34,16 @@ export function ProfileView() {
         setLoading(true);
         setError(null);
 
-        const [nextProfile, nextSummary] = await Promise.all([
+        const [nextProfile, nextSummary, nextDeletedNotes] = await Promise.all([
           loadAccountProfile(),
           loadAccountSummary(),
+          listDeletedNotes(),
         ]);
 
         if (!active) return;
         setProfile(nextProfile);
         setSummary(nextSummary);
+        setDeletedNotes(nextDeletedNotes);
         setForm({
           name: nextProfile.name ?? '',
           church: nextProfile.church ?? '',
@@ -51,6 +56,7 @@ export function ProfileView() {
         setError(loadError instanceof Error ? loadError.message : 'Failed to load profile.');
       } finally {
         if (active) setLoading(false);
+        if (active) setTrashLoading(false);
       }
     };
 
@@ -67,6 +73,20 @@ export function ProfileView() {
     ],
     [summary]
   );
+
+  const onRestore = async (noteId: string) => {
+    try {
+      setRestoringNoteId(noteId);
+      await restoreNote(noteId);
+      setDeletedNotes((current) => current.filter((note) => note.id !== noteId));
+      setSummary(await loadAccountSummary());
+      setSuccess('Note restored from recently deleted.');
+    } catch (restoreError) {
+      setError(restoreError instanceof Error ? restoreError.message : 'Failed to restore note.');
+    } finally {
+      setRestoringNoteId(null);
+    }
+  };
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -188,6 +208,55 @@ export function ProfileView() {
             Your username is shown here so other people can recognize you in shared notes and groups.
           </span>
         </aside>
+      </section>
+
+      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+        <div style={{ display: 'grid', gap: '0.35rem' }}>
+          <span className="eyebrow">Recently deleted</span>
+          <strong style={{ fontSize: '1.1rem' }}>Restore notes within 30 days</strong>
+          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+            Notes deleted from the web app stay here for 30 days before permanent removal.
+          </span>
+        </div>
+
+        {trashLoading ? (
+          <section className="loading-state status-message" role="status" aria-live="polite">
+            <strong>Loading recently deleted…</strong>
+          </section>
+        ) : deletedNotes.length === 0 ? (
+          <section className="empty-state status-message" role="status">
+            <strong>No recently deleted notes</strong>
+          </section>
+        ) : (
+          <section className="responsive-grid compact">
+            {deletedNotes.map((note) => {
+              const deletedAt = note.deleted_at ? new Date(note.deleted_at) : null;
+              const daysLeft = deletedAt
+                ? Math.max(0, 30 - Math.floor((Date.now() - deletedAt.getTime()) / (1000 * 60 * 60 * 24)))
+                : 30;
+
+              return (
+                <article className="panel" key={note.id} style={{ padding: '1rem', display: 'grid', gap: '0.7rem' }}>
+                  <div style={{ display: 'grid', gap: '0.35rem' }}>
+                    <span className="badge">{note.type ?? 'Note'}</span>
+                    <strong style={{ fontSize: '1.05rem', lineHeight: 1.35 }}>{note.title?.trim() || 'Untitled'}</strong>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
+                      Deleted {deletedAt ? deletedAt.toLocaleDateString('en-GB') : 'recently'} • {daysLeft} day{daysLeft === 1 ? '' : 's'} left
+                    </span>
+                  </div>
+                  <button
+                    className="button button-secondary"
+                    disabled={restoringNoteId === note.id}
+                    onClick={() => onRestore(note.id)}
+                    type="button"
+                  >
+                    {restoringNoteId === note.id ? 'Restoring…' : 'Restore note'}
+                  </button>
+                </article>
+              );
+            })}
+          </section>
+        )}
       </section>
     </div>
   );

@@ -269,7 +269,7 @@ export async function updateNote(noteId: string, input: NoteInput) {
 }
 
 export async function softDeleteNote(noteId: string) {
-  const { supabase } = await getAuthenticatedUserId();
+  const { supabase, userId } = await getAuthenticatedUserId();
 
   const { error } = await supabase
     .from('notes')
@@ -277,7 +277,64 @@ export async function softDeleteNote(noteId: string) {
       deleted_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
-    .eq('id', noteId);
+    .eq('id', noteId)
+    .eq('user_id', userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function softDeleteNotes(noteIds: string[]) {
+  const { supabase, userId } = await getAuthenticatedUserId();
+  const uniqueIds = [...new Set(noteIds.filter(Boolean))];
+  if (uniqueIds.length === 0) return;
+
+  const { error } = await supabase
+    .from('notes')
+    .update({
+      deleted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', userId)
+    .in('id', uniqueIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function listDeletedNotes() {
+  const { supabase, userId } = await getAuthenticatedUserId();
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabase
+    .from('notes')
+    .select('id, user_id, title, body, speaker, type, status, is_lucid_dream, dream_role, prayer_request_id, clips, shared, share_targets, group_note_id, created_at, updated_at, deleted_at')
+    .eq('user_id', userId)
+    .is('group_note_id', null)
+    .not('deleted_at', 'is', null)
+    .gte('deleted_at', cutoff)
+    .order('deleted_at', { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as NoteRecord[];
+}
+
+export async function restoreNote(noteId: string) {
+  const { supabase, userId } = await getAuthenticatedUserId();
+
+  const { error } = await supabase
+    .from('notes')
+    .update({
+      deleted_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', noteId)
+    .eq('user_id', userId);
 
   if (error) {
     throw new Error(error.message);

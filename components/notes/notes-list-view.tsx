@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { listNotes, listReceivedSharedNotes, NOTE_TYPES, type NoteListQuery, type NoteRecord, type ReceivedSharedNoteSummary } from '@/lib/notes';
+import { listNotes, listReceivedSharedNotes, NOTE_TYPES, softDeleteNotes, type NoteListQuery, type NoteRecord, type ReceivedSharedNoteSummary } from '@/lib/notes';
 import { formatNoteDate, getNoteExcerpt } from '@/components/notes/note-utils';
+import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
+import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 
 export function NotesListView() {
   const router = useRouter();
@@ -14,6 +16,11 @@ export function NotesListView() {
   const [receivedSharedNotes, setReceivedSharedNotes] = useState<ReceivedSharedNoteSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingSelected, setDeletingSelected] = useState(false);
+  const [inlineNotice, setInlineNotice] = useState<string | null>(null);
 
   const query = useMemo<NoteListQuery>(
     () => ({
@@ -59,8 +66,8 @@ export function NotesListView() {
     if (searchParams.get('created') === '1') return 'Note created successfully.';
     if (searchParams.get('updated') === '1') return 'Note updated successfully.';
     if (searchParams.get('deleted') === '1') return 'Note deleted successfully.';
-    return null;
-  }, [searchParams]);
+    return inlineNotice;
+  }, [inlineNotice, searchParams]);
 
   const noteCountLabel = notes.length === 1 ? '1 note' : `${notes.length} notes`;
 
@@ -95,6 +102,55 @@ export function NotesListView() {
     router.replace(pathname);
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode((current) => {
+      if (current) {
+        setSelectedNoteIds([]);
+      }
+      return !current;
+    });
+  };
+
+  const toggleSelectedNote = (noteId: string) => {
+    setSelectedNoteIds((current) =>
+      current.includes(noteId) ? current.filter((id) => id !== noteId) : [...current, noteId]
+    );
+  };
+
+  const requestDeleteSelected = () => {
+    if (selectedNoteIds.length === 0) return;
+    if (getShowDeleteWarningPreference()) {
+      setDeleteDialogOpen(true);
+      return;
+    }
+    void confirmDeleteSelected(false);
+  };
+
+  const confirmDeleteSelected = async (hideWarningNextTime: boolean) => {
+    if (selectedNoteIds.length === 0) return;
+    if (hideWarningNextTime) {
+      setShowDeleteWarningPreference(false);
+    }
+
+    try {
+      setDeletingSelected(true);
+      setDeleteDialogOpen(false);
+      await softDeleteNotes(selectedNoteIds);
+      setNotes((current) => current.filter((note) => !selectedNoteIds.includes(note.id)));
+      setInlineNotice(
+        selectedNoteIds.length === 1
+          ? 'Note moved to recently deleted.'
+          : `${selectedNoteIds.length} notes moved to recently deleted.`
+      );
+      setSelectedNoteIds([]);
+      setSelectionMode(false);
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Failed to delete notes.');
+    } finally {
+      setDeletingSelected(false);
+    }
+  };
+
   return (
     <div className="page-section">
       <header
@@ -115,6 +171,19 @@ export function NotesListView() {
           </p>
         </div>
         <div className="cta-row">
+          <button className="button button-secondary" onClick={toggleSelectionMode} type="button">
+            {selectionMode ? 'Cancel select' : 'Select'}
+          </button>
+          {selectionMode ? (
+            <button
+              className="button button-ghost"
+              disabled={selectedNoteIds.length === 0 || deletingSelected}
+              onClick={requestDeleteSelected}
+              type="button"
+            >
+              {deletingSelected ? 'Deleting…' : selectedNoteIds.length > 0 ? `Delete selected (${selectedNoteIds.length})` : 'Delete selected'}
+            </button>
+          ) : null}
           <Link className="button button-secondary" href="/notes/dictate">
             Dictate note
           </Link>
@@ -312,9 +381,21 @@ export function NotesListView() {
                     {note.title?.trim() || 'Untitled'}
                   </strong>
                 </div>
-                <span style={{ color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'right' }}>
-                  {formatNoteDate(note.updated_at)}
-                </span>
+                <div style={{ display: 'grid', gap: '0.45rem', justifyItems: 'end' }}>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'right' }}>
+                    {formatNoteDate(note.updated_at)}
+                  </span>
+                  {selectionMode ? (
+                    <label style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', color: 'var(--muted)', fontSize: '0.85rem' }}>
+                      <input
+                        checked={selectedNoteIds.includes(note.id)}
+                        onChange={() => toggleSelectedNote(note.id)}
+                        type="checkbox"
+                      />
+                      Select
+                    </label>
+                  ) : null}
+                </div>
               </div>
               <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteExcerpt(note)}</span>
               {note.speaker ? (
@@ -389,6 +470,13 @@ export function NotesListView() {
           )}
         </section>
       ) : null}
+      <DeleteNotesDialog
+        deleting={deletingSelected}
+        noteCount={selectedNoteIds.length}
+        onCancel={() => setDeleteDialogOpen(false)}
+        onConfirm={confirmDeleteSelected}
+        open={deleteDialogOpen}
+      />
     </div>
   );
 }

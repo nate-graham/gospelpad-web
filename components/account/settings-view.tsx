@@ -1,17 +1,23 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getPublicAppUrl, getWebAuthCallbackUrl } from '@/lib/env';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useDisplayPreferences } from '@/components/providers/display-preferences-provider';
+import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 
 export function SettingsView() {
   const router = useRouter();
   const { appearance, setAppearance } = useDisplayPreferences();
   const [signingOut, setSigningOut] = useState(false);
+  const [showDeleteWarning, setShowDeleteWarning] = useState(true);
   const appUrl = useMemo(() => getPublicAppUrl(), []);
+
+  useEffect(() => {
+    setShowDeleteWarning(getShowDeleteWarningPreference());
+  }, []);
 
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
@@ -92,6 +98,31 @@ export function SettingsView() {
           <button className="button button-primary" disabled={signingOut} onClick={signOut} type="button">
             {signingOut ? 'Signing out…' : 'Sign out'}
           </button>
+        </section>
+
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.9rem' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Delete warning</span>
+            <strong style={{ fontSize: '1.1rem' }}>Confirm before moving notes to recently deleted</strong>
+          </div>
+          <label style={choiceRowStyle}>
+            <input
+              checked={showDeleteWarning}
+              onChange={(event) => {
+                const next = event.target.checked;
+                setShowDeleteWarning(next);
+                setShowDeleteWarningPreference(next);
+              }}
+              type="checkbox"
+            />
+            <span>
+              <strong>Show delete warning</strong>
+              <br />
+              <span style={{ color: 'var(--muted)' }}>
+                Turn this back on anytime if you want a confirmation before notes move to recently deleted.
+              </span>
+            </span>
+          </label>
         </section>
       </section>
 

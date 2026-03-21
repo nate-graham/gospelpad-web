@@ -20,6 +20,8 @@ import { getPrayerRequestById, type PrayerRequestRecord, type PrayerRequestStatu
 import { SharedNoteComments } from '@/components/notes/shared-note-comments';
 import { NoteClipsList } from '@/components/notes/note-clips-list';
 import { createRecordingSignedUrl, formatTranscriptText, transcribeRecording } from '@/lib/transcription';
+import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
+import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -35,6 +37,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [prayerRequest, setPrayerRequest] = useState<PrayerRequestRecord | null>(null);
   const [updatingPrayerStatus, setUpdatingPrayerStatus] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -142,11 +145,28 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   }, [groupShares.length, note?.type, readingMinutes, scriptureCount, userShares.length, wordCount]);
 
   const onDelete = async () => {
-    const confirmed = window.confirm('Delete this note? It will move into the existing soft-delete path.');
-    if (!confirmed) return;
+    if (getShowDeleteWarningPreference()) {
+      setDeleteDialogOpen(true);
+      return;
+    }
 
     try {
       setDeleting(true);
+      await softDeleteNote(noteId);
+      router.replace('/notes?deleted=1');
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Failed to delete note.');
+      setDeleting(false);
+    }
+  };
+
+  const confirmDelete = async (hideWarningNextTime: boolean) => {
+    if (hideWarningNextTime) {
+      setShowDeleteWarningPreference(false);
+    }
+    try {
+      setDeleting(true);
+      setDeleteDialogOpen(false);
       await softDeleteNote(noteId);
       router.replace('/notes?deleted=1');
     } catch (deleteError) {
@@ -484,6 +504,14 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
           Back to list
         </Link>
       </div>
+
+      <DeleteNotesDialog
+        deleting={deleting}
+        noteCount={1}
+        onCancel={() => setDeleteDialogOpen(false)}
+        onConfirm={confirmDelete}
+        open={deleteDialogOpen}
+      />
     </div>
   );
 }
