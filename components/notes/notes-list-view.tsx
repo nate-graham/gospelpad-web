@@ -195,119 +195,135 @@ export function NotesListView() {
 
       {successMessage ? <div className="empty-state status-message" role="status" aria-live="polite">{successMessage}</div> : null}
 
-      <section className="responsive-grid compact">
-        <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Library</span>
-          <strong style={{ fontSize: '1.5rem' }}>{noteCountLabel}</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {activeFilterCount > 0
-              ? `${activeFilterCount} active discovery filter${activeFilterCount === 1 ? '' : 's'}.`
-              : 'Everything you have saved is ready to browse here.'}
+      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+        <summary style={summaryStyle}>
+          <span>Overview</span>
+          <span style={summaryMetaStyle}>
+            {noteCountLabel} • {receivedSharedNotes.length} shared • Scripture-aware editor
           </span>
-        </article>
-        <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Shared with you</span>
-          <strong style={{ fontSize: '1.5rem' }}>
-            {receivedSharedNotes.length} {receivedSharedNotes.length === 1 ? 'note' : 'notes'}
-          </strong>
-          <span style={{ color: 'var(--muted)' }}>
-            Notes other people share with you will appear here.
+        </summary>
+        <section className="responsive-grid compact" style={{ marginTop: '0.85rem' }}>
+          <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Library</span>
+            <strong style={{ fontSize: '1.5rem' }}>{noteCountLabel}</strong>
+            <span style={{ color: 'var(--muted)' }}>
+              {activeFilterCount > 0
+                ? `${activeFilterCount} active discovery filter${activeFilterCount === 1 ? '' : 's'}.`
+                : 'Everything you have saved is ready to browse here.'}
+            </span>
+          </article>
+          <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Shared with you</span>
+            <strong style={{ fontSize: '1.5rem' }}>
+              {receivedSharedNotes.length} {receivedSharedNotes.length === 1 ? 'note' : 'notes'}
+            </strong>
+            <span style={{ color: 'var(--muted)' }}>
+              Notes other people share with you will appear here.
+            </span>
+          </article>
+          <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Writing tools</span>
+            <strong style={{ fontSize: '1.5rem' }}>Scripture-aware editor</strong>
+            <span style={{ color: 'var(--muted)' }}>Write by typing or dictation, add scripture references, and keep note details together in one place.</span>
+          </article>
+        </section>
+      </details>
+
+      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+        <summary style={summaryStyle}>
+          <span>Discovery</span>
+          <span style={summaryMetaStyle}>
+            {activeFilterCount > 0 ? `${activeFilterCount} active filter${activeFilterCount === 1 ? '' : 's'}` : 'Search, filter, and sort'}
           </span>
-        </article>
-        <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Writing tools</span>
-          <strong style={{ fontSize: '1.5rem' }}>Scripture-aware editor</strong>
-          <span style={{ color: 'var(--muted)' }}>Write by typing or dictation, add scripture references, and keep note details together in one place.</span>
-        </article>
-      </section>
+        </summary>
+        <section style={{ marginTop: '0.85rem', display: 'grid', gap: '1rem' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Discovery</span>
+            <strong style={{ fontSize: '1.1rem' }}>Search, filter, and sort your notes</strong>
+          </div>
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Discovery</span>
-          <strong style={{ fontSize: '1.1rem' }}>Search, filter, and sort your notes</strong>
-        </div>
+          <div
+            style={{
+              display: 'grid',
+              gap: '0.85rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            }}
+          >
+            <label style={fieldStyle}>
+              <span className="eyebrow" style={labelTextStyle}>Search</span>
+              <input
+                onChange={(event) => updateQuery({ search: event.target.value })}
+                placeholder="Search title, speaker, or note body"
+                style={inputStyle}
+                value={query.search ?? ''}
+              />
+            </label>
 
-        <div
-          style={{
-            display: 'grid',
-            gap: '0.85rem',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          }}
-        >
-          <label style={fieldStyle}>
-            <span className="eyebrow" style={labelTextStyle}>Search</span>
-            <input
-              onChange={(event) => updateQuery({ search: event.target.value })}
-              placeholder="Search title, speaker, or note body"
-              style={inputStyle}
-              value={query.search ?? ''}
-            />
-          </label>
+            <label style={fieldStyle}>
+              <span className="eyebrow" style={labelTextStyle}>Type</span>
+              <select
+                onChange={(event) => updateQuery({ type: event.target.value as NoteListQuery['type'] })}
+                style={inputStyle}
+                value={query.type ?? 'all'}
+              >
+                <option value="all">All note types</option>
+                {NOTE_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label style={fieldStyle}>
-            <span className="eyebrow" style={labelTextStyle}>Type</span>
-            <select
-              onChange={(event) => updateQuery({ type: event.target.value as NoteListQuery['type'] })}
-              style={inputStyle}
-              value={query.type ?? 'all'}
-            >
-              <option value="all">All note types</option>
-              {NOTE_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label style={fieldStyle}>
+              <span className="eyebrow" style={labelTextStyle}>Status</span>
+              <select
+                onChange={(event) => updateQuery({ status: event.target.value as NoteListQuery['status'] })}
+                style={inputStyle}
+                value={query.status ?? 'all'}
+              >
+                <option value="all">Any status</option>
+                <option value="with-status">Has status</option>
+                <option value="no-status">No status</option>
+              </select>
+            </label>
 
-          <label style={fieldStyle}>
-            <span className="eyebrow" style={labelTextStyle}>Status</span>
-            <select
-              onChange={(event) => updateQuery({ status: event.target.value as NoteListQuery['status'] })}
-              style={inputStyle}
-              value={query.status ?? 'all'}
-            >
-              <option value="all">Any status</option>
-              <option value="with-status">Has status</option>
-              <option value="no-status">No status</option>
-            </select>
-          </label>
+            <label style={fieldStyle}>
+              <span className="eyebrow" style={labelTextStyle}>Scope</span>
+              <select
+                onChange={(event) => updateQuery({ scope: event.target.value as NoteListQuery['scope'] })}
+                style={inputStyle}
+                value={query.scope ?? 'personal'}
+              >
+                <option value="personal">Personal notes</option>
+                <option value="all">All available notes</option>
+                <option value="group">Group-linked notes</option>
+              </select>
+            </label>
 
-          <label style={fieldStyle}>
-            <span className="eyebrow" style={labelTextStyle}>Scope</span>
-            <select
-              onChange={(event) => updateQuery({ scope: event.target.value as NoteListQuery['scope'] })}
-              style={inputStyle}
-              value={query.scope ?? 'personal'}
-            >
-              <option value="personal">Personal notes</option>
-              <option value="all">All available notes</option>
-              <option value="group">Group-linked notes</option>
-            </select>
-          </label>
+            <label style={fieldStyle}>
+              <span className="eyebrow" style={labelTextStyle}>Sort</span>
+              <select
+                onChange={(event) => updateQuery({ sort: event.target.value as NoteListQuery['sort'] })}
+                style={inputStyle}
+                value={query.sort ?? 'updated-desc'}
+              >
+                <option value="updated-desc">Recently updated</option>
+                <option value="updated-asc">Oldest updated</option>
+                <option value="created-desc">Recently created</option>
+                <option value="created-asc">Oldest created</option>
+                <option value="title-asc">Title A-Z</option>
+              </select>
+            </label>
+          </div>
 
-          <label style={fieldStyle}>
-            <span className="eyebrow" style={labelTextStyle}>Sort</span>
-            <select
-              onChange={(event) => updateQuery({ sort: event.target.value as NoteListQuery['sort'] })}
-              style={inputStyle}
-              value={query.sort ?? 'updated-desc'}
-            >
-              <option value="updated-desc">Recently updated</option>
-              <option value="updated-asc">Oldest updated</option>
-              <option value="created-desc">Recently created</option>
-              <option value="created-asc">Oldest created</option>
-              <option value="title-asc">Title A-Z</option>
-            </select>
-          </label>
-        </div>
-
-        <div className="cta-row">
-          <button className="button button-secondary" onClick={resetFilters} type="button">
-            Reset filters
-          </button>
-        </div>
-      </section>
+          <div className="cta-row">
+            <button className="button button-secondary" onClick={resetFilters} type="button">
+              Reset filters
+            </button>
+          </div>
+        </section>
+      </details>
 
       {loading ? (
         <section className="loading-state status-message" role="status" aria-live="polite">
@@ -532,4 +548,19 @@ const inputStyle: React.CSSProperties = {
   padding: '0.85rem 1rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',
+};
+
+const summaryStyle: React.CSSProperties = {
+  cursor: 'pointer',
+  fontWeight: 700,
+  color: 'var(--text)',
+  listStyle: 'none',
+  display: 'grid',
+  gap: '0.2rem',
+};
+
+const summaryMetaStyle: React.CSSProperties = {
+  color: 'var(--muted)',
+  fontSize: '0.92rem',
+  fontWeight: 500,
 };
