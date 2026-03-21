@@ -444,7 +444,21 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
         />
       ) : null}
 
-      <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
+      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+        <summary
+          style={{
+            cursor: 'pointer',
+            fontWeight: 700,
+            color: 'var(--text)',
+            listStyle: 'none',
+          }}
+        >
+          Share note
+        </summary>
+        <div style={{ marginTop: '0.85rem' }}>
+          <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
+        </div>
+      </details>
 
       {note.shared || groupShares.length > 0 ? (
         <SharedNoteComments noteId={note.id} />
