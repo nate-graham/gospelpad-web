@@ -77,9 +77,6 @@ export function ScriptureSearchPanel({
       <div style={{ display: 'grid', gap: '0.4rem' }}>
         <span className="eyebrow">Scripture search</span>
         <strong style={{ fontSize: compact ? '1rem' : '1.05rem' }}>Search by reference, phrase, or keyword</strong>
-        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Use a direct reference like <code>John 3:16</code> or search by phrase or idea like <code>love is patient</code>.
-        </span>
       </div>
 
       <div
