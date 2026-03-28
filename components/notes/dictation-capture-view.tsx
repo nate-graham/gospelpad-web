@@ -7,6 +7,7 @@ import { createNote, NOTE_TYPES, type NoteInput } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
 import { formatTranscriptText, uploadRecordingBlob, transcribeRecording, type UploadedRecording } from '@/lib/transcription';
 import { getNoteTypePlaceholders, supportsSpeakerField } from '@/components/notes/note-utils';
+import { InfoHint } from '@/components/feedback/info-hint';
 
 type DictationDraft = Pick<NoteInput, 'title' | 'speaker' | 'type' | 'isLucidDream' | 'dreamRole' | 'prayerStatus'> & {
   transcript: string;
@@ -485,12 +486,14 @@ export function DictationCaptureView() {
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Live dictation</span>
-          <strong style={{ fontSize: '1.1rem' }}>{liveListening ? 'Listening now' : 'Personal dictation'}</strong>
+          <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <strong style={{ fontSize: '1.1rem' }}>{liveListening ? 'Listening now' : 'Personal dictation'}</strong>
+            <InfoHint
+              label="About live dictation"
+              text="Use this when you are speaking close to your phone and want text to appear while you talk. If the voice is further away, use record and transcribe instead for more reliable results. This mode does not save an audio clip for playback later."
+            />
+          </div>
         </div>
-
-        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Use this when you are speaking close to your phone and want text to appear while you talk. If the voice is further away, use record and transcribe instead for more reliable results. This mode does not save an audio clip for playback later.
-        </span>
 
         <div className="cta-row">
           {canLiveDictate ? (
@@ -575,10 +578,13 @@ export function DictationCaptureView() {
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Note setup</span>
-          <strong style={{ fontSize: '1.1rem' }}>Review before saving</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            Adjust the transcript and note type here, then continue into the standard editor after save.
-          </span>
+          <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <strong style={{ fontSize: '1.1rem' }}>Review before saving</strong>
+            <InfoHint
+              label="About note setup"
+              text="Adjust the transcript and note type here, then continue into the standard editor after save."
+            />
+          </div>
         </div>
 
         <div
