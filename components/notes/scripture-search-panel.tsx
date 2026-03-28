@@ -6,9 +6,11 @@ import { fetchScriptureByReference, findScriptureByQuery, formatScriptureForInse
 
 export function ScriptureSearchPanel({
   onInsert,
+  onCreateNote,
   compact = false,
 }: {
   onInsert?: (payload: string) => void;
+  onCreateNote?: (payload: string, result: ScriptureResult) => void | Promise<void>;
   compact?: boolean;
 }) {
   const [query, setQuery] = useState('');
@@ -70,6 +72,12 @@ export function ScriptureSearchPanel({
 
     await window.navigator.clipboard.writeText(formatScriptureForInsertion(result));
     setNotice(`Copied ${result.reference}.`);
+  };
+
+  const createNoteFromResult = async (result: ScriptureResult) => {
+    if (!onCreateNote) return;
+    await onCreateNote(formatScriptureForInsertion(result), result);
+    setNotice(`Opened a new note with ${result.reference}.`);
   };
 
   return (
@@ -150,8 +158,13 @@ export function ScriptureSearchPanel({
                     Insert into note
                   </button>
                 ) : null}
+                {onCreateNote ? (
+                  <button className="button button-secondary" onClick={() => void createNoteFromResult(result)} type="button">
+                    New note
+                  </button>
+                ) : null}
                 <button
-                  className={onInsert ? 'button button-secondary' : 'button button-primary'}
+                  className={onInsert || onCreateNote ? 'button button-secondary' : 'button button-primary'}
                   onClick={() => void copyResult(result)}
                   type="button"
                 >

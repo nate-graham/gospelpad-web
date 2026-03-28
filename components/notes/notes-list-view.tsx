@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { listNotes, listReceivedSharedNotes, NOTE_TYPES, softDeleteNotes, type NoteListQuery, type NoteRecord, type ReceivedSharedNoteSummary } from '@/lib/notes';
+import { createNote, listNotes, listReceivedSharedNotes, NOTE_TYPES, softDeleteNotes, type NoteListQuery, type NoteRecord, type ReceivedSharedNoteSummary } from '@/lib/notes';
 import { formatNoteDate, getNoteExcerpt } from '@/components/notes/note-utils';
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
+import type { ScriptureResult } from '@/lib/scripture';
 
 export function NotesListView() {
   const router = useRouter();
@@ -150,6 +151,16 @@ export function NotesListView() {
     } finally {
       setDeletingSelected(false);
     }
+  };
+
+  const createScriptureNote = async (payload: string, result: ScriptureResult) => {
+    const noteId = await createNote({
+      title: result.reference,
+      body: payload,
+      speaker: '',
+      type: 'Church notes',
+    });
+    router.push(`/notes/${noteId}/edit?created=1&from=scripture-search`);
   };
 
   return (
@@ -332,7 +343,7 @@ export function NotesListView() {
           <span style={summaryMetaStyle}>Reference, phrase, or keyword</span>
         </summary>
         <div style={{ marginTop: '0.85rem' }}>
-          <ScriptureSearchPanel compact />
+          <ScriptureSearchPanel compact onCreateNote={createScriptureNote} />
         </div>
       </details>
 

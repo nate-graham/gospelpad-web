@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { duplicateNote, getNoteById, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteInput, type NoteRecord, type NoteUserShare } from '@/lib/notes';
+import { createNote, duplicateNote, getNoteById, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteInput, type NoteRecord, type NoteUserShare } from '@/lib/notes';
 import {
   formatNoteDate,
   getNoteReadingTimeMinutes,
@@ -23,6 +24,7 @@ import { createRecordingSignedUrl, formatTranscriptText, transcribeRecording } f
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
+import type { ScriptureResult } from '@/lib/scripture';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -187,6 +189,49 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       setError(duplicateError instanceof Error ? duplicateError.message : 'Failed to duplicate note.');
       setDuplicating(false);
     }
+  };
+
+  const insertScriptureIntoNote = async (payload: string) => {
+    if (!note) return;
+
+    const nextBody = note.body?.trim()
+      ? `${note.body.trimEnd()}\n\n${payload}`
+      : payload;
+
+    await updateNote(note.id, {
+      title: note.title ?? '',
+      body: nextBody,
+      speaker: note.speaker ?? '',
+      type: note.type === 'Dream' || note.type === 'Prayer Requests' || note.type === 'Study' || note.type === 'Journal' || note.type === 'Church notes'
+        ? note.type
+        : 'Church notes',
+      isLucidDream: note.type === 'Dream' ? Boolean(note.is_lucid_dream) : undefined,
+      dreamRole: note.type === 'Dream' ? (note.dream_role ?? 'observing') : undefined,
+      prayerStatus: note.type === 'Prayer Requests' && note.status === 'Answered' ? 'Answered' : note.type === 'Prayer Requests' ? 'Ongoing' : undefined,
+      prayerRequestId: note.type === 'Prayer Requests' ? note.prayer_request_id ?? null : undefined,
+      clips: note.clips ?? undefined,
+    });
+
+    setNote((current) =>
+      current
+        ? {
+            ...current,
+            body: nextBody,
+            updated_at: new Date().toISOString(),
+          }
+        : current
+    );
+    setNotice('Scripture inserted into this note.');
+  };
+
+  const createScriptureNote = async (payload: string, result: ScriptureResult) => {
+    const noteId = await createNote({
+      title: result.reference,
+      body: payload,
+      speaker: '',
+      type: 'Church notes',
+    });
+    router.push(`/notes/${noteId}/edit?created=1&from=scripture-search`);
   };
 
   const onPrayerStatusChange = async (nextStatus: PrayerRequestStatus) => {
@@ -470,7 +515,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
           <span style={detailsMetaStyle}>Reference, phrase, or keyword</span>
         </summary>
         <div style={{ marginTop: '0.85rem' }}>
-          <ScriptureSearchPanel compact />
+          <ScriptureSearchPanel compact onCreateNote={createScriptureNote} onInsert={insertScriptureIntoNote} />
         </div>
       </details>
 
@@ -527,7 +572,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   );
 }
 
-const detailsSummaryStyle: React.CSSProperties = {
+const detailsSummaryStyle: CSSProperties = {
   cursor: 'pointer',
   fontWeight: 700,
   color: 'var(--text)',
@@ -536,7 +581,7 @@ const detailsSummaryStyle: React.CSSProperties = {
   gap: '0.2rem',
 };
 
-const detailsMetaStyle: React.CSSProperties = {
+const detailsMetaStyle: CSSProperties = {
   color: 'var(--muted)',
   fontSize: '0.92rem',
   fontWeight: 500,
