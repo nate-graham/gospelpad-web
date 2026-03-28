@@ -7,6 +7,7 @@ import { listNotes, listReceivedSharedNotes, NOTE_TYPES, softDeleteNotes, type N
 import { formatNoteDate, getNoteExcerpt } from '@/components/notes/note-utils';
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
+import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 
 export function NotesListView() {
   const router = useRouter();
@@ -323,6 +324,16 @@ export function NotesListView() {
             </button>
           </div>
         </section>
+      </details>
+
+      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+        <summary style={summaryStyle}>
+          <span>Scripture search</span>
+          <span style={summaryMetaStyle}>Reference, phrase, or keyword</span>
+        </summary>
+        <div style={{ marginTop: '0.85rem' }}>
+          <ScriptureSearchPanel compact />
+        </div>
       </details>
 
       {loading ? (

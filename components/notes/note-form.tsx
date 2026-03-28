@@ -18,6 +18,7 @@ import { ScriptureReferencePreview } from '@/components/notes/scripture-referenc
 import { insertTextIntoEditable, ScriptureEditableField } from '@/components/notes/scripture-editable-field';
 import { NoteClipsList } from '@/components/notes/note-clips-list';
 import { findScriptureReferences } from '@/lib/scripture-references';
+import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 
 type NoteFormProps = {
   mode: 'create' | 'edit';
@@ -308,6 +309,16 @@ export function NoteForm({
       {handoffMessage ? <section className="empty-state status-message" role="status">{handoffMessage}</section> : null}
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
 
+      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+        <summary style={detailsSummaryStyle}>
+          <span>Scripture search</span>
+          <span style={detailsMetaStyle}>Reference, phrase, or keyword</span>
+        </summary>
+        <div style={{ marginTop: '0.85rem' }}>
+          <ScriptureSearchPanel compact onInsert={insertScripture} />
+        </div>
+      </details>
+
       {note?.clips?.length ? (
         <NoteClipsList
           clips={note.clips}
@@ -529,6 +540,21 @@ const inputStyle: CSSProperties = {
   padding: '0.85rem 1rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',
+};
+
+const detailsSummaryStyle: CSSProperties = {
+  cursor: 'pointer',
+  fontWeight: 700,
+  color: 'var(--text)',
+  listStyle: 'none',
+  display: 'grid',
+  gap: '0.2rem',
+};
+
+const detailsMetaStyle: CSSProperties = {
+  color: 'var(--muted)',
+  fontSize: '0.92rem',
+  fontWeight: 500,
 };
 
 function formatEditorTime(value: string) {

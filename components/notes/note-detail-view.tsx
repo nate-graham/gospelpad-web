@@ -22,6 +22,7 @@ import { NoteClipsList } from '@/components/notes/note-clips-list';
 import { createRecordingSignedUrl, formatTranscriptText, transcribeRecording } from '@/lib/transcription';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
+import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -463,6 +464,16 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
         </div>
       </section>
 
+      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+        <summary style={detailsSummaryStyle}>
+          <span>Scripture search</span>
+          <span style={detailsMetaStyle}>Reference, phrase, or keyword</span>
+        </summary>
+        <div style={{ marginTop: '0.85rem' }}>
+          <ScriptureSearchPanel compact />
+        </div>
+      </details>
+
       {note.clips?.length ? (
         <NoteClipsList
           clips={note.clips}
@@ -515,3 +526,18 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
     </div>
   );
 }
+
+const detailsSummaryStyle: React.CSSProperties = {
+  cursor: 'pointer',
+  fontWeight: 700,
+  color: 'var(--text)',
+  listStyle: 'none',
+  display: 'grid',
+  gap: '0.2rem',
+};
+
+const detailsMetaStyle: React.CSSProperties = {
+  color: 'var(--muted)',
+  fontSize: '0.92rem',
+  fontWeight: 500,
+};

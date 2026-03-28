@@ -2,15 +2,17 @@
 
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { useMemo, useState } from 'react';
-import { fetchScriptureByReference, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
+import { fetchScriptureByReference, findScriptureByQuery, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
 
 export function ScriptureSearchPanel({
   onInsert,
+  compact = false,
 }: {
-  onInsert: (payload: string) => void;
+  onInsert?: (payload: string) => void;
+  compact?: boolean;
 }) {
   const [query, setQuery] = useState('');
-  const [result, setResult] = useState<ScriptureResult | null>(null);
+  const [results, setResults] = useState<ScriptureResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -25,10 +27,20 @@ export function ScriptureSearchPanel({
     setNotice(null);
 
     try {
-      const next = await fetchScriptureByReference(query.trim());
-      setResult(next);
+      const trimmed = query.trim();
+
+      try {
+        const next = await fetchScriptureByReference(trimmed);
+        setResults([next]);
+      } catch {
+        const searched = await findScriptureByQuery(trimmed);
+        if (searched.results.length === 0) {
+          throw new Error('No scripture results matched that search.');
+        }
+        setResults(searched.results);
+      }
     } catch (lookupError) {
-      setResult(null);
+      setResults([]);
       setError(lookupError instanceof Error ? lookupError.message : 'Unable to fetch scripture.');
     } finally {
       setLoading(false);
@@ -44,19 +56,29 @@ export function ScriptureSearchPanel({
     void runSearch();
   };
 
-  const insertResult = () => {
-    if (!result) return;
+  const insertResult = (result: ScriptureResult) => {
+    if (!onInsert) return;
     onInsert(formatScriptureForInsertion(result));
     setNotice(`Inserted ${result.reference} into the current note.`);
+  };
+
+  const copyResult = async (result: ScriptureResult) => {
+    if (typeof window === 'undefined' || !window.navigator?.clipboard) {
+      setNotice('Clipboard copy is not available in this browser.');
+      return;
+    }
+
+    await window.navigator.clipboard.writeText(formatScriptureForInsertion(result));
+    setNotice(`Copied ${result.reference}.`);
   };
 
   return (
     <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
       <div style={{ display: 'grid', gap: '0.4rem' }}>
         <span className="eyebrow">Scripture search</span>
-        <strong style={{ fontSize: '1.05rem' }}>Insert a verse by reference</strong>
+        <strong style={{ fontSize: compact ? '1rem' : '1.05rem' }}>Search by reference, phrase, or keyword</strong>
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Use a direct reference like <code>John 3:16</code> or <code>Psalm 23:1-4</code> to preview the passage before adding it to your note.
+          Use a direct reference like <code>John 3:16</code> or search by phrase or idea like <code>love is patient</code>.
         </span>
       </div>
 
@@ -70,12 +92,12 @@ export function ScriptureSearchPanel({
         }}
       >
         <label style={fieldStyle}>
-          <span className="eyebrow" style={labelTextStyle}>Verse reference</span>
+          <span className="eyebrow" style={labelTextStyle}>Reference or phrase</span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="John 3:16"
+            placeholder="John 3:16 or love is patient"
             style={inputStyle}
           />
         </label>
@@ -93,35 +115,54 @@ export function ScriptureSearchPanel({
 
       {notice ? <div className="empty-state status-message" role="status">{notice}</div> : null}
 
-      {result ? (
-        <section
-          style={{
-            display: 'grid',
-            gap: '0.9rem',
-            border: '1px solid var(--line)',
-            borderRadius: '16px',
-            padding: '1rem',
-            background: 'var(--field-bg-soft)',
-          }}
-        >
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-            <span className="badge">{result.translation}</span>
-            <strong>{result.reference}</strong>
-          </div>
-          <div
-            style={{
-              whiteSpace: 'pre-wrap',
-              lineHeight: 1.8,
-              color: 'var(--text)',
-            }}
-          >
-            {result.text}
-          </div>
-          <div className="cta-row">
-            <button className="button button-primary" onClick={insertResult} type="button">
-              Insert into note
-            </button>
-          </div>
+      {results.length > 0 ? (
+        <section style={{ display: 'grid', gap: '0.85rem' }}>
+          {results.map((result) => (
+            <section
+              key={`${result.reference}-${result.translation}`}
+              style={{
+                display: 'grid',
+                gap: '0.9rem',
+                border: '1px solid var(--line)',
+                borderRadius: '16px',
+                padding: '1rem',
+                background: 'var(--field-bg-soft)',
+              }}
+            >
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
+                <span className="badge">{result.translation}</span>
+                <strong>{result.reference}</strong>
+              </div>
+              <div
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: 1.8,
+                  color: 'var(--text)',
+                }}
+              >
+                {result.text}
+              </div>
+              {result.reason ? (
+                <span style={{ color: 'var(--muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>
+                  {result.reason}
+                </span>
+              ) : null}
+              <div className="cta-row">
+                {onInsert ? (
+                  <button className="button button-primary" onClick={() => insertResult(result)} type="button">
+                    Insert into note
+                  </button>
+                ) : null}
+                <button
+                  className={onInsert ? 'button button-secondary' : 'button button-primary'}
+                  onClick={() => void copyResult(result)}
+                  type="button"
+                >
+                  Copy scripture
+                </button>
+              </div>
+            </section>
+          ))}
         </section>
       ) : null}
 
