@@ -438,33 +438,44 @@ export function DictationCaptureView() {
       <header className="page-header">
         <span className="eyebrow">Dictation mode</span>
         <h1>Capture a note by voice</h1>
-        <p className="page-description">
-          Use live dictation for text that appears while you speak, or record audio first and transcribe it after you stop. Both paths still hand the result into the note editor for cleanup.
-        </p>
       </header>
 
-      <section className="responsive-grid compact">
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Capture mode</span>
-          <strong style={{ fontSize: '1.1rem' }}>
+      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+        <summary style={detailsSummaryStyle}>
+          <span>Dictation details</span>
+          <span style={detailsMetaStyle}>
             {canLiveDictate ? 'Live dictation and recording' : canRecord ? 'Record, then transcribe' : 'Upload-first fallback'}
-          </strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {canLiveDictate
-              ? 'Start live dictation for text as you speak, or keep using the saved-audio path when you want playback and retranscription later.'
-              : canRecord
-                ? 'Use the microphone directly in this browser, then run transcription after you stop recording.'
-                : 'This browser does not support microphone capture here, so use the audio upload fallback.'}
           </span>
-        </article>
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Transcription backend</span>
-          <strong style={{ fontSize: '1.1rem' }}>Secure transcription</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            Your audio is uploaded securely, transcribed, and then handed into the note editor for cleanup.
-          </span>
-        </article>
-      </section>
+        </summary>
+        <div style={{ marginTop: '0.85rem', display: 'grid', gap: '1rem' }}>
+          <p className="page-description" style={{ margin: 0 }}>
+            Use live dictation for text that appears while you speak, or record audio first and transcribe it after you stop. Both paths still hand the result into the note editor for cleanup.
+          </p>
+
+          <section className="responsive-grid compact">
+            <article className="status-card" style={{ padding: '1rem' }}>
+              <span className="eyebrow">Capture mode</span>
+              <strong style={{ fontSize: '1.1rem' }}>
+                {canLiveDictate ? 'Live dictation and recording' : canRecord ? 'Record, then transcribe' : 'Upload-first fallback'}
+              </strong>
+              <span style={{ color: 'var(--muted)' }}>
+                {canLiveDictate
+                  ? 'Start live dictation for text as you speak, or keep using the saved-audio path when you want playback and retranscription later.'
+                  : canRecord
+                    ? 'Use the microphone directly in this browser, then run transcription after you stop recording.'
+                    : 'This browser does not support microphone capture here, so use the audio upload fallback.'}
+              </span>
+            </article>
+            <article className="status-card" style={{ padding: '1rem' }}>
+              <span className="eyebrow">Transcription backend</span>
+              <strong style={{ fontSize: '1.1rem' }}>Secure transcription</strong>
+              <span style={{ color: 'var(--muted)' }}>
+                Your audio is uploaded securely, transcribed, and then handed into the note editor for cleanup.
+              </span>
+            </article>
+          </section>
+        </div>
+      </details>
 
       {permissionError ? <section className="error-state status-message" role="alert">{permissionError}</section> : null}
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
@@ -682,6 +693,21 @@ export function DictationCaptureView() {
     </div>
   );
 }
+
+const detailsSummaryStyle: React.CSSProperties = {
+  cursor: 'pointer',
+  fontWeight: 700,
+  color: 'var(--text)',
+  listStyle: 'none',
+  display: 'grid',
+  gap: '0.2rem',
+};
+
+const detailsMetaStyle: React.CSSProperties = {
+  color: 'var(--muted)',
+  fontSize: '0.92rem',
+  fontWeight: 500,
+};
 
 function formatSeconds(value: number) {
   const minutes = Math.floor(value / 60)
