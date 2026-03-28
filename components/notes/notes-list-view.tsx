@@ -236,7 +236,6 @@ export function NotesListView() {
           <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
             <span className="eyebrow">Writing tools</span>
             <strong style={{ fontSize: '1.5rem' }}>Scripture-aware editor</strong>
-            <span style={{ color: 'var(--muted)' }}>Write by typing or dictation, add scripture references, and keep note details together in one place.</span>
           </article>
         </section>
       </details>
@@ -483,9 +482,6 @@ export function NotesListView() {
           <div style={{ display: 'grid', gap: '0.35rem' }}>
             <span className="eyebrow">Shared with you</span>
             <strong style={{ fontSize: '1.1rem' }}>Notes other people shared directly with your account</strong>
-            <span style={{ color: 'var(--muted)' }}>
-              This uses the same direct user-share path the mobile app already supports.
-            </span>
           </div>
 
           {receivedSharedNotes.length === 0 ? (

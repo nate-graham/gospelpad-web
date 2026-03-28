@@ -420,8 +420,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
 
           <div className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.35rem' }}>
             <span className="eyebrow">Guidance</span>
-            <strong>Built for {note.type ?? 'general note'} reading</strong>
-            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteTypeGuidance(note.type)}</span>
+            <strong>{note.type ?? 'Note'}</strong>
           </div>
 
           {note.type === 'Prayer Requests' ? (

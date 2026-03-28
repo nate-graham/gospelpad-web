@@ -146,9 +146,6 @@ export function ReceivedSharedNoteView({ noteId }: { noteId: string }) {
         <article className="status-card" style={{ padding: '1rem' }}>
           <span className="eyebrow">Preview</span>
           <strong style={{ fontSize: '1.05rem' }}>{getNoteExcerpt(note)}</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            Direct user sharing uses the existing `note_shares` model, so this note remains in the sender’s library.
-          </span>
         </article>
       </section>
 
