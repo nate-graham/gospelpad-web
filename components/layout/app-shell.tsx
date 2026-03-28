@@ -100,7 +100,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <div className="eyebrow">GospelPad Web</div>
                 <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>Your workspace</div>
               </div>
-              <span className="badge">Responsive</span>
             </div>
           </header>
 

@@ -474,11 +474,11 @@ export function DictationCaptureView() {
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Live dictation</span>
-          <strong style={{ fontSize: '1.1rem' }}>{liveListening ? 'Listening now' : 'Speak and watch text appear'}</strong>
+          <strong style={{ fontSize: '1.1rem' }}>{liveListening ? 'Listening now' : 'Personal dictation'}</strong>
         </div>
 
         <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          Live dictation adds recognized phrases into the transcript while you can still edit manually. This mode does not save an audio clip for playback later.
+          Use this when you are speaking close to your phone and want text to appear while you talk. If the voice is further away, use record and transcribe instead for more reliable results. This mode does not save an audio clip for playback later.
         </span>
 
         <div className="cta-row">
