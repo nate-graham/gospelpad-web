@@ -146,6 +146,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
           padding: 0.3rem;
+          width: auto;
+          max-width: calc(100vw - 1.8rem);
+          overflow: hidden;
+        }
+
+        .mobile-bottom-nav :global(a) {
+          min-width: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         @media (min-width: 768px) {
@@ -179,6 +189,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         @media (max-width: 767px) {
           .app-shell-root {
             padding: 0;
+            overflow-x: clip;
           }
 
           .shell-page {
@@ -204,6 +215,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             left: 0.5rem;
             right: 0.5rem;
             bottom: 0.5rem;
+            max-width: calc(100vw - 1rem);
+          }
+
+          .mobile-bottom-nav :global(a) {
+            font-size: 0.8rem;
+            padding: 0.8rem 0.2rem;
           }
         }
       `}</style>
