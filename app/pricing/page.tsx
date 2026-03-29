@@ -100,9 +100,7 @@ export default function PricingPage() {
       <section className="panel shell-page" style={{ padding: 'clamp(1.25rem, 4vw, 3rem)', display: 'grid', gap: '1.5rem' }}>
         <header className="page-header" style={{ gap: '0.75rem' }}>
           <span className="badge">Plans</span>
-          <h1 style={{ margin: 0, fontSize: 'clamp(2.3rem, 6vw, 4.5rem)', lineHeight: 0.95 }}>
-            Choose the GospelPad plan that fits your work.
-          </h1>
+          <h1 style={{ margin: 0, fontSize: 'clamp(2.3rem, 6vw, 4.5rem)', lineHeight: 0.95 }}>Upgrade your plan!</h1>
           <p className="page-description">
             Free keeps core notes open. Paid plans unlock scripture phrase search, dictation, transcription, and larger groups.
           </p>
