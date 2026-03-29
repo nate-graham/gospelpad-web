@@ -3,11 +3,13 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { PlanPaywallDialog } from '@/components/billing/plan-paywall-dialog';
 import { createNote, NOTE_TYPES, type NoteInput } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
 import { formatTranscriptText, uploadRecordingBlob, transcribeRecording, type UploadedRecording } from '@/lib/transcription';
 import { getNoteTypePlaceholders, supportsSpeakerField } from '@/components/notes/note-utils';
 import { InfoHint } from '@/components/feedback/info-hint';
+import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
 
 type DictationDraft = Pick<NoteInput, 'title' | 'speaker' | 'type' | 'isLucidDream' | 'dreamRole' | 'prayerStatus'> & {
   transcript: string;
@@ -116,6 +118,8 @@ export function DictationCaptureView() {
   const [liveListening, setLiveListening] = useState(false);
   const [liveInterim, setLiveInterim] = useState('');
   const [liveError, setLiveError] = useState<string | null>(null);
+  const [entitlements, setEntitlements] = useState<EntitlementSummary | null>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   useEffect(() => {
     if (!recording) return undefined;
@@ -143,6 +147,27 @@ export function DictationCaptureView() {
     };
   }, [audioUrl]);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadEntitlements = async () => {
+      try {
+        const next = await getMyEntitlements();
+        if (!active) return;
+        setEntitlements(next);
+      } catch {
+        if (!active) return;
+        setEntitlements(null);
+      }
+    };
+
+    void loadEntitlements();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const placeholders = useMemo(() => getNoteTypePlaceholders(draft.type), [draft.type]);
   const showSpeakerField = supportsSpeakerField(draft.type);
   const isDream = draft.type === 'Dream';
@@ -150,9 +175,16 @@ export function DictationCaptureView() {
   const canRecord = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
   const canLiveDictate =
     typeof window !== 'undefined' && (typeof window.SpeechRecognition !== 'undefined' || typeof window.webkitSpeechRecognition !== 'undefined');
+  const transcriptionUnlocked = Boolean(entitlements?.transcriptionEnabled);
+  const transcriptionPaywallMessage = 'Dictation and transcription are available on Premium, Team, and Ministry.';
 
   const updateDraft = <K extends keyof DictationDraft>(key: K, value: DictationDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
+  };
+
+  const openTranscriptionPaywall = (message = transcriptionPaywallMessage) => {
+    setError(message);
+    setPaywallOpen(true);
   };
 
   const resetAudio = () => {
@@ -198,6 +230,10 @@ export function DictationCaptureView() {
   };
 
   const startRecording = async () => {
+    if (!transcriptionUnlocked) {
+      openTranscriptionPaywall();
+      return;
+    }
     try {
       setPermissionError(null);
       setError(null);
@@ -244,6 +280,10 @@ export function DictationCaptureView() {
   };
 
   const startLiveDictation = () => {
+    if (!transcriptionUnlocked) {
+      openTranscriptionPaywall();
+      return;
+    }
     const SpeechRecognitionCtor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
       setLiveError('Live dictation is not supported in this browser.');
@@ -356,6 +396,10 @@ export function DictationCaptureView() {
 
   const transcribeAudio = async () => {
     if (!audioBlob) return;
+    if (!transcriptionUnlocked) {
+      openTranscriptionPaywall();
+      return;
+    }
 
     try {
       setTranscribing(true);
@@ -370,7 +414,11 @@ export function DictationCaptureView() {
       }));
       setNotice('Transcription complete. Review and edit the text before saving.');
     } catch (transcriptionError) {
-      setError(transcriptionError instanceof Error ? transcriptionError.message : 'Failed to transcribe audio.');
+      const message = transcriptionError instanceof Error ? transcriptionError.message : 'Failed to transcribe audio.';
+      setError(message);
+      if (message.includes('available on Premium')) {
+        setPaywallOpen(true);
+      }
     } finally {
       setTranscribing(false);
     }
@@ -378,6 +426,10 @@ export function DictationCaptureView() {
 
   const createNoteFromTranscript = async () => {
     const body = draft.transcript.trim();
+    if (!transcriptionUnlocked) {
+      openTranscriptionPaywall();
+      return;
+    }
     if (!body) {
       setError('Transcription text is required before saving.');
       return;
@@ -482,6 +534,19 @@ export function DictationCaptureView() {
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
       {liveError ? <section className="error-state status-message" role="alert">{liveError}</section> : null}
       {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
+      {!transcriptionUnlocked ? (
+        <section className="empty-state status-message" role="status">
+          <strong>Premium feature</strong>
+          <span style={{ color: 'var(--muted)' }}>
+            Dictation and transcription are available on Premium, Team, and Ministry.
+          </span>
+          <div className="cta-row">
+            <button className="button button-secondary" onClick={() => setPaywallOpen(true)} type="button">
+              View plans
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div className="page-header" style={{ gap: '0.35rem' }}>
@@ -540,15 +605,21 @@ export function DictationCaptureView() {
             )
           ) : null}
 
-          <label className="button button-secondary" style={{ position: 'relative', overflow: 'hidden' }}>
-            Upload audio
-            <input
-              accept="audio/*"
-              onChange={onAudioFileSelected}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-              type="file"
-            />
-          </label>
+          {transcriptionUnlocked ? (
+            <label className="button button-secondary" style={{ position: 'relative', overflow: 'hidden' }}>
+              Upload audio
+              <input
+                accept="audio/*"
+                onChange={onAudioFileSelected}
+                style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+                type="file"
+              />
+            </label>
+          ) : (
+            <button className="button button-secondary" onClick={() => setPaywallOpen(true)} type="button">
+              Upload audio
+            </button>
+          )}
 
           {audioBlob ? (
             <button className="button button-ghost" type="button" onClick={resetAudio}>
@@ -696,6 +767,13 @@ export function DictationCaptureView() {
           </Link>
         </div>
       </section>
+
+      <PlanPaywallDialog
+        message={transcriptionPaywallMessage}
+        onClose={() => setPaywallOpen(false)}
+        open={paywallOpen}
+        title="Upgrade for dictation and transcription"
+      />
     </div>
   );
 }

@@ -2,8 +2,11 @@
 
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { PlanPaywallDialog } from '@/components/billing/plan-paywall-dialog';
 import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
 import { fetchScriptureByReference, findScriptureByQuery, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
+
+const REFERENCE_PATTERN = /^\s*(?:[1-3]\s*)?[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d{1,3}(?::\d{1,3}(?:-\d{1,3})?)?(?:-\d{1,3})?\s*$/;
 
 export function ScriptureSearchPanel({
   onInsert,
@@ -21,6 +24,9 @@ export function ScriptureSearchPanel({
   const [notice, setNotice] = useState<string | null>(null);
   const [translation, setTranslation] = useState('KJV');
   const [entitlements, setEntitlements] = useState<EntitlementSummary | null>(null);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  const scripturePaywallMessage = 'Phrase and keyword scripture search is available on Premium, Team, and Ministry.';
 
   const canSearch = useMemo(() => query.trim().length > 0, [query]);
   const translationOptions = useMemo(
@@ -63,6 +69,14 @@ export function ScriptureSearchPanel({
 
     try {
       const trimmed = query.trim();
+      const isDirectReference = REFERENCE_PATTERN.test(trimmed);
+
+      if (!isDirectReference && !entitlements?.scriptureSearchEnabled) {
+        setResults([]);
+        setError(scripturePaywallMessage);
+        setPaywallOpen(true);
+        return;
+      }
 
       try {
         const next = await fetchScriptureByReference(trimmed, translation);
@@ -87,7 +101,11 @@ export function ScriptureSearchPanel({
       }
     } catch (lookupError) {
       setResults([]);
-      setError(lookupError instanceof Error ? lookupError.message : 'Unable to fetch scripture.');
+      const message = lookupError instanceof Error ? lookupError.message : 'Unable to fetch scripture.';
+      setError(message);
+      if (message.includes('available on Premium')) {
+        setPaywallOpen(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -165,10 +183,15 @@ export function ScriptureSearchPanel({
         </button>
       </div>
 
-      {translationOptions.length === 1 ? (
-        <span style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
-          KJV is available now. Premium adds phrase search and licensed translations.
-        </span>
+      {!entitlements?.scriptureSearchEnabled ? (
+        <div className="cta-row" style={{ alignItems: 'center' }}>
+          <span style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
+            Premium, Team, and Ministry unlock phrase and keyword search.
+          </span>
+          <button className="button button-secondary" onClick={() => setPaywallOpen(true)} type="button">
+            View plans
+          </button>
+        </div>
       ) : null}
 
       {error ? (
@@ -243,6 +266,13 @@ export function ScriptureSearchPanel({
           }
         }
       `}</style>
+
+      <PlanPaywallDialog
+        message={scripturePaywallMessage}
+        onClose={() => setPaywallOpen(false)}
+        open={paywallOpen}
+        title="Upgrade for scripture search"
+      />
     </section>
   );
 }

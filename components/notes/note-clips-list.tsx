@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { createRecordingSignedUrl } from '@/lib/transcription';
 
@@ -16,6 +17,7 @@ type NoteClipsListProps = {
   description?: string;
   onTranscribeClip?: (clip: NoteClip) => Promise<void>;
   transcribeLabel?: string;
+  paywallMessage?: string;
 };
 
 export function NoteClipsList({
@@ -24,6 +26,7 @@ export function NoteClipsList({
   description = 'These clips are attached through the existing note `clips` field and recordings storage bucket.',
   onTranscribeClip,
   transcribeLabel = 'Transcribe again',
+  paywallMessage,
 }: NoteClipsListProps) {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +81,16 @@ export function NoteClipsList({
 
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
       {actionError ? <section className="error-state status-message" role="alert">{actionError}</section> : null}
+      {paywallMessage ? (
+        <section className="empty-state status-message" role="status">
+          <span>{paywallMessage}</span>
+          <div className="cta-row">
+            <Link className="button button-secondary" href="/pricing">
+              View plans
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       <div style={{ display: 'grid', gap: '0.75rem' }}>
         {clips.map((clip) => (
