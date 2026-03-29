@@ -58,6 +58,20 @@ export type PublicNoteShare = {
   created_at: string;
 };
 
+export type PublicSharedNoteRecord = {
+  id: string;
+  title: string | null;
+  body: string | null;
+  speaker: string | null;
+  type: string | null;
+  status: string | null;
+  is_lucid_dream: boolean | null;
+  dream_role: 'observing' | 'involved' | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
 export type ReceivedSharedNoteSummary = {
   note: NoteRecord;
   shared_by: string | null;
@@ -836,7 +850,7 @@ export async function getPublicSharedNote(shareToken: string) {
   }
 
   const row = Array.isArray(data) ? data[0] : data;
-  return (row as NoteRecord | null) ?? null;
+  return (row as PublicSharedNoteRecord | null) ?? null;
 }
 
 export async function updateSharedNote(noteId: string, input: NoteInput) {

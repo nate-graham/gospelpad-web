@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { getPublicSharedNote, type NoteRecord } from '@/lib/notes';
+import { getPublicSharedNote, type PublicSharedNoteRecord } from '@/lib/notes';
 import {
   formatNoteDate,
   getNoteExcerpt,
@@ -15,7 +15,7 @@ import { ScriptureReferencePreview } from '@/components/notes/scripture-referenc
 import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
 
 export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
-  const [note, setNote] = useState<NoteRecord | null>(null);
+  const [note, setNote] = useState<PublicSharedNoteRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
@@ -46,9 +46,9 @@ export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
   }, [shareToken]);
 
   const references = useMemo(() => findScriptureReferences(note?.body ?? ''), [note?.body]);
-  const wordCount = useMemo(() => getNoteWordCount(note ?? { body: '' } as NoteRecord), [note]);
-  const readingMinutes = useMemo(() => getNoteReadingTimeMinutes(note ?? { body: '' } as NoteRecord), [note]);
-  const scriptureCount = useMemo(() => getScriptureReferenceCount(note ?? { body: '' } as NoteRecord), [note]);
+  const wordCount = useMemo(() => getNoteWordCount(note ?? { body: '' }), [note]);
+  const readingMinutes = useMemo(() => getNoteReadingTimeMinutes(note ?? { body: '' }), [note]);
+  const scriptureCount = useMemo(() => getScriptureReferenceCount(note ?? { body: '' }), [note]);
 
   if (loading) {
     return (

@@ -478,7 +478,20 @@ export function NotesListView() {
                   ) : null}
                 </div>
               </div>
-              <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteExcerpt(note)}</span>
+              <span
+                style={{
+                  color: 'var(--muted)',
+                  lineHeight: 1.6,
+                  overflowWrap: 'anywhere',
+                  wordBreak: 'break-word',
+                  display: '-webkit-box',
+                  WebkitBoxOrient: 'vertical',
+                  WebkitLineClamp: 4,
+                  overflow: 'hidden',
+                }}
+              >
+                {getNoteExcerpt(note)}
+              </span>
               {note.speaker ? (
                 <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>Speaker: {note.speaker}</span>
               ) : null}
@@ -533,7 +546,20 @@ export function NotesListView() {
                       {formatNoteDate(share.shared_at)}
                     </span>
                   </div>
-                  <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteExcerpt(share.note)}</span>
+                  <span
+                    style={{
+                      color: 'var(--muted)',
+                      lineHeight: 1.6,
+                      overflowWrap: 'anywhere',
+                      wordBreak: 'break-word',
+                      display: '-webkit-box',
+                      WebkitBoxOrient: 'vertical',
+                      WebkitLineClamp: 4,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {getNoteExcerpt(share.note)}
+                  </span>
                   <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
                     Shared by {share.shared_by_label} • Permission: {share.permissions.join(', ')}
                   </span>
