@@ -143,8 +143,21 @@ export async function transcribeRecording(fileUrl: string, path?: string, bucket
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Transcription failed (${response.status}): ${text}`);
+    const payload = await response.json().catch(() => null);
+    const message =
+      payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
+        ? payload.error
+        : null;
+
+    if (response.status === 403) {
+      throw new Error('Dictation and transcription are available on Premium, Team, and Ministry.');
+    }
+
+    if (response.status === 400) {
+      throw new Error(message ?? 'The audio file could not be prepared for transcription.');
+    }
+
+    throw new Error(message ?? `Transcription failed (${response.status}).`);
   }
 
   const result = (await response.json()) as TranscriptionResponse;

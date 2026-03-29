@@ -25,6 +25,7 @@ import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 import type { ScriptureResult } from '@/lib/scripture';
+import { getMyEntitlements } from '@/lib/entitlements';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -41,6 +42,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [updatingPrayerStatus, setUpdatingPrayerStatus] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transcriptionEnabled, setTranscriptionEnabled] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -118,6 +120,27 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       active = false;
     };
   }, [note?.id]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadEntitlements = async () => {
+      try {
+        const next = await getMyEntitlements();
+        if (!active) return;
+        setTranscriptionEnabled(Boolean(next.transcriptionEnabled));
+      } catch {
+        if (!active) return;
+        setTranscriptionEnabled(false);
+      }
+    };
+
+    void loadEntitlements();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Note created successfully.';
@@ -280,6 +303,9 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
 
   const onTranscribeClip = async (clip: NonNullable<NoteRecord['clips']>[number]) => {
     if (!note) return;
+    if (!transcriptionEnabled) {
+      throw new Error('Dictation and transcription are available on Premium, Team, and Ministry.');
+    }
 
     const clipUrl = /^https?:\/\//i.test(clip.uri) ? clip.uri : await createRecordingSignedUrl(clip.uri);
     const result = await transcribeRecording(clipUrl, clip.uri);
@@ -521,7 +547,8 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       {note.clips?.length ? (
         <NoteClipsList
           clips={note.clips}
-          onTranscribeClip={onTranscribeClip}
+          onTranscribeClip={transcriptionEnabled ? onTranscribeClip : undefined}
+          paywallMessage={!transcriptionEnabled ? 'Upgrade to Premium, Team, or Ministry to transcribe saved clips.' : undefined}
         />
       ) : null}
 

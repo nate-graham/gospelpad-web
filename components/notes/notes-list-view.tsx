@@ -9,6 +9,7 @@ import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 import type { ScriptureResult } from '@/lib/scripture';
+import { InfoHint } from '@/components/feedback/info-hint';
 
 export function NotesListView() {
   const router = useRouter();
@@ -177,10 +178,13 @@ export function NotesListView() {
       >
         <div className="page-header">
           <span className="eyebrow">Notes</span>
-          <h1>Your notes</h1>
-          <p className="page-description">
-            Capture, organize, dictate, share, and revisit your notes across phone, tablet, and desktop.
-          </p>
+          <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <h1 style={{ margin: 0 }}>Your notes</h1>
+            <InfoHint
+              label="About notes"
+              text="Capture, organize, dictate, share, and revisit your notes across phone, tablet, and desktop."
+            />
+          </div>
         </div>
         <div className="cta-row">
           <button className="button button-secondary" onClick={toggleSelectionMode} type="button">
@@ -217,25 +221,39 @@ export function NotesListView() {
         <section className="responsive-grid compact" style={{ marginTop: '0.85rem' }}>
           <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
             <span className="eyebrow">Library</span>
-            <strong style={{ fontSize: '1.5rem' }}>{noteCountLabel}</strong>
-            <span style={{ color: 'var(--muted)' }}>
-              {activeFilterCount > 0
-                ? `${activeFilterCount} active discovery filter${activeFilterCount === 1 ? '' : 's'}.`
-                : 'Everything you have saved is ready to browse here.'}
-            </span>
+            <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <strong style={{ fontSize: '1.5rem' }}>{noteCountLabel}</strong>
+              <InfoHint
+                label="About library"
+                text={
+                  activeFilterCount > 0
+                    ? `${activeFilterCount} active discovery filter${activeFilterCount === 1 ? '' : 's'}.`
+                    : 'Everything you have saved is ready to browse here.'
+                }
+              />
+            </div>
           </article>
           <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
             <span className="eyebrow">Shared with you</span>
-            <strong style={{ fontSize: '1.5rem' }}>
-              {receivedSharedNotes.length} {receivedSharedNotes.length === 1 ? 'note' : 'notes'}
-            </strong>
-            <span style={{ color: 'var(--muted)' }}>
-              Notes other people share with you will appear here.
-            </span>
+            <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <strong style={{ fontSize: '1.5rem' }}>
+                {receivedSharedNotes.length} {receivedSharedNotes.length === 1 ? 'note' : 'notes'}
+              </strong>
+              <InfoHint
+                label="About shared notes"
+                text="Notes other people share with you will appear here."
+              />
+            </div>
           </article>
           <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
             <span className="eyebrow">Writing tools</span>
-            <strong style={{ fontSize: '1.5rem' }}>Scripture-aware editor</strong>
+            <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <strong style={{ fontSize: '1.5rem' }}>Scripture-aware editor</strong>
+              <InfoHint
+                label="About writing tools"
+                text="Write by typing or dictation, add scripture references, and keep note details together in one place."
+              />
+            </div>
           </article>
         </section>
       </details>

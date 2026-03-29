@@ -89,6 +89,18 @@ export type GroupAnnouncement = {
   created_at: string;
 };
 
+function normalizeGroupLimitError(message: string) {
+  const lowered = message.toLowerCase();
+  if (
+    lowered.includes('free groups can have up to 5 members') ||
+    lowered.includes('reached its member limit for the current plan')
+  ) {
+    return 'Free groups can have up to 5 members. Upgrade to Premium, Team, or Ministry to add more people.';
+  }
+
+  return message;
+}
+
 async function getAuthenticatedContext() {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) {
@@ -125,7 +137,7 @@ export async function listUserGroups() {
     .eq('user_id', userId);
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(normalizeGroupLimitError(error.message));
   }
 
   let results =
@@ -201,7 +213,7 @@ export async function createGroup(input: {
   });
 
   if (membershipError) {
-    throw new Error(membershipError.message);
+    throw new Error(normalizeGroupLimitError(membershipError.message));
   }
 
   return created;
@@ -226,7 +238,7 @@ export async function joinGroupByCode(code: string) {
   });
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(normalizeGroupLimitError(error.message));
   }
 
   const row = Array.isArray(data) ? data[0] : data;
@@ -346,7 +358,7 @@ export async function approveJoinRequest(requestId: string, groupId: string, use
   });
 
   if (memberError && !memberError.message.toLowerCase().includes('duplicate')) {
-    throw new Error(memberError.message);
+    throw new Error(normalizeGroupLimitError(memberError.message));
   }
 
   const { error } = await supabase

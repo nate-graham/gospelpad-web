@@ -19,6 +19,7 @@ import { insertTextIntoEditable, ScriptureEditableField } from '@/components/not
 import { NoteClipsList } from '@/components/notes/note-clips-list';
 import { findScriptureReferences } from '@/lib/scripture-references';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
+import { getMyEntitlements } from '@/lib/entitlements';
 
 type NoteFormProps = {
   mode: 'create' | 'edit';
@@ -73,6 +74,7 @@ export function NoteForm({
   const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [transcriptionEnabled, setTranscriptionEnabled] = useState(false);
 
   const draftKey = getDraftStorageKey(mode, note?.id);
   const handoffMessage = useMemo(() => {
@@ -143,6 +145,27 @@ export function NoteForm({
   }, [draftKey, initialState]);
 
   useEffect(() => {
+    let active = true;
+
+    const loadEntitlements = async () => {
+      try {
+        const next = await getMyEntitlements();
+        if (!active) return;
+        setTranscriptionEnabled(Boolean(next.transcriptionEnabled));
+      } catch {
+        if (!active) return;
+        setTranscriptionEnabled(false);
+      }
+    };
+
+    void loadEntitlements();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof window === 'undefined' || loadingDraft) return;
 
     window.localStorage.setItem(draftKey, JSON.stringify(form));
@@ -171,6 +194,10 @@ export function NoteForm({
   };
 
   const transcribeSavedClip = async (clip: NoteClip) => {
+    if (!transcriptionEnabled) {
+      throw new Error('Dictation and transcription are available on Premium, Team, and Ministry.');
+    }
+
     const clipUrl = /^https?:\/\//i.test(clip.uri) ? clip.uri : await createRecordingSignedUrl(clip.uri);
     const result = await transcribeRecording(clipUrl, clip.uri);
     const transcript = formatTranscriptText(result.text?.trim() || '');
@@ -324,7 +351,8 @@ export function NoteForm({
           clips={note.clips}
           title="Attached audio"
           description="This note includes saved audio from dictation or upload."
-          onTranscribeClip={transcribeSavedClip}
+          onTranscribeClip={transcriptionEnabled ? transcribeSavedClip : undefined}
+          paywallMessage={!transcriptionEnabled ? 'Upgrade to Premium, Team, or Ministry to transcribe saved clips.' : undefined}
         />
       ) : null}
 
