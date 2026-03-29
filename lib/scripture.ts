@@ -48,8 +48,33 @@ export async function fetchScriptureByReference(reference: string, translation =
   });
 
   if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(`Scripture lookup failed: ${res.status} ${body || res.statusText}`);
+    const payload = await res.json().catch(() => null);
+    const serverError =
+      payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
+        ? payload.error
+        : null;
+
+    if (res.status === 502) {
+      if (translation === 'OEB-US') {
+        throw new Error('Open English Bible (US) is temporarily unavailable. Try KJV or World English Bible instead.');
+      }
+
+      if (translation !== 'KJV') {
+        throw new Error(`${translation} is temporarily unavailable right now. Try KJV instead.`);
+      }
+
+      throw new Error('This scripture is temporarily unavailable right now. Please try again in a moment.');
+    }
+
+    if (res.status === 403) {
+      throw new Error(serverError ?? 'You are not authorized to access this translation.');
+    }
+
+    if (res.status === 400) {
+      throw new Error(serverError ?? 'That scripture reference or translation is not available.');
+    }
+
+    throw new Error(serverError ?? `Scripture lookup failed: ${res.status} ${res.statusText}`);
   }
 
   const data = (await res.json()) as ScriptureResult;
