@@ -1,7 +1,8 @@
 'use client';
 
 import type { CSSProperties, KeyboardEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
 import { fetchScriptureByReference, findScriptureByQuery, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
 
 export function ScriptureSearchPanel({
@@ -18,8 +19,40 @@ export function ScriptureSearchPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [translation, setTranslation] = useState('KJV');
+  const [entitlements, setEntitlements] = useState<EntitlementSummary | null>(null);
 
   const canSearch = useMemo(() => query.trim().length > 0, [query]);
+  const translationOptions = useMemo(
+    () => [
+      'KJV',
+      'WEB',
+      'OEB-US',
+      ...(entitlements?.paidBibleTranslationsEnabled ? ['NIV', 'ESV', 'NLT'] : []),
+    ],
+    [entitlements?.paidBibleTranslationsEnabled]
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    const loadEntitlements = async () => {
+      try {
+        const next = await getMyEntitlements();
+        if (!active) return;
+        setEntitlements(next);
+      } catch {
+        if (!active) return;
+        setEntitlements(null);
+      }
+    };
+
+    void loadEntitlements();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const runSearch = async () => {
     if (!canSearch) return;
@@ -32,14 +65,25 @@ export function ScriptureSearchPanel({
       const trimmed = query.trim();
 
       try {
-        const next = await fetchScriptureByReference(trimmed);
+        const next = await fetchScriptureByReference(trimmed, translation);
         setResults([next]);
       } catch {
         const searched = await findScriptureByQuery(trimmed);
         if (searched.results.length === 0) {
           throw new Error('No scripture results matched that search.');
         }
-        setResults(searched.results);
+        if (translation === 'KJV') {
+          setResults(searched.results);
+          return;
+        }
+
+        const translatedResults = await Promise.all(
+          searched.results.map(async (result) => ({
+            ...(await fetchScriptureByReference(result.reference, translation)),
+            reason: result.reason,
+          }))
+        );
+        setResults(translatedResults);
       }
     } catch (lookupError) {
       setResults([]);
@@ -92,7 +136,7 @@ export function ScriptureSearchPanel({
         style={{
           display: 'grid',
           gap: '0.85rem',
-          gridTemplateColumns: 'minmax(0, 1fr) auto',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(140px, 200px) auto',
           alignItems: 'end',
         }}
       >
@@ -106,10 +150,26 @@ export function ScriptureSearchPanel({
             style={inputStyle}
           />
         </label>
+        <label style={fieldStyle}>
+          <span className="eyebrow" style={labelTextStyle}>Translation</span>
+          <select value={translation} onChange={(event) => setTranslation(event.target.value)} style={inputStyle}>
+            {translationOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
         <button className="button button-secondary" disabled={loading || !canSearch} onClick={() => void runSearch()} type="button">
           {loading ? 'Searching…' : 'Search'}
         </button>
       </div>
+
+      {translationOptions.length === 1 ? (
+        <span style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
+          KJV is available now. Premium adds phrase search and licensed translations.
+        </span>
+      ) : null}
 
       {error ? (
         <div className="error-state status-message" role="alert">

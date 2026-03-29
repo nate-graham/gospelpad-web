@@ -1,7 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
 import { fetchScriptureByReference, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
+
+const TRANSLATION_LABELS: Record<string, string> = {
+  KJV: 'King James Version',
+  WEB: 'World English Bible',
+  'OEB-US': 'Open English Bible (US)',
+  NIV: 'New International Version',
+  ESV: 'English Standard Version',
+  NLT: 'New Living Translation',
+};
 
 export function ScriptureReferencePreview({
   reference,
@@ -15,6 +25,47 @@ export function ScriptureReferencePreview({
   const [result, setResult] = useState<ScriptureResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [translation, setTranslation] = useState('KJV');
+  const [entitlements, setEntitlements] = useState<EntitlementSummary | null>(null);
+
+  const translationOptions = useMemo(
+    () => [
+      'KJV',
+      'WEB',
+      'OEB-US',
+      ...(entitlements?.paidBibleTranslationsEnabled ? ['NIV', 'ESV', 'NLT'] : []),
+    ],
+    [entitlements?.paidBibleTranslationsEnabled]
+  );
+
+  useEffect(() => {
+    let active = true;
+
+    const loadEntitlements = async () => {
+      try {
+        const next = await getMyEntitlements();
+        if (!active) return;
+        setEntitlements(next);
+      } catch {
+        if (!active) return;
+        setEntitlements(null);
+      }
+    };
+
+    void loadEntitlements();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (translationOptions.includes(translation)) {
+      return;
+    }
+
+    setTranslation('KJV');
+  }, [translation, translationOptions]);
 
   useEffect(() => {
     if (!reference) {
@@ -28,7 +79,7 @@ export function ScriptureReferencePreview({
         setLoading(true);
         setError(null);
         setResult(null);
-        const next = await fetchScriptureByReference(reference);
+        const next = await fetchScriptureByReference(reference, translation);
         if (!active) return;
         setResult(next);
       } catch (loadError) {
@@ -44,7 +95,7 @@ export function ScriptureReferencePreview({
     return () => {
       active = false;
     };
-  }, [reference]);
+  }, [reference, translation]);
 
   if (!reference) {
     return null;
@@ -78,6 +129,26 @@ export function ScriptureReferencePreview({
         <button className="button button-ghost" onClick={onClose} type="button">
           Close
         </button>
+      </div>
+
+      <div style={{ display: 'grid', gap: '0.5rem' }}>
+        <span className="eyebrow">Translation</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          {translationOptions.map((option) => {
+            const active = option === translation;
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setTranslation(option)}
+                className={active ? 'button button-primary' : 'button button-secondary'}
+                style={{ minHeight: '40px' }}
+              >
+                {TRANSLATION_LABELS[option] ?? option}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {loading ? (
