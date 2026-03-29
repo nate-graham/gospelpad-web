@@ -137,13 +137,13 @@ export function ScriptureReferencePreview({
           value={translation}
           onChange={(event) => setTranslation(event.target.value)}
           style={{
-            width: 'min(280px, 100%)',
-            minHeight: '44px',
+            width: 'min(168px, 100%)',
+            minHeight: '40px',
             borderRadius: 999,
             border: '1px solid var(--line)',
             background: 'var(--field-bg)',
             color: 'var(--text)',
-            padding: '0.75rem 1rem',
+            padding: '0.55rem 0.85rem',
           }}
         >
           {translationOptions.map((option) => (
@@ -171,7 +171,6 @@ export function ScriptureReferencePreview({
       {result ? (
         <div style={{ display: 'grid', gap: '0.85rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-            <span className="badge">{TRANSLATION_LABELS[result.translation] ?? result.translation}</span>
             <strong>{result.reference}</strong>
           </div>
           <div
