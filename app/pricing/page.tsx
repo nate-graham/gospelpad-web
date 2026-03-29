@@ -35,7 +35,7 @@ const plans: Array<{
     features: [
       'Dictation and transcription',
       'Scripture search by phrase or keyword',
-      'Paid Bible translations',
+      'Paid Bible translations (coming soon)',
       'Groups up to 25 members',
     ],
     featured: true,
@@ -98,6 +98,17 @@ export default function PricingPage() {
   return (
     <main className="landing-page" style={{ padding: '1.25rem', minHeight: '100vh', display: 'grid', alignItems: 'center' }}>
       <section className="panel shell-page" style={{ padding: 'clamp(1.25rem, 4vw, 3rem)', display: 'grid', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Link
+            aria-label="Close plans"
+            className="button button-secondary"
+            href="/notes"
+            style={{ minWidth: '44px', minHeight: '44px', padding: '0.65rem 0.95rem', fontSize: '1.1rem' }}
+          >
+            ×
+          </Link>
+        </div>
+
         <header className="page-header" style={{ gap: '0.75rem' }}>
           <span className="badge">Plans</span>
           <h1 style={{ margin: 0, fontSize: 'clamp(2.3rem, 6vw, 4.5rem)', lineHeight: 0.95 }}>Upgrade your plan!</h1>
