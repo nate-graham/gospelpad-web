@@ -1,9 +1,8 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getPublicAppUrl, getWebAuthCallbackUrl } from '@/lib/env';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useDisplayPreferences } from '@/components/providers/display-preferences-provider';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
@@ -13,7 +12,6 @@ export function SettingsView() {
   const { appearance, setAppearance } = useDisplayPreferences();
   const [signingOut, setSigningOut] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(true);
-  const appUrl = useMemo(() => getPublicAppUrl(), []);
 
   useEffect(() => {
     setShowDeleteWarning(getShowDeleteWarningPreference());
@@ -126,26 +124,6 @@ export function SettingsView() {
         </section>
       </section>
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.9rem' }}>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Account links</span>
-          <strong style={{ fontSize: '1.1rem' }}>Sign-in and recovery</strong>
-        </div>
-        <DetailRow label="Base URL" value={appUrl} />
-        <DetailRow label="Auth callback" value={getWebAuthCallbackUrl('/notes')} />
-        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          These links support sign-in, password recovery, and secure account access across your devices.
-        </span>
-      </section>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: 'grid', gap: '0.2rem' }}>
-      <span className="eyebrow">{label}</span>
-      <strong style={{ fontSize: '0.96rem', overflowWrap: 'anywhere' }}>{value}</strong>
     </div>
   );
 }
