@@ -300,8 +300,8 @@ export function NoteForm({
         </h1>
         <p className="page-description">
           {mode === 'create'
-            ? 'This composer keeps the current scripture-aware editor and local draft recovery while now surfacing the most important structured fields already used by the mobile product.'
-            : editDescription ?? 'This composer keeps the current scripture-aware editor and local draft recovery while now surfacing the most important structured fields already used by the mobile product.'}
+            ? 'Write, organize, and refine your note here.'
+            : editDescription ?? 'Review your note, make changes, and save when you are ready.'}
         </p>
       </header>
 

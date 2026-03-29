@@ -74,7 +74,7 @@ export function GroupNoteForm({ groupId, mode, note }: GroupNoteFormProps) {
         <span className="eyebrow">{mode === 'create' ? 'Group note' : 'Edit group note'}</span>
         <h1>{mode === 'create' ? 'Capture a group note' : 'Update group note'}</h1>
         <p className="page-description">
-          This uses the dedicated `group_notes` lifecycle already present in the mobile product, while keeping the same scripture-aware editing model already used on the web.
+          Keep the key moments, scripture, and discussion from this group together in one note.
         </p>
       </header>
 
@@ -87,10 +87,10 @@ export function GroupNoteForm({ groupId, mode, note }: GroupNoteFormProps) {
           </span>
         </article>
         <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Lifecycle</span>
-          <strong style={{ fontSize: '1.15rem' }}>{mode === 'create' ? 'New group note' : 'Existing group note'}</strong>
+          <span className="eyebrow">Visibility</span>
+          <strong style={{ fontSize: '1.15rem' }}>{mode === 'create' ? 'Shared with the group' : 'Visible to the group'}</strong>
           <span style={{ color: 'var(--muted)' }}>
-            Dedicated group notes stay separate from personal notes and shared personal notes.
+            Group notes stay with this group so members can come back to them later.
           </span>
         </article>
       </section>

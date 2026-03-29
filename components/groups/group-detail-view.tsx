@@ -323,7 +323,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
     return (
       <section className="empty-state status-message" role="status">
         <strong>Group not found</strong>
-        <span style={{ color: 'var(--muted)' }}>This group could not be loaded from the current backend state.</span>
+        <span style={{ color: 'var(--muted)' }}>This group may have been removed or is no longer available.</span>
         <Link className="button button-primary" href="/groups">
           Return to groups
         </Link>
@@ -336,7 +336,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       <section className="error-state status-message" role="alert">
         <strong>Group access is limited</strong>
         <span style={{ color: 'var(--muted)' }}>
-          This group detail page is intended for groups you belong to. Access to member, note, and announcement surfaces is limited to current members.
+          You need to be part of this group to view its members, notes, and announcements.
         </span>
         <Link className="button button-secondary" href="/groups">
           Back to groups
@@ -379,7 +379,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             {announcements.length} {announcements.length === 1 ? 'announcement' : 'announcements'}
           </strong>
           <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            Group-wide communication runs through the existing `group_announcements` table and stays visible to every current member here.
+            Keep everyone in the group up to date from one place.
           </span>
         </div>
 

@@ -23,7 +23,7 @@ type NoteClipsListProps = {
 export function NoteClipsList({
   clips,
   title = 'Audio clips',
-  description = 'These clips are attached through the existing note `clips` field and recordings storage bucket.',
+  description = 'Play back or download the audio saved with this note.',
   onTranscribeClip,
   transcribeLabel = 'Transcribe again',
   paywallMessage,

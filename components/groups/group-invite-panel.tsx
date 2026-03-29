@@ -47,7 +47,7 @@ export function GroupInvitePanel({
               <span className="eyebrow">Invite code</span>
               <strong style={{ fontSize: '1.25rem', letterSpacing: '0.08em' }}>{group.invite_code}</strong>
               <span style={{ color: 'var(--muted)' }}>
-                Anyone with this code can use the existing join flow.
+                Share this code so someone can join the group.
               </span>
             </article>
             <article className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.45rem' }}>
@@ -80,7 +80,7 @@ export function GroupInvitePanel({
         <section className="empty-state status-message" role="status">
           <strong>Ask an admin to invite someone</strong>
           <span style={{ color: 'var(--muted)' }}>
-            This group already has an invite flow, but only admins and the owner can issue the shareable code or link from the web app.
+            Only the owner or an admin can share this group's invite code or link.
           </span>
         </section>
       )}

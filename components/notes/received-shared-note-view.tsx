@@ -75,7 +75,7 @@ export function ReceivedSharedNoteView({ noteId }: { noteId: string }) {
     return (
       <section className="loading-state status-message" role="status" aria-live="polite">
         <strong>Loading shared note…</strong>
-        <span style={{ color: 'var(--muted)' }}>Fetching the note through the existing direct-share path.</span>
+        <span style={{ color: 'var(--muted)' }}>Getting the latest shared note.</span>
       </section>
     );
   }
