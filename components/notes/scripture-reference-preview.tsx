@@ -131,25 +131,28 @@ export function ScriptureReferencePreview({
         </button>
       </div>
 
-      <div style={{ display: 'grid', gap: '0.5rem' }}>
+      <label style={{ display: 'grid', gap: '0.35rem' }}>
         <span className="eyebrow">Translation</span>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-          {translationOptions.map((option) => {
-            const active = option === translation;
-            return (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setTranslation(option)}
-                className={active ? 'button button-primary' : 'button button-secondary'}
-                style={{ minHeight: '40px' }}
-              >
-                {TRANSLATION_LABELS[option] ?? option}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+        <select
+          value={translation}
+          onChange={(event) => setTranslation(event.target.value)}
+          style={{
+            width: 'min(280px, 100%)',
+            minHeight: '44px',
+            borderRadius: 999,
+            border: '1px solid var(--line)',
+            background: 'var(--field-bg)',
+            color: 'var(--text)',
+            padding: '0.75rem 1rem',
+          }}
+        >
+          {translationOptions.map((option) => (
+            <option key={option} value={option}>
+              {TRANSLATION_LABELS[option] ?? option}
+            </option>
+          ))}
+        </select>
+      </label>
 
       {loading ? (
         <div className="loading-state status-message" role="status">
@@ -168,7 +171,7 @@ export function ScriptureReferencePreview({
       {result ? (
         <div style={{ display: 'grid', gap: '0.85rem' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
-            <span className="badge">{result.translation}</span>
+            <span className="badge">{TRANSLATION_LABELS[result.translation] ?? result.translation}</span>
             <strong>{result.reference}</strong>
           </div>
           <div
