@@ -18,6 +18,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { user } = useSupabaseAuth();
   const [signingOut, setSigningOut] = useState(false);
+  const headerName =
+    (typeof user?.user_metadata?.username === 'string' && user.user_metadata.username.trim()) ||
+    (typeof user?.user_metadata?.display_name === 'string' && user.user_metadata.display_name.trim()) ||
+    (typeof user?.user_metadata?.name === 'string' && user.user_metadata.name.trim()) ||
+    user?.email?.split('@')[0] ||
+    'Account';
 
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
@@ -95,10 +101,26 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <div style={{ display: 'grid', gap: '1rem', minWidth: 0 }}>
           <header className="panel mobile-topbar" style={{ padding: '1rem 1.1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center' }}>
-              <div>
-                <div className="eyebrow">GospelPad Web</div>
-                <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>Your workspace</div>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+                minWidth: 0,
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: '1.05rem',
+                  width: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                GospelPad {headerName}
               </div>
             </div>
           </header>
