@@ -4,7 +4,13 @@ import type { CSSProperties, KeyboardEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { PlanPaywallDialog } from '@/components/billing/plan-paywall-dialog';
 import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
-import { fetchScriptureByReference, findScriptureByQuery, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
+import {
+  fetchScriptureByReference,
+  findScriptureByQuery,
+  formatScriptureForInsertion,
+  formatScriptureTextForInsertion,
+  type ScriptureResult,
+} from '@/lib/scripture';
 
 const REFERENCE_PATTERN = /^\s*(?:[1-3]\s*)?[A-Za-z]+(?:\s+[A-Za-z]+)*\s+\d{1,3}(?::\d{1,3}(?:-\d{1,3})?)?(?:-\d{1,3})?\s*$/;
 
@@ -122,7 +128,7 @@ export function ScriptureSearchPanel({
 
   const insertResult = (result: ScriptureResult) => {
     if (!onInsert) return;
-    onInsert(formatScriptureForInsertion(result));
+    onInsert(formatScriptureTextForInsertion(result));
     setNotice(`Inserted ${result.reference} into the current note.`);
   };
 

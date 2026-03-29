@@ -108,3 +108,7 @@ export async function findScriptureByQuery(query: string): Promise<ScriptureSear
 export function formatScriptureForInsertion(result: ScriptureResult) {
   return `${result.reference} (${result.translation})\n${result.text}`.trim();
 }
+
+export function formatScriptureTextForInsertion(result: ScriptureResult) {
+  return result.text.trim();
+}

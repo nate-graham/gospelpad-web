@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
-import { fetchScriptureByReference, formatScriptureForInsertion, type ScriptureResult } from '@/lib/scripture';
+import {
+  fetchScriptureByReference,
+  formatScriptureTextForInsertion,
+  type ScriptureResult,
+} from '@/lib/scripture';
 
 const TRANSLATION_LABELS: Record<string, string> = {
   KJV: 'King James Version',
@@ -106,7 +110,7 @@ export function ScriptureReferencePreview({
       return;
     }
 
-    onInsert(formatScriptureForInsertion(result));
+    onInsert(formatScriptureTextForInsertion(result));
   };
 
   return (
