@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { getPublicSharedNote, type PublicSharedNoteRecord } from '@/lib/notes';
+import { duplicatePublicNote, getPublicSharedNote, type PublicSharedNoteRecord } from '@/lib/notes';
 import {
   formatNoteDate,
   getNoteExcerpt,
@@ -13,12 +14,20 @@ import {
 import { findScriptureReferences } from '@/lib/scripture-references';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
+import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [note, setNote] = useState<PublicSharedNoteRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [copying, setCopying] = useState(false);
+  const [copyHandled, setCopyHandled] = useState(false);
+
+  const copyRedirectPath = useMemo(() => `/s/${shareToken}?copy=1`, [shareToken]);
 
   useEffect(() => {
     let active = true;
@@ -45,6 +54,59 @@ export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
     };
   }, [shareToken]);
 
+  useEffect(() => {
+    let active = true;
+
+    const loadAuth = async () => {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        if (!supabase) {
+          if (active) setAuthenticated(false);
+          return;
+        }
+
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!active) return;
+        setAuthenticated(Boolean(user?.id));
+      } catch {
+        if (!active) return;
+        setAuthenticated(false);
+      }
+    };
+
+    void loadAuth();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const onCopyToMyNotes = async () => {
+    if (!note || copying) return;
+
+    try {
+      setCopying(true);
+      setError(null);
+      const duplicateId = await duplicatePublicNote(note);
+      setCopyHandled(true);
+      router.push(`/notes/${duplicateId}/edit?copied=1&from=public-share`);
+    } catch (copyError) {
+      setError(copyError instanceof Error ? copyError.message : 'Failed to copy this shared note.');
+      setCopying(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!note || !authenticated || copyHandled || searchParams.get('copy') !== '1') {
+      return;
+    }
+
+    void onCopyToMyNotes();
+  }, [authenticated, copyHandled, note, searchParams]);
+
   const references = useMemo(() => findScriptureReferences(note?.body ?? ''), [note?.body]);
   const wordCount = useMemo(() => getNoteWordCount(note ?? { body: '' }), [note]);
   const readingMinutes = useMemo(() => getNoteReadingTimeMinutes(note ?? { body: '' }), [note]);
@@ -68,10 +130,10 @@ export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
           <strong>Unable to load this shared note</strong>
           <span style={{ color: 'var(--muted)' }}>{error}</span>
           <div className="cta-row">
-            <Link className="button button-primary" href="/auth/sign-up">
+            <Link className="button button-primary" href={`/auth/sign-up?next=${encodeURIComponent(copyRedirectPath)}`}>
               Sign up for GospelPad
             </Link>
-            <Link className="button button-secondary" href="/auth/sign-in">
+            <Link className="button button-secondary" href={`/auth/sign-in?next=${encodeURIComponent(copyRedirectPath)}`}>
               Sign in
             </Link>
           </div>
@@ -88,7 +150,7 @@ export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
           <span style={{ color: 'var(--muted)' }}>
             This link may have expired or the note may no longer be available.
           </span>
-          <Link className="button button-primary" href="/auth/sign-up">
+          <Link className="button button-primary" href={`/auth/sign-up?next=${encodeURIComponent(copyRedirectPath)}`}>
             Create an account
           </Link>
         </section>
@@ -169,14 +231,24 @@ export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
 
         <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
           <span className="eyebrow">Keep going in GospelPad</span>
-          <strong style={{ fontSize: '1.05rem' }}>Create an account to save your own copy or collaborate with the author.</strong>
+          <strong style={{ fontSize: '1.05rem' }}>
+            {authenticated ? 'Copy this note into your own library and keep editing from there.' : 'Create an account to copy this note into your own library and keep editing.'}
+          </strong>
           <div className="cta-row">
-            <Link className="button button-primary" href="/auth/sign-up">
-              Sign up
-            </Link>
-            <Link className="button button-secondary" href="/auth/sign-in">
-              Sign in
-            </Link>
+            {authenticated ? (
+              <button className="button button-primary" disabled={copying} onClick={() => void onCopyToMyNotes()} type="button">
+                {copying ? 'Copying…' : 'Copy to my notes'}
+              </button>
+            ) : (
+              <>
+                <Link className="button button-primary" href={`/auth/sign-up?next=${encodeURIComponent(copyRedirectPath)}`}>
+                  Sign up
+                </Link>
+                <Link className="button button-secondary" href={`/auth/sign-in?next=${encodeURIComponent(copyRedirectPath)}`}>
+                  Sign in
+                </Link>
+              </>
+            )}
           </div>
         </section>
       </div>

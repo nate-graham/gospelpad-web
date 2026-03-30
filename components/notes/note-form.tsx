@@ -499,30 +499,6 @@ export function NoteForm({
                 </span>
               </div>
             ) : null}
-            {detectedReferences.length > 0 ? (
-              <div style={{ display: 'grid', gap: '0.55rem' }}>
-                <span className="eyebrow">Detected references in this note</span>
-                <div className="cta-row">
-                  {detectedReferences.map((reference) => (
-                    <button
-                      className="button button-secondary"
-                      key={reference}
-                      onClick={() => setActiveReference(reference)}
-                      type="button"
-                    >
-                      {reference}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            {activeReference ? (
-              <ScriptureReferencePreview
-                onInsert={insertScripture}
-                onClose={() => setActiveReference(null)}
-                reference={activeReference}
-              />
-            ) : null}
             <label style={fieldStyle}>
               <span className="eyebrow" style={labelTextStyle}>Body</span>
               <ScriptureEditableField
@@ -533,6 +509,37 @@ export function NoteForm({
                 placeholder={placeholders.body}
               />
             </label>
+            {detectedReferences.length > 0 ? (
+              <details className="panel note-reference-drawer" style={{ padding: '0.85rem 1rem' }}>
+                <summary style={detailsSummaryStyle}>
+                  <span>Detected references</span>
+                  <span style={detailsMetaStyle}>
+                    {detectedReferences.length} found
+                  </span>
+                </summary>
+                <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.85rem' }}>
+                  <div className="cta-row">
+                    {detectedReferences.map((reference) => (
+                      <button
+                        className="button button-secondary"
+                        key={reference}
+                        onClick={() => setActiveReference(reference)}
+                        type="button"
+                      >
+                        {reference}
+                      </button>
+                    ))}
+                  </div>
+                  {activeReference ? (
+                    <ScriptureReferencePreview
+                      onInsert={insertScripture}
+                      onClose={() => setActiveReference(null)}
+                      reference={activeReference}
+                    />
+                  ) : null}
+                </div>
+              </details>
+            ) : null}
           </section>
 
           <div className="cta-row">

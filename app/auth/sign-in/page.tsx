@@ -117,7 +117,10 @@ export default function SignInPage() {
           </Link>
         </div>
         <div className="cta-row">
-          <Link className="button button-secondary" href="/auth/sign-up">
+          <Link
+            className="button button-secondary"
+            href={`/auth/sign-up?next=${encodeURIComponent(getSafeNextPath(searchParams.get('next')))}`}
+          >
             Create account
           </Link>
           <Link className="button button-secondary" href="/">

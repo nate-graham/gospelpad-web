@@ -3,12 +3,14 @@
 import Link from 'next/link';
 import type { CSSProperties, FormEvent } from 'react';
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AuthFrame } from '@/components/layout/auth-frame';
-import { getRequiredEnvState, getWebAuthCallbackUrl } from '@/lib/env';
+import { getRequiredEnvState, getSafeNextPath, getWebAuthCallbackUrl } from '@/lib/env';
 import { ensureProfileForUser } from '@/lib/supabase/profile';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 
 export default function SignUpPage() {
+  const searchParams = useSearchParams();
   const envState = useMemo(() => getRequiredEnvState(), []);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -30,11 +32,13 @@ export default function SignUpPage() {
     setError(null);
     setSuccess(null);
 
+    const next = getSafeNextPath(searchParams.get('next'));
+
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: getWebAuthCallbackUrl('/notes'),
+        emailRedirectTo: getWebAuthCallbackUrl(next),
         data: {
           username,
           name: username,
@@ -62,8 +66,7 @@ export default function SignUpPage() {
         return;
       }
 
-      setSuccess('Your account is ready. Open your notes to continue.');
-      setPending(false);
+      window.location.assign(next);
       return;
     }
 
@@ -125,7 +128,7 @@ export default function SignUpPage() {
           <button className="button button-primary" disabled={pending} type="submit">
             {pending ? 'Creating account…' : 'Create account'}
           </button>
-          <Link className="button button-secondary" href="/auth/sign-in">
+          <Link className="button button-secondary" href={`/auth/sign-in?next=${encodeURIComponent(getSafeNextPath(searchParams.get('next')))}`}>
             Already have an account?
           </Link>
         </div>

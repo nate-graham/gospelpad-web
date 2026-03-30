@@ -392,6 +392,15 @@ export async function duplicateNote(note: Pick<NoteRecord, 'title' | 'body' | 's
   return data.id as string;
 }
 
+export async function duplicatePublicNote(
+  note: Pick<PublicSharedNoteRecord, 'title' | 'body' | 'speaker' | 'type' | 'status' | 'is_lucid_dream' | 'dream_role'>
+) {
+  return duplicateNote({
+    ...note,
+    clips: null,
+  });
+}
+
 const DEFAULT_DUPLICATE_TYPE: NoteType = 'Church notes';
 
 async function getProfileSummaryMap(targetUserIds: string[]) {
