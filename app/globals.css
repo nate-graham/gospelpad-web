@@ -458,8 +458,26 @@ html[data-appearance='dark'] .button-secondary:hover {
   }
 
   .note-reference-drawer {
-    position: sticky;
+    position: fixed;
+    left: 1rem;
+    right: 1rem;
     bottom: 5.75rem;
     z-index: 20;
+    width: auto;
+    max-width: calc(100vw - 2rem);
+    align-self: start;
+  }
+
+  .note-reference-drawer-open {
+    background: var(--panel-strong) !important;
+    border: 1px solid var(--line) !important;
+    box-shadow: 0 14px 30px rgba(77, 56, 25, 0.14) !important;
+    backdrop-filter: none !important;
+  }
+
+  html[data-appearance='dark'] .note-reference-drawer-open {
+    background: #241d17 !important;
+    border: 1px solid rgba(255, 248, 235, 0.08) !important;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28) !important;
   }
 }

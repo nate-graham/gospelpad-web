@@ -532,7 +532,7 @@ export function NoteForm({
             </label>
             {orderedDetectedReferences.length > 0 ? (
               <section
-                className="panel note-reference-drawer"
+                className={`panel note-reference-drawer${referencesDrawerOpen ? ' note-reference-drawer-open' : ''}`}
                 style={{
                   padding: referencesDrawerOpen ? '0.85rem 1rem' : '0.75rem 1rem',
                   display: 'grid',
