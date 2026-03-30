@@ -534,7 +534,7 @@ export function NoteForm({
               <section
                 className={`panel note-reference-drawer${referencesDrawerOpen ? ' note-reference-drawer-open' : ''}`}
                 style={{
-                  padding: referencesDrawerOpen ? '0.85rem 1rem' : '0.75rem 1rem',
+                  padding: referencesDrawerOpen ? '0.85rem 1rem' : '0.55rem 0.45rem',
                   display: 'grid',
                   gap: referencesDrawerOpen ? '0.85rem' : '0.35rem',
                 }}
@@ -544,19 +544,38 @@ export function NoteForm({
                   onClick={() => setReferencesDrawerOpen((current) => !current)}
                   style={{
                     width: '100%',
-                    justifyContent: 'space-between',
+                    justifyContent: referencesDrawerOpen ? 'space-between' : 'center',
                     padding: 0,
                     minHeight: 'unset',
                   }}
                   type="button"
                 >
-                  <span style={{ display: 'grid', gap: '0.15rem', textAlign: 'left' }}>
-                    <span style={{ fontWeight: 700 }}>Detected references</span>
-                    <span style={detailsMetaStyle}>
-                      Latest: {orderedDetectedReferences[0]} • {orderedDetectedReferences.length} found
+                  {referencesDrawerOpen ? (
+                    <>
+                      <span style={{ display: 'grid', gap: '0.15rem', textAlign: 'left' }}>
+                        <span style={{ fontWeight: 700 }}>Detected references</span>
+                        <span style={detailsMetaStyle}>
+                          Latest: {orderedDetectedReferences[0]} • {orderedDetectedReferences.length} found
+                        </span>
+                      </span>
+                      <span style={detailsMetaStyle}>Hide</span>
+                    </>
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.22rem',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <span className="note-reference-dot" />
+                      <span className="note-reference-dot" />
+                      <span className="note-reference-dot" />
                     </span>
-                  </span>
-                  <span style={detailsMetaStyle}>{referencesDrawerOpen ? 'Hide' : 'Show'}</span>
+                  )}
                 </button>
 
                 {referencesDrawerOpen ? (
