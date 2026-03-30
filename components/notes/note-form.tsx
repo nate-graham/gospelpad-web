@@ -50,6 +50,7 @@ export function NoteForm({
   const router = useRouter();
   const searchParams = useSearchParams();
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const lastDetectedReferenceRef = useRef<string | null>(null);
   const initialState = useMemo<DraftState>(
     () => ({
       title: note?.title ?? '',
@@ -75,6 +76,7 @@ export function NoteForm({
   const [activeReference, setActiveReference] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(false);
+  const [referencesDrawerOpen, setReferencesDrawerOpen] = useState(false);
 
   const draftKey = getDraftStorageKey(mode, note?.id);
   const handoffMessage = useMemo(() => {
@@ -173,6 +175,25 @@ export function NoteForm({
   }, [draftKey, form, loadingDraft]);
 
   const detectedReferences = useMemo(() => findScriptureReferences(form.body), [form.body]);
+  const orderedDetectedReferences = useMemo(() => [...detectedReferences].reverse(), [detectedReferences]);
+
+  useEffect(() => {
+    const newestReference = orderedDetectedReferences[0] ?? null;
+    const previousNewestReference = lastDetectedReferenceRef.current;
+
+    if (!newestReference) {
+      lastDetectedReferenceRef.current = null;
+      setReferencesDrawerOpen(false);
+      setActiveReference(null);
+      return;
+    }
+
+    if (newestReference !== previousNewestReference) {
+      setReferencesDrawerOpen(true);
+    }
+
+    lastDetectedReferenceRef.current = newestReference;
+  }, [orderedDetectedReferences]);
   const wordCount = useMemo(() => getNoteWordCount({ body: form.body } as NoteRecord), [form.body]);
   const scriptureCount = useMemo(() => getScriptureReferenceCount({ body: form.body } as NoteRecord), [form.body]);
   const placeholders = useMemo(() => getNoteTypePlaceholders(form.type), [form.type]);
@@ -509,36 +530,59 @@ export function NoteForm({
                 placeholder={placeholders.body}
               />
             </label>
-            {detectedReferences.length > 0 ? (
-              <details className="panel note-reference-drawer" style={{ padding: '0.85rem 1rem' }}>
-                <summary style={detailsSummaryStyle}>
-                  <span>Detected references</span>
-                  <span style={detailsMetaStyle}>
-                    {detectedReferences.length} found
+            {orderedDetectedReferences.length > 0 ? (
+              <section
+                className="panel note-reference-drawer"
+                style={{
+                  padding: referencesDrawerOpen ? '0.85rem 1rem' : '0.75rem 1rem',
+                  display: 'grid',
+                  gap: referencesDrawerOpen ? '0.85rem' : '0.35rem',
+                }}
+              >
+                <button
+                  className="button button-ghost"
+                  onClick={() => setReferencesDrawerOpen((current) => !current)}
+                  style={{
+                    width: '100%',
+                    justifyContent: 'space-between',
+                    padding: 0,
+                    minHeight: 'unset',
+                  }}
+                  type="button"
+                >
+                  <span style={{ display: 'grid', gap: '0.15rem', textAlign: 'left' }}>
+                    <span style={{ fontWeight: 700 }}>Detected references</span>
+                    <span style={detailsMetaStyle}>
+                      Latest: {orderedDetectedReferences[0]} • {orderedDetectedReferences.length} found
+                    </span>
                   </span>
-                </summary>
-                <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.85rem' }}>
-                  <div className="cta-row">
-                    {detectedReferences.map((reference) => (
-                      <button
-                        className="button button-secondary"
-                        key={reference}
-                        onClick={() => setActiveReference(reference)}
-                        type="button"
-                      >
-                        {reference}
-                      </button>
-                    ))}
-                  </div>
-                  {activeReference ? (
-                    <ScriptureReferencePreview
-                      onInsert={insertScripture}
-                      onClose={() => setActiveReference(null)}
-                      reference={activeReference}
-                    />
-                  ) : null}
-                </div>
-              </details>
+                  <span style={detailsMetaStyle}>{referencesDrawerOpen ? 'Hide' : 'Show'}</span>
+                </button>
+
+                {referencesDrawerOpen ? (
+                  <>
+                    <div className="cta-row">
+                      {orderedDetectedReferences.map((reference) => (
+                        <button
+                          className="button button-secondary"
+                          key={reference}
+                          onClick={() => setActiveReference(reference)}
+                          type="button"
+                        >
+                          {reference}
+                        </button>
+                      ))}
+                    </div>
+                    {activeReference ? (
+                      <ScriptureReferencePreview
+                        onInsert={insertScripture}
+                        onClose={() => setActiveReference(null)}
+                        reference={activeReference}
+                      />
+                    ) : null}
+                  </>
+                ) : null}
+              </section>
             ) : null}
           </section>
 
