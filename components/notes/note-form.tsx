@@ -364,7 +364,7 @@ export function NoteForm({
               padding: '1rem',
               display: 'grid',
               gap: '1rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))',
             }}
           >
             <label style={fieldStyle}>
@@ -411,7 +411,7 @@ export function NoteForm({
                 padding: '1rem',
                 display: 'grid',
                 gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))',
               }}
             >
               <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
@@ -454,7 +454,7 @@ export function NoteForm({
                 padding: '1rem',
                 display: 'grid',
                 gap: '1rem',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(220px, 100%), 1fr))',
               }}
             >
               <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>

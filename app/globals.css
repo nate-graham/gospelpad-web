@@ -132,6 +132,10 @@ select[disabled] {
   gap: 1.25rem;
 }
 
+.page-section > * {
+  min-width: 0;
+}
+
 .page-header {
   display: grid;
   gap: 0.5rem;
@@ -176,6 +180,8 @@ select[disabled] {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .badge {
@@ -437,6 +443,9 @@ html[data-appearance='dark'] .button-secondary:hover {
     box-shadow: 0 10px 24px rgba(77, 56, 25, 0.06);
     backdrop-filter: blur(8px);
     border-radius: 18px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   html[data-appearance='dark'] .app-main-panel .panel,

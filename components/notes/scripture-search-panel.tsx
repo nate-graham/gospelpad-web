@@ -149,7 +149,7 @@ export function ScriptureSearchPanel({
   };
 
   return (
-    <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+    <section className={`panel ${compact ? 'scripture-search-panel scripture-search-panel-compact' : 'scripture-search-panel'}`} style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
       <div style={{ display: 'grid', gap: '0.4rem' }}>
         <span className="eyebrow">Scripture search</span>
         <strong style={{ fontSize: compact ? '1rem' : '1.05rem' }}>Search by reference, phrase, or keyword</strong>
@@ -164,7 +164,7 @@ export function ScriptureSearchPanel({
           alignItems: 'end',
         }}
       >
-        <label style={fieldStyle}>
+        <label className="scripture-search-field" style={fieldStyle}>
           <span className="eyebrow" style={labelTextStyle}>Reference or phrase</span>
           <input
             value={query}
@@ -174,7 +174,7 @@ export function ScriptureSearchPanel({
             style={inputStyle}
           />
         </label>
-        <label style={fieldStyle}>
+        <label className="scripture-search-field scripture-search-translation" style={fieldStyle}>
           <span className="eyebrow" style={labelTextStyle}>Translation</span>
           <select value={translation} onChange={(event) => setTranslation(event.target.value)} style={inputStyle}>
             {translationOptions.map((option) => (
@@ -184,7 +184,7 @@ export function ScriptureSearchPanel({
             ))}
           </select>
         </label>
-        <button className="button button-secondary" disabled={loading || !canSearch} onClick={() => void runSearch()} type="button">
+        <button className="button button-secondary scripture-search-button" disabled={loading || !canSearch} onClick={() => void runSearch()} type="button">
           {loading ? 'Searching…' : 'Search'}
         </button>
       </div>
@@ -266,9 +266,36 @@ export function ScriptureSearchPanel({
       ) : null}
 
       <style jsx>{`
+        .scripture-search-panel {
+          width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+
+        .scripture-search-field,
+        .scripture-search-button {
+          min-width: 0;
+        }
+
+        .scripture-search-field :global(input),
+        .scripture-search-field :global(select) {
+          width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+
         @media (max-width: 720px) {
           .search-row {
             grid-template-columns: 1fr;
+          }
+
+          .scripture-search-panel-compact {
+            padding: 0.85rem;
+          }
+
+          .scripture-search-translation,
+          .scripture-search-button {
+            width: 100%;
           }
         }
       `}</style>
