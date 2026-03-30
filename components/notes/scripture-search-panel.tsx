@@ -160,8 +160,8 @@ export function ScriptureSearchPanel({
         style={{
           display: 'grid',
           gap: '0.85rem',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(140px, 200px) auto',
-          alignItems: 'end',
+          gridTemplateColumns: compact ? '1fr' : 'minmax(0, 1fr) minmax(140px, 200px) auto',
+          alignItems: compact ? 'stretch' : 'end',
         }}
       >
         <label className="scripture-search-field" style={fieldStyle}>
@@ -184,7 +184,13 @@ export function ScriptureSearchPanel({
             ))}
           </select>
         </label>
-        <button className="button button-secondary scripture-search-button" disabled={loading || !canSearch} onClick={() => void runSearch()} type="button">
+        <button
+          className="button button-secondary scripture-search-button"
+          disabled={loading || !canSearch}
+          onClick={() => void runSearch()}
+          style={compact ? { width: '100%' } : undefined}
+          type="button"
+        >
           {loading ? 'Searching…' : 'Search'}
         </button>
       </div>
@@ -282,6 +288,11 @@ export function ScriptureSearchPanel({
           width: 100%;
           min-width: 0;
           box-sizing: border-box;
+        }
+
+        .scripture-search-field :global(.eyebrow) {
+          display: block;
+          line-height: 1.35;
         }
 
         @media (max-width: 720px) {
