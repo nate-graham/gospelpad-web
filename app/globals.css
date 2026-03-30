@@ -460,8 +460,8 @@ html[data-appearance='dark'] .button-secondary:hover {
   .note-reference-drawer {
     position: fixed;
     left: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 6.5rem;
+    transform: none;
     z-index: 20;
     width: 2.4rem;
     max-width: calc(100vw - 1rem);
