@@ -37,7 +37,7 @@ function buildEditorHtml(value: string) {
     .join('<br>');
 }
 
-function readPlainTextFromEditor(root: HTMLElement) {
+export function readPlainTextFromEditor(root: HTMLElement) {
   const chunks: string[] = [];
 
   const walk = (node: Node) => {
@@ -79,9 +79,7 @@ function readPlainTextFromEditor(root: HTMLElement) {
   return chunks
     .join('')
     .replace(/\u00a0/g, ' ')
-    .replace(/\n{3,}/g, '\n\n')
-    .replace(/\s+\n/g, '\n')
-    .replace(/\n\s+/g, '\n');
+    .replace(/\r\n?/g, '\n');
 }
 
 function isSelectionInside(root: HTMLElement) {

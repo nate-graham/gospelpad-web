@@ -15,7 +15,7 @@ import {
   supportsSpeakerField,
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
-import { insertTextIntoEditable, ScriptureEditableField } from '@/components/notes/scripture-editable-field';
+import { insertTextIntoEditable, readPlainTextFromEditor, ScriptureEditableField } from '@/components/notes/scripture-editable-field';
 import { NoteClipsList } from '@/components/notes/note-clips-list';
 import { findScriptureReferences } from '@/lib/scripture-references';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
@@ -228,7 +228,7 @@ export function NoteForm({
 
     setForm((current) => ({
       ...current,
-      body: editor.innerText.replace(/\u00a0/g, ' ').trimEnd(),
+      body: readPlainTextFromEditor(editor).trimEnd(),
     }));
   };
 

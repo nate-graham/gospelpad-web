@@ -6,7 +6,7 @@ import type { CSSProperties, FormEvent } from 'react';
 import { useMemo, useRef, useState } from 'react';
 import { createGroupNote, updateGroupNote, type GroupNativeNoteSummary } from '@/lib/groups';
 import { getNoteWordCount, getScriptureReferenceCount } from '@/components/notes/note-utils';
-import { ScriptureEditableField, insertTextIntoEditable } from '@/components/notes/scripture-editable-field';
+import { ScriptureEditableField, insertTextIntoEditable, readPlainTextFromEditor } from '@/components/notes/scripture-editable-field';
 import { findScriptureReferences } from '@/lib/scripture-references';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
 
@@ -37,7 +37,7 @@ export function GroupNoteForm({ groupId, mode, note }: GroupNoteFormProps) {
     }
 
     insertTextIntoEditable(editor, body.trim() ? `\n\n${payload}` : payload);
-    setBody(editor.innerText.replace(/\u00a0/g, ' ').trimEnd());
+    setBody(readPlainTextFromEditor(editor).trimEnd());
   };
 
   const onSubmit = async (event: FormEvent) => {
