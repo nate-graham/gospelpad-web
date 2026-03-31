@@ -458,8 +458,8 @@ html[data-appearance='dark'] .button-secondary:hover {
   }
 
   .note-body-section {
-    width: calc(100% - 40px) !important;
-    margin: 0 auto;
+    width: 100% !important;
+    margin: 0;
     background: transparent !important;
     border: 0 !important;
     box-shadow: none !important;
