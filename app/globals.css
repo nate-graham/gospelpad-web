@@ -467,6 +467,16 @@ html[data-appearance='dark'] .button-secondary:hover {
     padding: 0 !important;
   }
 
+  .note-meta-section {
+    width: 100% !important;
+    margin: 0;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+  }
+
   .note-reference-drawer {
     position: fixed;
     left: 0.5rem;

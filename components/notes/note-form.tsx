@@ -349,7 +349,7 @@ export function NoteForm({
       {!loadingDraft ? (
         <form onSubmit={onSubmit} style={{ display: 'grid', gap: '1rem' }}>
           <section
-            className="panel"
+            className="panel note-meta-section"
             style={{
               padding: '1rem',
               display: 'grid',
