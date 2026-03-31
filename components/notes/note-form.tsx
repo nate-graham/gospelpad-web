@@ -510,7 +510,7 @@ export function NoteForm({
             </section>
           ) : null}
 
-          <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+          <section className="panel note-body-section" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
             {!showSpeakerField ? (
               <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.45rem' }}>
                 <span className="eyebrow">Type-specific composer</span>
