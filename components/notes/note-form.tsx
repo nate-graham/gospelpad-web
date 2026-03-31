@@ -228,12 +228,12 @@ export function NoteForm({
     if (!editor) {
       setForm((current) => ({
         ...current,
-        body: current.body ? `${current.body.trimEnd()}\n\n${payload}` : payload,
+        body: current.body ? `${current.body.trimEnd()}\n${payload}` : payload,
       }));
       return;
     }
 
-    insertTextIntoEditable(editor, form.body.trim() ? `\n\n${payload}` : payload);
+    insertTextIntoEditable(editor, form.body.trim() ? `\n${payload}` : payload);
 
     setForm((current) => ({
       ...current,
