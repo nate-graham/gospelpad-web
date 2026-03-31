@@ -398,15 +398,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           }
 
           .mobile-topbar {
-            width: calc(100vw - 1rem);
-            max-width: calc(100vw - 1rem);
+            width: calc(100% - 1rem);
+            max-width: calc(100% - 1rem);
             margin: 0.5rem auto 0;
           }
 
           .app-main-panel {
             min-height: calc(100vh - 7.5rem);
-            width: calc(100vw - 1rem);
-            max-width: calc(100vw - 1rem);
+            width: calc(100% - 1rem);
+            max-width: calc(100% - 1rem);
             margin: 0 auto;
             padding: 1rem;
             border: 0;
