@@ -355,6 +355,55 @@ export async function restoreNote(noteId: string) {
   }
 }
 
+export async function permanentlyDeleteNote(noteId: string) {
+  const { supabase, userId } = await getAuthenticatedUserId();
+
+  const { error } = await supabase
+    .from('notes')
+    .delete()
+    .eq('id', noteId)
+    .eq('user_id', userId)
+    .is('group_note_id', null)
+    .not('deleted_at', 'is', null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function permanentlyDeleteNotes(noteIds: string[]) {
+  const { supabase, userId } = await getAuthenticatedUserId();
+  const uniqueIds = [...new Set(noteIds.filter(Boolean))];
+  if (uniqueIds.length === 0) return;
+
+  const { error } = await supabase
+    .from('notes')
+    .delete()
+    .eq('user_id', userId)
+    .is('group_note_id', null)
+    .not('deleted_at', 'is', null)
+    .in('id', uniqueIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function permanentlyDeleteAllDeletedNotes() {
+  const { supabase, userId } = await getAuthenticatedUserId();
+
+  const { error } = await supabase
+    .from('notes')
+    .delete()
+    .eq('user_id', userId)
+    .is('group_note_id', null)
+    .not('deleted_at', 'is', null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function duplicateNote(note: Pick<NoteRecord, 'title' | 'body' | 'speaker' | 'type' | 'status' | 'is_lucid_dream' | 'dream_role' | 'clips'>) {
   const { supabase, userId } = await getAuthenticatedUserId();
 

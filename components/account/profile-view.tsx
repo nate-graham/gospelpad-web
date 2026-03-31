@@ -3,7 +3,15 @@
 import Link from 'next/link';
 import type { CSSProperties, FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { listDeletedNotes, restoreNote, NOTE_TYPES, type NoteRecord } from '@/lib/notes';
+import {
+  listDeletedNotes,
+  permanentlyDeleteAllDeletedNotes,
+  permanentlyDeleteNote,
+  permanentlyDeleteNotes,
+  restoreNote,
+  NOTE_TYPES,
+  type NoteRecord,
+} from '@/lib/notes';
 import { loadAccountProfile, loadAccountSummary, updateAccountProfile, type AccountProfile, type AccountSummary } from '@/lib/account';
 
 export function ProfileView() {
@@ -25,6 +33,10 @@ export function ProfileView() {
   const [deletedNotes, setDeletedNotes] = useState<NoteRecord[]>([]);
   const [trashLoading, setTrashLoading] = useState(true);
   const [restoringNoteId, setRestoringNoteId] = useState<string | null>(null);
+  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+  const [deletingSelection, setDeletingSelection] = useState(false);
+  const [clearingTrash, setClearingTrash] = useState(false);
+  const [selectedDeletedNoteIds, setSelectedDeletedNoteIds] = useState<string[]>([]);
 
   useEffect(() => {
     let active = true;
@@ -76,15 +88,81 @@ export function ProfileView() {
 
   const onRestore = async (noteId: string) => {
     try {
+      setError(null);
       setRestoringNoteId(noteId);
       await restoreNote(noteId);
       setDeletedNotes((current) => current.filter((note) => note.id !== noteId));
+      setSelectedDeletedNoteIds((current) => current.filter((id) => id !== noteId));
       setSummary(await loadAccountSummary());
       setSuccess('Note restored from recently deleted.');
     } catch (restoreError) {
       setError(restoreError instanceof Error ? restoreError.message : 'Failed to restore note.');
     } finally {
       setRestoringNoteId(null);
+    }
+  };
+
+  const onPermanentlyDelete = async (noteId: string) => {
+    if (!window.confirm('Permanently delete this note? This cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setError(null);
+      setDeletingNoteId(noteId);
+      await permanentlyDeleteNote(noteId);
+      setDeletedNotes((current) => current.filter((note) => note.id !== noteId));
+      setSelectedDeletedNoteIds((current) => current.filter((id) => id !== noteId));
+      setSuccess('Note permanently deleted.');
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Failed to permanently delete note.');
+    } finally {
+      setDeletingNoteId(null);
+    }
+  };
+
+  const onDeleteSelected = async () => {
+    if (selectedDeletedNoteIds.length === 0) return;
+    if (!window.confirm(`Permanently delete ${selectedDeletedNoteIds.length} selected note${selectedDeletedNoteIds.length === 1 ? '' : 's'}? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setError(null);
+      setDeletingSelection(true);
+      await permanentlyDeleteNotes(selectedDeletedNoteIds);
+      const selectedSet = new Set(selectedDeletedNoteIds);
+      setDeletedNotes((current) => current.filter((note) => !selectedSet.has(note.id)));
+      setSelectedDeletedNoteIds([]);
+      setSuccess(
+        selectedDeletedNoteIds.length === 1
+          ? 'Selected note permanently deleted.'
+          : `${selectedDeletedNoteIds.length} notes permanently deleted.`
+      );
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Failed to permanently delete selected notes.');
+    } finally {
+      setDeletingSelection(false);
+    }
+  };
+
+  const onDeleteAll = async () => {
+    if (deletedNotes.length === 0) return;
+    if (!window.confirm('Permanently delete all notes in recently deleted? This cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setError(null);
+      setClearingTrash(true);
+      await permanentlyDeleteAllDeletedNotes();
+      setDeletedNotes([]);
+      setSelectedDeletedNoteIds([]);
+      setSuccess('Recently deleted has been cleared.');
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Failed to clear recently deleted.');
+    } finally {
+      setClearingTrash(false);
     }
   };
 
@@ -228,8 +306,32 @@ export function ProfileView() {
             <strong>No recently deleted notes</strong>
           </section>
         ) : (
-          <section className="responsive-grid compact">
-            {deletedNotes.map((note) => {
+          <>
+            <div className="cta-row">
+              <button
+                className="button button-secondary"
+                disabled={deletingSelection || selectedDeletedNoteIds.length === 0}
+                onClick={onDeleteSelected}
+                type="button"
+              >
+                {deletingSelection
+                  ? 'Deleting selected…'
+                  : selectedDeletedNoteIds.length > 0
+                    ? `Delete selected (${selectedDeletedNoteIds.length})`
+                    : 'Delete selected'}
+              </button>
+              <button
+                className="button button-secondary"
+                disabled={clearingTrash || deletedNotes.length === 0}
+                onClick={onDeleteAll}
+                type="button"
+              >
+                {clearingTrash ? 'Deleting all…' : 'Delete all'}
+              </button>
+            </div>
+            <section className="responsive-grid compact">
+              {deletedNotes.map((note) => {
+                const selected = selectedDeletedNoteIds.includes(note.id);
               const deletedAt = note.deleted_at ? new Date(note.deleted_at) : null;
               const daysLeft = deletedAt
                 ? Math.max(0, 30 - Math.floor((Date.now() - deletedAt.getTime()) / (1000 * 60 * 60 * 24)))
@@ -237,6 +339,21 @@ export function ProfileView() {
 
               return (
                 <article className="panel" key={note.id} style={{ padding: '1rem', display: 'grid', gap: '0.7rem' }}>
+                  <label style={trashChoiceRowStyle}>
+                    <input
+                      checked={selected}
+                      onChange={(event) => {
+                        const nextChecked = event.target.checked;
+                        setSelectedDeletedNoteIds((current) =>
+                          nextChecked ? [...current, note.id] : current.filter((id) => id !== note.id)
+                        );
+                      }}
+                      type="checkbox"
+                    />
+                    <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
+                      {selected ? 'Selected' : 'Select'}
+                    </span>
+                  </label>
                   <div style={{ display: 'grid', gap: '0.35rem' }}>
                     <span className="badge">{note.type ?? 'Note'}</span>
                     <strong style={{ fontSize: '1.05rem', lineHeight: 1.35 }}>{note.title?.trim() || 'Untitled'}</strong>
@@ -244,18 +361,29 @@ export function ProfileView() {
                       Deleted {deletedAt ? deletedAt.toLocaleDateString('en-GB') : 'recently'} • {daysLeft} day{daysLeft === 1 ? '' : 's'} left
                     </span>
                   </div>
-                  <button
-                    className="button button-secondary"
-                    disabled={restoringNoteId === note.id}
-                    onClick={() => onRestore(note.id)}
-                    type="button"
-                  >
-                    {restoringNoteId === note.id ? 'Restoring…' : 'Restore note'}
-                  </button>
+                  <div className="cta-row">
+                    <button
+                      className="button button-secondary"
+                      disabled={restoringNoteId === note.id}
+                      onClick={() => onRestore(note.id)}
+                      type="button"
+                    >
+                      {restoringNoteId === note.id ? 'Restoring…' : 'Restore'}
+                    </button>
+                    <button
+                      className="button button-secondary"
+                      disabled={deletingNoteId === note.id}
+                      onClick={() => void onPermanentlyDelete(note.id)}
+                      type="button"
+                    >
+                      {deletingNoteId === note.id ? 'Deleting…' : 'Delete forever'}
+                    </button>
+                  </div>
                 </article>
               );
-            })}
-          </section>
+              })}
+            </section>
+          </>
         )}
       </section>
     </div>
@@ -274,6 +402,12 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 const fieldStyle: CSSProperties = {
   display: 'grid',
   gap: '0.45rem',
+};
+
+const trashChoiceRowStyle: CSSProperties = {
+  display: 'flex',
+  gap: '0.55rem',
+  alignItems: 'center',
 };
 
 const labelTextStyle: CSSProperties = {
