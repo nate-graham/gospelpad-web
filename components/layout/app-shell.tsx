@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useSupabaseAuth } from '@/components/providers/supabase-auth-provider';
 
@@ -13,11 +13,32 @@ const navItems = [
   { href: '/settings', label: 'Settings', shortLabel: 'Settings' },
 ];
 
+const PAGE_TRANSITION_MS = 280;
+
+type TransitionDirection = 'forward' | 'backward';
+type RenderedRoute = {
+  pathname: string;
+  node: ReactNode;
+};
+
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useSupabaseAuth();
   const [signingOut, setSigningOut] = useState(false);
+  const [routeRender, setRouteRender] = useState<{
+    current: RenderedRoute;
+    previous: RenderedRoute | null;
+    direction: TransitionDirection;
+    animating: boolean;
+  }>({
+    current: { pathname, node: children },
+    previous: null,
+    direction: 'forward',
+    animating: false,
+  });
+  const popNavigationRef = useRef(false);
+  const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const headerName =
     (typeof user?.user_metadata?.username === 'string' && user.user_metadata.username.trim()) ||
     (typeof user?.user_metadata?.display_name === 'string' && user.user_metadata.display_name.trim()) ||
@@ -33,6 +54,58 @@ export function AppShell({ children }: { children: ReactNode }) {
     setSigningOut(false);
     router.replace('/auth/sign-in');
   };
+
+  useEffect(() => {
+    const handlePopState = () => {
+      popNavigationRef.current = true;
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (routeRender.current.pathname === pathname) {
+      setRouteRender((current) => ({
+        ...current,
+        current: { ...current.current, node: children },
+      }));
+      return;
+    }
+
+    const direction: TransitionDirection = popNavigationRef.current ? 'backward' : 'forward';
+    popNavigationRef.current = false;
+
+    if (transitionTimerRef.current) {
+      clearTimeout(transitionTimerRef.current);
+    }
+
+    setRouteRender((current) => ({
+      current: { pathname, node: children },
+      previous: current.current,
+      direction,
+      animating: true,
+    }));
+
+    transitionTimerRef.current = setTimeout(() => {
+      setRouteRender((current) => ({
+        ...current,
+        previous: null,
+        animating: false,
+      }));
+      transitionTimerRef.current = null;
+    }, PAGE_TRANSITION_MS);
+  }, [children, pathname, routeRender.current.pathname]);
+
+  useEffect(() => {
+    return () => {
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div
@@ -126,7 +199,21 @@ export function AppShell({ children }: { children: ReactNode }) {
           </header>
 
           <main className="panel app-main-panel" id="main-content" style={{ minHeight: '72vh', padding: '1.2rem' }} tabIndex={-1}>
-            {children}
+            <div
+              className={`app-page-transition-stage${routeRender.animating ? ` is-animating is-${routeRender.direction}` : ''}`}
+            >
+              {routeRender.previous ? (
+                <div className="app-page-transition-layer app-page-transition-layer-previous">
+                  {routeRender.previous.node}
+                </div>
+              ) : null}
+              <div
+                className="app-page-transition-layer app-page-transition-layer-current"
+                key={routeRender.current.pathname}
+              >
+                {routeRender.current.node}
+              </div>
+            </div>
           </main>
         </div>
       </div>
@@ -161,14 +248,14 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         .mobile-bottom-nav {
           position: fixed;
-          left: 0.9rem;
-          right: 0.9rem;
+          left: 50%;
+          transform: translateX(-50%);
           bottom: 0.85rem;
           z-index: 30;
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
           padding: 0.3rem;
-          width: auto;
+          width: calc(100vw - 1.8rem);
           max-width: calc(100vw - 1.8rem);
           overflow: hidden;
         }
@@ -178,6 +265,97 @@ export function AppShell({ children }: { children: ReactNode }) {
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+
+        .app-page-transition-stage {
+          position: relative;
+          min-height: 100%;
+          overflow-x: clip;
+        }
+
+        .app-page-transition-layer {
+          min-width: 0;
+          width: 100%;
+        }
+
+        .app-page-transition-stage.is-animating {
+          display: grid;
+        }
+
+        .app-page-transition-stage.is-animating .app-page-transition-layer {
+          grid-area: 1 / 1;
+          will-change: transform, opacity;
+        }
+
+        .app-page-transition-stage.is-animating.is-forward .app-page-transition-layer-previous {
+          animation: app-page-exit-left ${PAGE_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .app-page-transition-stage.is-animating.is-forward .app-page-transition-layer-current {
+          animation: app-page-enter-right ${PAGE_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .app-page-transition-stage.is-animating.is-backward .app-page-transition-layer-previous {
+          animation: app-page-exit-right ${PAGE_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .app-page-transition-stage.is-animating.is-backward .app-page-transition-layer-current {
+          animation: app-page-enter-left ${PAGE_TRANSITION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @keyframes app-page-enter-right {
+          from {
+            transform: translate3d(40px, 0, 0);
+            opacity: 0.38;
+          }
+
+          to {
+            transform: translate3d(0, 0, 0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes app-page-exit-left {
+          from {
+            transform: translate3d(0, 0, 0);
+            opacity: 1;
+          }
+
+          to {
+            transform: translate3d(-28px, 0, 0);
+            opacity: 0;
+          }
+        }
+
+        @keyframes app-page-enter-left {
+          from {
+            transform: translate3d(-40px, 0, 0);
+            opacity: 0.38;
+          }
+
+          to {
+            transform: translate3d(0, 0, 0);
+            opacity: 1;
+          }
+        }
+
+        @keyframes app-page-exit-right {
+          from {
+            transform: translate3d(0, 0, 0);
+            opacity: 1;
+          }
+
+          to {
+            transform: translate3d(28px, 0, 0);
+            opacity: 0;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .app-page-transition-stage.is-animating .app-page-transition-layer-previous,
+          .app-page-transition-stage.is-animating .app-page-transition-layer-current {
+            animation: none;
+          }
         }
 
         @media (min-width: 768px) {
@@ -220,7 +398,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           }
 
           .mobile-topbar {
-            margin: 0.5rem 0.5rem 0;
+            width: calc(100vw - 1rem);
+            max-width: calc(100vw - 1rem);
+            margin: 0.5rem auto 0;
           }
 
           .app-main-panel {
@@ -234,9 +414,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           }
 
           .mobile-bottom-nav {
-            left: 0.5rem;
-            right: 0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
             bottom: 0.5rem;
+            width: calc(100vw - 1rem);
             max-width: calc(100vw - 1rem);
           }
 
