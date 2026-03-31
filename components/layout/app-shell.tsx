@@ -405,6 +405,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           .app-main-panel {
             min-height: calc(100vh - 7.5rem);
+            width: calc(100vw - 1rem);
+            max-width: calc(100vw - 1rem);
+            margin: 0 auto;
             padding: 1rem;
             border: 0;
             background: transparent;
