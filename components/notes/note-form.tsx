@@ -306,14 +306,14 @@ export function NoteForm({
     <div className="page-section">
       <header className="page-header">
         <span className="eyebrow">{mode === 'create' ? 'Create note' : editEyebrow ?? 'Edit note'}</span>
-        <h1>
-          {mode === 'create' ? 'Capture a new note' : editTitle ?? 'Update your note'}
-        </h1>
-        <p className="page-description">
-          {mode === 'create'
-            ? 'Write, organize, and refine your note here.'
-            : editDescription ?? 'Review your note, make changes, and save when you are ready.'}
-        </p>
+        {mode === 'create' ? null : (
+          <>
+            <h1>{editTitle ?? 'Update your note'}</h1>
+            <p className="page-description">
+              {editDescription ?? 'Review your note, make changes, and save when you are ready.'}
+            </p>
+          </>
+        )}
       </header>
 
       {loadingDraft ? (
