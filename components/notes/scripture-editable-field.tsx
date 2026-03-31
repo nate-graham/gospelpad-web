@@ -192,10 +192,10 @@ export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditab
           spellCheck
           style={{
             minHeight: 320,
-            borderRadius: 16,
-            border: '1px solid var(--line)',
-            padding: '1rem',
-            background: 'var(--field-bg)',
+            borderRadius: 0,
+            border: 0,
+            padding: '0 30px 1rem',
+            background: 'transparent',
             color: 'var(--text)',
             lineHeight: 1.7,
             whiteSpace: 'pre-wrap',
