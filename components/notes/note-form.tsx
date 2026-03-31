@@ -72,9 +72,7 @@ export function NoteForm({
   const [loadingDraft, setLoadingDraft] = useState(true);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [draftNotice, setDraftNotice] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
-  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(false);
   const [referencesDrawerOpen, setReferencesDrawerOpen] = useState(false);
 
@@ -137,10 +135,8 @@ export function NoteForm({
               ? parsed.prayerRequestId
               : initialState.prayerRequestId,
         });
-        setDraftNotice('Recovered a saved local draft for this form.');
       }
     } catch {
-      setDraftNotice(null);
     } finally {
       setLoadingDraft(false);
     }
@@ -171,7 +167,6 @@ export function NoteForm({
     if (typeof window === 'undefined' || loadingDraft) return;
 
     window.localStorage.setItem(draftKey, JSON.stringify(form));
-    setLastSavedAt(new Date().toISOString());
   }, [draftKey, form, loadingDraft]);
 
   const detectedReferences = useMemo(() => findScriptureReferences(form.body), [form.body]);
@@ -194,8 +189,6 @@ export function NoteForm({
 
     lastDetectedReferenceRef.current = newestReference;
   }, [orderedDetectedReferences]);
-  const wordCount = useMemo(() => getNoteWordCount({ body: form.body } as NoteRecord), [form.body]);
-  const scriptureCount = useMemo(() => getScriptureReferenceCount({ body: form.body } as NoteRecord), [form.body]);
   const placeholders = useMemo(() => getNoteTypePlaceholders(form.type), [form.type]);
   const isDreamNote = form.type === 'Dream';
   const isPrayerRequest = form.type === 'Prayer Requests';
@@ -209,9 +202,7 @@ export function NoteForm({
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem(draftKey);
     }
-    setDraftNotice('Local draft cleared.');
     setForm(initialState);
-    setLastSavedAt(null);
   };
 
   const transcribeSavedClip = async (clip: NoteClip) => {
@@ -231,7 +222,6 @@ export function NoteForm({
       ...current,
       body: current.body.trim() ? `${current.body.trimEnd()}\n\n${transcript}` : transcript,
     }));
-    setDraftNotice(`Transcription added from ${clip.name || 'audio clip'}. Review the text, then save the note.`);
   };
 
   const insertScripture = (payload: string) => {
@@ -326,26 +316,6 @@ export function NoteForm({
         </p>
       </header>
 
-      <section
-        className="responsive-grid compact"
-        aria-label="Note editor insights"
-      >
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Local draft</span>
-          <strong style={{ fontSize: '1.15rem' }}>{lastSavedAt ? 'Autosaving active' : 'Waiting for changes'}</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {lastSavedAt ? `Last local save ${formatEditorTime(lastSavedAt)}` : 'This note will save locally as you type.'}
-          </span>
-        </article>
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Content length</span>
-          <strong style={{ fontSize: '1.15rem' }}>{wordCount} words</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {scriptureCount === 0 ? 'No scripture references detected yet.' : `${scriptureCount} scripture reference${scriptureCount === 1 ? '' : 's'} detected.`}
-          </span>
-        </article>
-      </section>
-
       {loadingDraft ? (
         <section className="loading-state status-message" role="status" aria-live="polite">
           <strong>Loading draft…</strong>
@@ -353,7 +323,6 @@ export function NoteForm({
         </section>
       ) : null}
 
-      {draftNotice ? <section className="empty-state status-message" role="status">{draftNotice}</section> : null}
       {handoffMessage ? <section className="empty-state status-message" role="status">{handoffMessage}</section> : null}
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
 
@@ -654,9 +623,3 @@ const detailsMetaStyle: CSSProperties = {
   fontSize: '0.92rem',
   fontWeight: 500,
 };
-
-function formatEditorTime(value: string) {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeStyle: 'short',
-  }).format(new Date(value));
-}
