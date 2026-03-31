@@ -74,7 +74,6 @@ export function NoteForm({
   const [error, setError] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
   const [transcriptionEnabled, setTranscriptionEnabled] = useState(false);
-  const [referencesDrawerOpen, setReferencesDrawerOpen] = useState(false);
 
   const draftKey = getDraftStorageKey(mode, note?.id);
   const handoffMessage = useMemo(() => {
@@ -178,13 +177,12 @@ export function NoteForm({
 
     if (!newestReference) {
       lastDetectedReferenceRef.current = null;
-      setReferencesDrawerOpen(false);
       setActiveReference(null);
       return;
     }
 
     if (newestReference !== previousNewestReference) {
-      setReferencesDrawerOpen(true);
+      setActiveReference(newestReference);
     }
 
     lastDetectedReferenceRef.current = newestReference;
@@ -500,75 +498,31 @@ export function NoteForm({
               />
             </label>
             {orderedDetectedReferences.length > 0 ? (
-              <section
-                className={`panel note-reference-drawer${referencesDrawerOpen ? ' note-reference-drawer-open' : ''}`}
-                style={{
-                  padding: referencesDrawerOpen ? '0.85rem 1rem' : '0.55rem 0.45rem',
-                  display: 'grid',
-                  gap: referencesDrawerOpen ? '0.85rem' : '0.35rem',
-                }}
-              >
-                <button
-                  className="button button-ghost"
-                  onClick={() => setReferencesDrawerOpen((current) => !current)}
-                  style={{
-                    width: '100%',
-                    justifyContent: referencesDrawerOpen ? 'space-between' : 'center',
-                    padding: 0,
-                    minHeight: 'unset',
-                  }}
-                  type="button"
-                >
-                  {referencesDrawerOpen ? (
-                    <>
-                      <span style={{ display: 'grid', gap: '0.15rem', textAlign: 'left' }}>
-                        <span style={{ fontWeight: 700 }}>Detected references</span>
-                        <span style={detailsMetaStyle}>
-                          Latest: {orderedDetectedReferences[0]} • {orderedDetectedReferences.length} found
-                        </span>
-                      </span>
-                      <span style={detailsMetaStyle}>Hide</span>
-                    </>
-                  ) : (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.22rem',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
+              <section style={{ display: 'grid', gap: '0.85rem' }}>
+                <div style={{ display: 'grid', gap: '0.15rem' }}>
+                  <span className="eyebrow" style={labelTextStyle}>Detected references</span>
+                  <span style={detailsMetaStyle}>
+                    Latest: {orderedDetectedReferences[0]} • {orderedDetectedReferences.length} found
+                  </span>
+                </div>
+                <div className="cta-row">
+                  {orderedDetectedReferences.map((reference) => (
+                    <button
+                      className={reference === activeReference ? 'button button-primary' : 'button button-secondary'}
+                      key={reference}
+                      onClick={() => setActiveReference(reference)}
+                      type="button"
                     >
-                      <span className="note-reference-dot" />
-                      <span className="note-reference-dot" />
-                      <span className="note-reference-dot" />
-                    </span>
-                  )}
-                </button>
-
-                {referencesDrawerOpen ? (
-                  <>
-                    <div className="cta-row">
-                      {orderedDetectedReferences.map((reference) => (
-                        <button
-                          className="button button-secondary"
-                          key={reference}
-                          onClick={() => setActiveReference(reference)}
-                          type="button"
-                        >
-                          {reference}
-                        </button>
-                      ))}
-                    </div>
-                    {activeReference ? (
-                      <ScriptureReferencePreview
-                        onInsert={insertScripture}
-                        onClose={() => setActiveReference(null)}
-                        reference={activeReference}
-                      />
-                    ) : null}
-                  </>
+                      {reference}
+                    </button>
+                  ))}
+                </div>
+                {activeReference ? (
+                  <ScriptureReferencePreview
+                    onInsert={insertScripture}
+                    onClose={() => setActiveReference(null)}
+                    reference={activeReference}
+                  />
                 ) : null}
               </section>
             ) : null}
