@@ -23,7 +23,7 @@ export function PlanPaywallDialog({
       role="dialog"
       style={overlayStyle}
     >
-      <section className="panel" style={dialogStyle}>
+      <section style={dialogStyle}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <span className="eyebrow">Upgrade required</span>
           <h2 style={{ margin: 0, fontSize: '1.35rem' }}>{title}</h2>
@@ -49,7 +49,7 @@ export function PlanPaywallDialog({
 const overlayStyle: React.CSSProperties = {
   position: 'fixed',
   inset: 0,
-  background: 'rgba(26, 18, 10, 0.38)',
+  background: 'rgba(26, 29, 35, 0.56)',
   display: 'grid',
   placeItems: 'center',
   padding: '1.5rem',
@@ -61,4 +61,9 @@ const dialogStyle: React.CSSProperties = {
   padding: '1.25rem',
   display: 'grid',
   gap: '1rem',
+  background: 'var(--bg-strong)',
+  border: '1px solid var(--line)',
+  borderRadius: '20px',
+  boxShadow: '0 24px 56px rgba(26, 29, 35, 0.22)',
+  backdropFilter: 'none',
 };
