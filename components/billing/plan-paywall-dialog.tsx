@@ -57,13 +57,13 @@ const overlayStyle: React.CSSProperties = {
 };
 
 const dialogStyle: React.CSSProperties = {
-  width: 'min(100%, 480px)',
-  padding: '1.25rem',
+  width: 'min(100%, 960px)',
+  padding: '1.5rem',
   display: 'grid',
   gap: '1rem',
   background: 'var(--bg-strong)',
-  border: '1px solid var(--line)',
-  borderRadius: '20px',
+  border: '1px solid #D1AC70',
+  borderRadius: '24px',
   boxShadow: '0 24px 56px rgba(26, 29, 35, 0.22)',
   backdropFilter: 'none',
 };
