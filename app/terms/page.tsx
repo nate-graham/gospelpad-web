@@ -66,7 +66,7 @@ const sections = [
 export default function TermsPage() {
   return (
     <main style={{ minHeight: '100vh', padding: '1rem', display: 'grid', justifyItems: 'center' }}>
-      <div className="page-section shell-page" style={{ width: 'min(100%, 960px)', paddingBottom: '2rem' }}>
+      <div className="page-section shell-page" style={{ width: 'min(100%, 1320px)', paddingBottom: '2rem' }}>
         <header className="page-header">
           <div className="cta-row">
             <Link className="button button-secondary" href="/settings">

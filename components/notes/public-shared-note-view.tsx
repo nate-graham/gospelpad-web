@@ -160,7 +160,7 @@ export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
 
   return (
     <main style={{ minHeight: '100vh', padding: '1rem', display: 'grid', justifyItems: 'center' }}>
-      <div className="page-section shell-page" style={{ width: 'min(100%, 960px)', paddingBottom: '2rem' }}>
+      <div className="page-section shell-page" style={{ width: 'min(100%, 1320px)', paddingBottom: '2rem' }}>
         <header className="page-header">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', alignItems: 'center' }}>
             <span className="badge">{note.type ?? 'Shared note'}</span>
