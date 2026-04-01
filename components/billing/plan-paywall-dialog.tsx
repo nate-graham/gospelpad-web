@@ -52,7 +52,7 @@ const overlayStyle: React.CSSProperties = {
   background: 'rgba(26, 29, 35, 0.56)',
   display: 'grid',
   placeItems: 'center',
-  padding: '1.5rem',
+  padding: '0.2rem',
   zIndex: 60,
 };
 
