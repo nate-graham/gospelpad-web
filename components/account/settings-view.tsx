@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -121,6 +122,40 @@ export function SettingsView() {
               </span>
             </span>
           </label>
+        </section>
+
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.9rem' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">About</span>
+            <strong style={{ fontSize: '1.1rem' }}>Legal and app info</strong>
+          </div>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <Link className="button button-secondary" href="/privacy">
+              Privacy Policy
+            </Link>
+            <Link className="button button-secondary" href="/terms">
+              Terms of Service
+            </Link>
+            <div style={{ color: 'var(--muted)', lineHeight: 1.6 }}>Version 1.0.0</div>
+          </div>
+        </section>
+
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.9rem' }}>
+          <div style={{ display: 'grid', gap: '0.35rem' }}>
+            <span className="eyebrow">Support</span>
+            <strong style={{ fontSize: '1.1rem' }}>Help and contact</strong>
+          </div>
+          <div style={{ display: 'grid', gap: '0.75rem' }}>
+            <a className="button button-secondary" href="mailto:support@gospelpad.com?subject=GospelPad%20Help%20Center">
+              Help Center
+            </a>
+            <a className="button button-secondary" href="mailto:support@gospelpad.com?subject=GospelPad%20Contact">
+              Contact Us
+            </a>
+            <a className="button button-secondary" href="mailto:support@gospelpad.com?subject=GospelPad%20Feedback">
+              Send Feedback
+            </a>
+          </div>
         </section>
       </section>
 
