@@ -270,7 +270,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         .app-page-transition-stage {
           position: relative;
           min-height: 100%;
-          overflow-x: clip;
+          overflow: visible;
         }
 
         .app-page-transition-layer {
