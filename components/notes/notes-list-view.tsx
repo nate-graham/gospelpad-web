@@ -24,6 +24,7 @@ export function NotesListView() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingSelected, setDeletingSelected] = useState(false);
   const [inlineNotice, setInlineNotice] = useState<string | null>(null);
+  const [coarsePointer, setCoarsePointer] = useState(false);
 
   const query = useMemo<NoteListQuery>(
     () => ({
@@ -64,6 +65,24 @@ export function NotesListView() {
       active = false;
     };
   }, [query]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    const media = window.matchMedia('(pointer: coarse)');
+    const update = () => setCoarsePointer(media.matches);
+    update();
+
+    if (typeof media.addEventListener === 'function') {
+      media.addEventListener('change', update);
+      return () => media.removeEventListener('change', update);
+    }
+
+    media.addListener(update);
+    return () => media.removeListener(update);
+  }, []);
 
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Note created successfully.';
@@ -414,6 +433,9 @@ export function NotesListView() {
                   toggleSelectedNote(note.id);
                   return;
                 }
+                if (coarsePointer) {
+                  return;
+                }
                 router.push(`/notes/${note.id}`);
               }}
               onKeyDown={(event) => {
@@ -426,15 +448,15 @@ export function NotesListView() {
                   router.push(`/notes/${note.id}`);
                 }
               }}
-              role="button"
+              role={coarsePointer && !selectionMode ? undefined : 'button'}
               aria-pressed={selectionMode ? selectedNoteIds.includes(note.id) : undefined}
-              tabIndex={0}
+              tabIndex={coarsePointer && !selectionMode ? -1 : 0}
               style={{
                 padding: '1rem',
                 display: 'grid',
                 gap: '0.85rem',
                 alignContent: 'start',
-                cursor: selectionMode ? 'default' : 'pointer',
+                cursor: selectionMode || coarsePointer ? 'default' : 'pointer',
                 outline: selectionMode && selectedNoteIds.includes(note.id) ? '2px solid var(--accent)' : undefined,
                 background: selectionMode && selectedNoteIds.includes(note.id)
                   ? 'color-mix(in srgb, var(--field-bg) 72%, var(--accent-soft) 28%)'
