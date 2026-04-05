@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useDisplayPreferences } from '@/components/providers/display-preferences-provider';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 
-export function SettingsView() {
+export function SettingsView({ isAdmin = false }: { isAdmin?: boolean }) {
   const router = useRouter();
   const { appearance, setAppearance } = useDisplayPreferences();
   const [signingOut, setSigningOut] = useState(false);
@@ -157,6 +157,21 @@ export function SettingsView() {
             </a>
           </div>
         </section>
+
+        {isAdmin ? (
+          <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.9rem' }}>
+            <div style={{ display: 'grid', gap: '0.35rem' }}>
+              <span className="eyebrow">Admin</span>
+              <strong style={{ fontSize: '1.1rem' }}>Sign-up tracking</strong>
+            </div>
+            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+              Review recent account creation and sign-up trends.
+            </span>
+            <Link className="button button-secondary" href="/admin/signups">
+              View sign-ups
+            </Link>
+          </section>
+        ) : null}
       </section>
 
     </div>

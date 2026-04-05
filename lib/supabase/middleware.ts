@@ -40,6 +40,7 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isProtectedPath =
+    pathname.startsWith('/admin') ||
     pathname.startsWith('/notes') ||
     pathname.startsWith('/groups') ||
     pathname.startsWith('/profile') ||
