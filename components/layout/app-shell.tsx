@@ -408,7 +408,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             width: calc(100% - 1.4rem);
             max-width: calc(100% - 1.4rem);
             margin: 0 auto;
-            padding: 1rem;
+            padding: 1rem 0;
             border: 0;
             background: transparent;
             border-radius: 0;
