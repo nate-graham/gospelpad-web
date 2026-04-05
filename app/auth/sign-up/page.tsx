@@ -77,8 +77,8 @@ export default function SignUpPage() {
   return (
     <AuthFrame
       eyebrow="Sign up"
-      title="Create a GospelPad web account"
-      description="Create an account to start writing notes, joining groups, and sharing with others."
+      title="Start building your GospelPad"
+      description="Create your account to capture notes, organise groups, keep prayer requests close, and stay connected across every screen."
     >
       {!envState.ok ? (
         <div className="error-state">

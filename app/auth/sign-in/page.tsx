@@ -75,8 +75,8 @@ export default function SignInPage() {
   return (
     <AuthFrame
       eyebrow="Sign in"
-      title="Use GospelPad from any screen"
-      description="Sign in to open your notes, groups, and shared activity."
+      title="Step back into your GospelPad"
+      description="Pick up your notes, groups, prayer requests, and shared conversations wherever you open GospelPad."
     >
       {!envState.ok ? (
         <div className="error-state">
