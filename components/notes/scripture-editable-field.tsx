@@ -27,7 +27,7 @@ function buildEditorHtml(value: string) {
       splitTextByScriptureReferences(line)
         .map((segment) => {
           if (segment.type === 'reference') {
-            return `<span class="scripture-ref-button" contenteditable="false" data-reference="${escapeHtml(segment.value)}" role="link" tabindex="-1">${escapeHtml(segment.value)}</span>`;
+            return `<span class="scripture-ref-button" data-reference="${escapeHtml(segment.value)}" role="link">${escapeHtml(segment.value)}</span>`;
           }
 
           return escapeHtml(segment.value);
