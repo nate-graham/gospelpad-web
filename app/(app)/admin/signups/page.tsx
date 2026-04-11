@@ -85,6 +85,11 @@ function buildEventSeries(records: PlanChangeRecord[], days = 14) {
   });
 }
 
+function isMissingRelationError(code: string | null | undefined, message: string | null | undefined) {
+  if (code === '42P01') return true;
+  return (message ?? '').toLowerCase().includes('plan_change_events');
+}
+
 export default async function AdminSignupsPage() {
   const supabase = await getSupabaseServerClient();
   if (!supabase) {
@@ -129,10 +134,6 @@ export default async function AdminSignupsPage() {
     throw new Error(subscriptionsError.message);
   }
 
-  if (planChangesError) {
-    throw new Error(planChangesError.message);
-  }
-
   const signups: SignupRecord[] = (data?.users ?? [])
     .map((entry) => ({
       id: entry.id,
@@ -165,7 +166,13 @@ export default async function AdminSignupsPage() {
     return acc;
   }, {});
   const totalPaid = activeSubscriptions.length;
-  const paidPlanEvents: PlanChangeRecord[] = (planChanges ?? []).map((entry) => ({
+  const paidMetricsAvailable = !planChangesError || !isMissingRelationError(planChangesError.code, planChangesError.message);
+
+  if (planChangesError && paidMetricsAvailable) {
+    throw new Error(planChangesError.message);
+  }
+
+  const paidPlanEvents: PlanChangeRecord[] = ((planChangesError && !paidMetricsAvailable) ? [] : (planChanges ?? [])).map((entry) => ({
     id: entry.id,
     userId: entry.user_id,
     userEmail: entry.user_email ?? null,
@@ -265,6 +272,17 @@ export default async function AdminSignupsPage() {
         </div>
       </section>
 
+      {!paidMetricsAvailable ? (
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.5rem' }}>
+          <span className="eyebrow">Paid plans</span>
+          <strong style={{ fontSize: '1.05rem' }}>Paid metrics pending</strong>
+          <span style={{ color: 'var(--muted)' }}>
+            Apply the latest billing migration to enable paid upgrade metrics on this dashboard.
+          </span>
+        </section>
+      ) : null}
+
+      {paidMetricsAvailable ? (
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <span className="eyebrow">Paid trend</span>
@@ -296,7 +314,9 @@ export default async function AdminSignupsPage() {
           ))}
         </div>
       </section>
+      ) : null}
 
+      {paidMetricsAvailable ? (
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <span className="eyebrow">Paid plans</span>
@@ -335,6 +355,7 @@ export default async function AdminSignupsPage() {
           )}
         </div>
       </section>
+      ) : null}
 
       <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
