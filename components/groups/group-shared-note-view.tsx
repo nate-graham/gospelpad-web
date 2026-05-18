@@ -189,14 +189,14 @@ export function GroupSharedNoteView({
   }
 
   return (
-    <div className="page-section">
-      <header className="page-header">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', alignItems: 'center' }}>
+    <div className="page-container page-section">
+      <header className="hero-surface">
+        <div className="meta-row">
           <span className="badge">
             {note.source === 'group' ? 'Group note' : (note.type ?? 'Shared note')}
           </span>
-          {note.source === 'shared' ? <span style={{ color: 'var(--muted)' }}>Permission: {note.permissions}</span> : null}
-          {'speaker' in note && note.speaker ? <span style={{ color: 'var(--muted)' }}>Speaker: {note.speaker}</span> : null}
+          {note.source === 'shared' ? <span>Permission: {note.permissions}</span> : null}
+          {'speaker' in note && note.speaker ? <span>Speaker: {note.speaker}</span> : null}
         </div>
         <h1>{note.title?.trim() || 'Untitled'}</h1>
         <p className="page-description">
@@ -210,175 +210,148 @@ export function GroupSharedNoteView({
       {actionNotice ? <section className="empty-state status-message" role="status">{actionNotice}</section> : null}
       {actionError ? <section className="error-state status-message" role="alert">{actionError}</section> : null}
 
-      {activeReference ? (
-        <ScriptureReferencePreview reference={activeReference} onClose={() => setActiveReference(null)} />
-      ) : null}
+      <div className="note-detail-layout">
+        <div className="note-detail-main">
+          <section className="reading-surface" style={{ background: 'transparent', padding: 0, gap: '1.25rem' }}>
+            <div className="meta-row">
+              <span>{wordCount} words</span>
+              <span>{readingMinutes} min read</span>
+              <span>{scriptureCount} ref{scriptureCount === 1 ? '' : 's'}</span>
+              <span>{authorLabel}</span>
+            </div>
+            <div
+              className="note-body-content"
+              style={{
+                whiteSpace: 'pre-wrap',
+                lineHeight: 1.9,
+                color: 'var(--text)',
+                fontSize: '1.02rem',
+                minHeight: '220px',
+              }}
+            >
+              {(note.body ?? '').trim() ? (
+                <ScriptureReferenceText
+                  text={(note.body ?? '').trim()}
+                  onReferenceClick={setActiveReference}
+                />
+              ) : (
+                'No body content yet.'
+              )}
+            </div>
+          </section>
 
-      <section
-        style={{
-          display: 'grid',
-          gap: '0.85rem',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-        }}
-      >
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Length</span>
-          <strong style={{ fontSize: '1.15rem' }}>{wordCount} words</strong>
-          <span style={{ color: 'var(--muted)' }}>{readingMinutes} min read</span>
-        </article>
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Scripture</span>
-          <strong style={{ fontSize: '1.15rem' }}>{scriptureCount}</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {scriptureCount === 1 ? 'reference detected' : 'references detected'}
-          </span>
-        </article>
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Preview</span>
-          <strong style={{ fontSize: '1.05rem' }}>{getNoteExcerpt(note)}</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {note.source === 'shared'
-              ? 'This note is available in the group because it was shared here.'
-              : 'This note belongs to the group note space.'}
-          </span>
-        </article>
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Source</span>
-          <strong style={{ fontSize: '1.05rem' }}>{authorLabel}</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {note.source === 'shared'
-              ? canManageShare
-                ? 'You own the original note and can still manage its sharing.'
-                : 'This is a shared personal note that still lives in someone else’s note library.'
-              : 'This note belongs to the dedicated group note space, not a personal library.'}
-          </span>
-        </article>
-      </section>
+          {note.source === 'shared' && note.clips?.length ? (
+            <NoteClipsList
+              clips={note.clips}
+              title="Shared audio clips"
+              description="These clips stay attached to the original shared note and can be previewed or downloaded here."
+            />
+          ) : null}
 
-      {references.length > 0 ? (
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-          <span className="eyebrow">Detected references</span>
-          <div className="cta-row">
-            {references.map((reference) => (
-              <button
-                key={reference}
-                type="button"
-                className="button button-secondary"
-                onClick={() => setActiveReference(reference)}
-              >
-                {reference}
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="panel" style={{ padding: '1rem' }}>
-        <div
-          className="note-body-content"
-          style={{
-            whiteSpace: 'pre-wrap',
-            lineHeight: 1.8,
-            color: 'var(--text)',
-            fontSize: '1rem',
-            minHeight: '220px',
-            padding: '0.25rem 0',
-          }}
-        >
-          {(note.body ?? '').trim() ? (
-            <ScriptureReferenceText
-              text={(note.body ?? '').trim()}
-              onReferenceClick={setActiveReference}
+          {note.source === 'shared' ? (
+            <GroupNoteComments
+              groupId={groupId}
+              noteId={note.id}
+              sharePermission={note.permissions}
+              sharedBy={note.shared_by}
             />
           ) : (
-            'No body content yet.'
+            <section className="support-tray" style={{ gap: '0.75rem' }}>
+              <span className="eyebrow">Comments</span>
+              <strong>Comments are not available for this note yet.</strong>
+              <span className="support-block-copy">
+                You can still read and reuse this group note, but commenting is currently limited to shared personal notes.
+              </span>
+            </section>
           )}
-        </div>
-      </section>
 
-      {note.source === 'shared' && note.clips?.length ? (
-        <NoteClipsList
-          clips={note.clips}
-          title="Shared audio clips"
-          description="These clips stay attached to the original shared note and can be previewed or downloaded here."
-        />
-      ) : null}
+          <section className="support-tray">
+            <div className="support-block" style={{ gap: '0.35rem' }}>
+              <span className="eyebrow">Shared note workflow</span>
+              <strong className="support-block-title">
+                {note.source === 'shared' ? 'Manage or reuse this shared note' : 'Reuse this group note'}
+              </strong>
+              <p className="support-block-copy">
+                {note.source === 'shared'
+                  ? 'Choose what you want to do next with this shared note.'
+                  : 'You can copy this group note into your own notes if you want to keep working with it personally.'}
+              </p>
+            </div>
 
-      {note.source === 'shared' ? (
-        <GroupNoteComments
-          groupId={groupId}
-          noteId={note.id}
-          sharePermission={note.permissions}
-          sharedBy={note.shared_by}
-        />
-      ) : (
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-          <span className="eyebrow">Comments</span>
-          <strong>Comments are not available for this note yet.</strong>
-          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-            You can still read and reuse this group note, but commenting is currently limited to shared personal notes.
-          </span>
-        </section>
-      )}
+            <div className="cta-row">
+              <button
+                className="button button-primary"
+                type="button"
+                disabled={duplicating}
+                onClick={onCopyToMyNotes}
+              >
+                {duplicating ? 'Copying…' : 'Copy to my notes'}
+              </button>
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div className="page-header" style={{ gap: '0.35rem' }}>
-          <span className="eyebrow">Shared note workflow</span>
-          <strong style={{ fontSize: '1.1rem' }}>
-            {note.source === 'shared' ? 'Manage or reuse this shared note' : 'Reuse this group note'}
-          </strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {note.source === 'shared'
-              ? 'Choose what you want to do next with this shared note.'
-              : 'You can copy this group note into your own notes if you want to keep working with it personally.'}
-          </span>
-        </div>
+              {note.source === 'shared' && note.permissions === 'edit' ? (
+                <Link className="button button-secondary" href={`/notes/shared/${note.id}/edit`}>
+                  Edit together
+                </Link>
+              ) : null}
 
-        <div className="cta-row">
-          <button
-            className="button button-primary"
-            type="button"
-            disabled={duplicating}
-            onClick={onCopyToMyNotes}
-          >
-            {duplicating ? 'Copying…' : 'Copy to my notes'}
-          </button>
+              {canOpenOriginal ? (
+                <Link className="button button-secondary" href={`/notes/${note.id}`}>
+                  Open original note
+                </Link>
+              ) : null}
 
-          {note.source === 'shared' && note.permissions === 'edit' ? (
-            <Link className="button button-secondary" href={`/notes/shared/${note.id}/edit`}>
-              Edit together
+              {canManageShare ? (
+                <button
+                  className="button button-secondary"
+                  type="button"
+                  disabled={unsharing}
+                  onClick={onRemoveFromGroup}
+                >
+                  {unsharing ? 'Removing…' : 'Remove from this group'}
+                </button>
+              ) : null}
+
+              {canEditGroupNote && note.source === 'group' ? (
+                <Link className="button button-secondary" href={`/groups/${groupId}/notes/${note.id}/edit`}>
+                  Edit group note
+                </Link>
+              ) : null}
+            </div>
+          </section>
+
+          <div className="cta-row">
+            <Link className="button button-secondary" href={`/groups/${groupId}`}>
+              Back to group
             </Link>
-          ) : null}
-
-          {canOpenOriginal ? (
-            <Link className="button button-secondary" href={`/notes/${note.id}`}>
-              Open original note
-            </Link>
-          ) : null}
-
-          {canManageShare ? (
-            <button
-              className="button button-secondary"
-              type="button"
-              disabled={unsharing}
-              onClick={onRemoveFromGroup}
-            >
-              {unsharing ? 'Removing…' : 'Remove from this group'}
-            </button>
-          ) : null}
-
-          {canEditGroupNote && note.source === 'group' ? (
-            <Link className="button button-secondary" href={`/groups/${groupId}/notes/${note.id}/edit`}>
-              Edit group note
-            </Link>
-          ) : null}
+          </div>
         </div>
-      </section>
 
-      <div className="cta-row">
-        <Link className="button button-secondary" href={`/groups/${groupId}`}>
-          Back to group
-        </Link>
+        <aside className="note-detail-rail">
+          {activeReference ? (
+            <ScriptureReferencePreview reference={activeReference} onClose={() => setActiveReference(null)} />
+          ) : null}
+
+          {references.length > 0 ? (
+            <div className="inline-support-stack">
+              <div className="support-block">
+                <span className="eyebrow">Detected references</span>
+                <p className="support-block-copy">Read references in place while staying close to the note.</p>
+              </div>
+              <div className="note-reference-row">
+                {references.map((reference) => (
+                  <button
+                    key={reference}
+                    type="button"
+                    className="button button-secondary"
+                    onClick={() => setActiveReference(reference)}
+                  >
+                    {reference}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </aside>
       </div>
     </div>
   );

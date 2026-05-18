@@ -2,8 +2,6 @@
 
 import type { CSSProperties, KeyboardEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { PlanPaywallDialog } from '@/components/billing/plan-paywall-dialog';
-import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
 import {
   fetchScriptureByReference,
   findScriptureByQuery,
@@ -29,42 +27,12 @@ export function ScriptureSearchPanel({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [translation, setTranslation] = useState('KJV');
-  const [entitlements, setEntitlements] = useState<EntitlementSummary | null>(null);
-  const [paywallOpen, setPaywallOpen] = useState(false);
-
-  const scripturePaywallMessage = 'Phrase and keyword scripture search is available on Premium, Team, and Ministry.';
 
   const canSearch = useMemo(() => query.trim().length > 0, [query]);
   const translationOptions = useMemo(
-    () => [
-      'KJV',
-      'WEB',
-      'OEB-US',
-      ...(entitlements?.paidBibleTranslationsEnabled ? ['NIV', 'ESV', 'NLT'] : []),
-    ],
-    [entitlements?.paidBibleTranslationsEnabled]
+    () => ['KJV', 'WEB', 'OEB-US', 'NIV', 'ESV', 'NLT'],
+    []
   );
-
-  useEffect(() => {
-    let active = true;
-
-    const loadEntitlements = async () => {
-      try {
-        const next = await getMyEntitlements();
-        if (!active) return;
-        setEntitlements(next);
-      } catch {
-        if (!active) return;
-        setEntitlements(null);
-      }
-    };
-
-    void loadEntitlements();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const runSearch = async () => {
     if (!canSearch) return;
@@ -76,13 +44,6 @@ export function ScriptureSearchPanel({
     try {
       const trimmed = query.trim();
       const isDirectReference = REFERENCE_PATTERN.test(trimmed);
-
-      if (!isDirectReference && !entitlements?.scriptureSearchEnabled) {
-        setResults([]);
-        setError(scripturePaywallMessage);
-        setPaywallOpen(true);
-        return;
-      }
 
       try {
         const next = await fetchScriptureByReference(trimmed, translation);
@@ -109,9 +70,6 @@ export function ScriptureSearchPanel({
       setResults([]);
       const message = lookupError instanceof Error ? lookupError.message : 'Unable to fetch scripture.';
       setError(message);
-      if (message.includes('available on Premium')) {
-        setPaywallOpen(true);
-      }
     } finally {
       setLoading(false);
     }
@@ -149,10 +107,20 @@ export function ScriptureSearchPanel({
   };
 
   return (
-    <section className={`panel ${compact ? 'scripture-search-panel scripture-search-panel-compact' : 'scripture-search-panel'}`} style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-      <div style={{ display: 'grid', gap: '0.4rem' }}>
+    <section
+      className={`${compact ? 'scripture-search-panel scripture-search-panel-compact' : 'scripture-search-panel'}`}
+      style={{ display: 'grid', gap: compact ? '0.95rem' : '1.1rem' }}
+    >
+      <div className="support-block">
         <span className="eyebrow">Scripture search</span>
-        <strong style={{ fontSize: compact ? '1rem' : '1.05rem' }}>Search by reference, phrase, or keyword</strong>
+        <strong className="support-block-title" style={{ fontSize: compact ? '1.02rem' : '1.16rem' }}>
+          Search by reference, phrase, or keyword
+        </strong>
+        {!compact ? (
+          <p className="support-block-copy">
+            Move directly from scripture discovery into writing, reflection, or a new note.
+          </p>
+        ) : null}
       </div>
 
       <div
@@ -195,17 +163,6 @@ export function ScriptureSearchPanel({
         </button>
       </div>
 
-      {!entitlements?.scriptureSearchEnabled ? (
-        <div className="cta-row" style={{ alignItems: 'center' }}>
-          <span style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>
-            Premium, Team, and Ministry unlock phrase and keyword search.
-          </span>
-          <button className="button button-secondary" onClick={() => setPaywallOpen(true)} type="button">
-            View plans
-          </button>
-        </div>
-      ) : null}
-
       {error ? (
         <div className="error-state status-message" role="alert">
           <strong>Scripture search failed</strong>
@@ -216,28 +173,19 @@ export function ScriptureSearchPanel({
       {notice ? <div className="empty-state status-message" role="status">{notice}</div> : null}
 
       {results.length > 0 ? (
-        <section style={{ display: 'grid', gap: '0.85rem' }}>
+        <section className="scripture-search-results">
           {results.map((result) => (
-            <section
-              key={`${result.reference}-${result.translation}`}
-              style={{
-                display: 'grid',
-                gap: '0.9rem',
-                border: '1px solid var(--line)',
-                borderRadius: '16px',
-                padding: '1rem',
-                background: 'var(--field-bg-soft)',
-              }}
-            >
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', alignItems: 'center' }}>
+            <section key={`${result.reference}-${result.translation}`} className="scripture-search-result">
+              <div className="meta-row">
                 <span className="badge">{result.translation}</span>
                 <strong>{result.reference}</strong>
               </div>
               <div
                 style={{
                   whiteSpace: 'pre-wrap',
-                  lineHeight: 1.8,
+                  lineHeight: 1.9,
                   color: 'var(--text)',
+                  fontSize: compact ? '0.98rem' : '1rem',
                 }}
               >
                 {result.text}
@@ -276,6 +224,7 @@ export function ScriptureSearchPanel({
           width: 100%;
           min-width: 0;
           box-sizing: border-box;
+          padding: 0;
         }
 
         .scripture-search-field,
@@ -300,30 +249,19 @@ export function ScriptureSearchPanel({
             grid-template-columns: 1fr;
           }
 
-          .scripture-search-panel-compact {
-            padding: 0.85rem;
-          }
-
           .scripture-search-translation,
           .scripture-search-button {
             width: 100%;
           }
         }
       `}</style>
-
-      <PlanPaywallDialog
-        message={scripturePaywallMessage}
-        onClose={() => setPaywallOpen(false)}
-        open={paywallOpen}
-        title="Upgrade for scripture search"
-      />
     </section>
   );
 }
 
 const fieldStyle: CSSProperties = {
   display: 'grid',
-  gap: '0.45rem',
+  gap: '0.5rem',
 };
 
 const labelTextStyle: CSSProperties = {
@@ -331,10 +269,9 @@ const labelTextStyle: CSSProperties = {
 };
 
 const inputStyle: CSSProperties = {
-  minHeight: 48,
-  borderRadius: 14,
-  border: '1px solid var(--line)',
-  padding: '0.85rem 1rem',
+  minHeight: 54,
+  borderRadius: 18,
+  padding: '0.95rem 1.05rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',
 };

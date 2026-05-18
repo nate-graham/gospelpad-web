@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Scripture Search | GospelPad</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#59400d",
+                        "surface-container-highest": "#32353b",
+                        "secondary-fixed-dim": "#c3c7cc",
+                        "tertiary-fixed": "#e3e2e2",
+                        "background": "#101319",
+                        "primary-container": "#d1ac70",
+                        "outline": "#9a8f81",
+                        "surface": "#101319",
+                        "secondary-fixed": "#e0e3e9",
+                        "secondary": "#c3c7cc",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#32353b",
+                        "on-primary": "#422c00",
+                        "inverse-surface": "#e1e2ea",
+                        "on-primary-fixed-variant": "#5c4210",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#434444",
+                        "surface-container-lowest": "#0b0e14",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#2d3037",
+                        "primary-fixed-dim": "#e7c183",
+                        "on-secondary-fixed": "#181c20",
+                        "secondary-container": "#43474c",
+                        "tertiary-container": "#b2b1b1",
+                        "outline-variant": "#4e463a",
+                        "on-surface": "#e1e2ea",
+                        "surface-container-high": "#272a30",
+                        "on-background": "#e1e2ea",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "primary": "#eec789",
+                        "surface-dim": "#101319",
+                        "on-tertiary": "#303031",
+                        "surface-container-low": "#191c22",
+                        "primary-fixed": "#ffdeab",
+                        "on-surface-variant": "#d1c5b5",
+                        "on-secondary-container": "#b2b5bb",
+                        "surface-bright": "#363940",
+                        "inverse-primary": "#775926",
+                        "error-container": "#93000a",
+                        "surface-container": "#1d2026",
+                        "on-secondary": "#2d3135",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-primary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#43474c",
+                        "surface-tint": "#e7c183",
+                        "tertiary": "#cecccc"
+                    },
+                    "fontFamily": {
+                        "headline": ["Poppins", "sans-serif"],
+                        "body": ["Poppins", "sans-serif"],
+                        "label": ["Poppins", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #101319;
+            color: #DCDFE5;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            backdrop-filter: blur(24px);
+            background: rgba(16, 19, 25, 0.6);
+        }
+        .scripture-card {
+            transition: transform 0.3s ease;
+        }
+        .scripture-card:active {
+            transform: scale(0.98);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest min-h-screen selection:bg-primary-container selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-[#101319] flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#DCDFE5] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase">GospelPad</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D1AC70]" data-icon="search">search</span>
+</div>
+</header>
+<main class="px-6 pt-4 pb-32 max-w-lg mx-auto">
+<!-- Search Header -->
+<div class="mb-10 text-center">
+<h2 class="text-4xl font-semibold text-on-surface tracking-tight leading-tight mb-2">Find Grace</h2>
+<p class="text-on-surface-variant/60 text-sm font-light tracking-wide italic">Search the living word</p>
+</div>
+<!-- Search Input Section -->
+<div class="space-y-6 mb-12">
+<div class="relative">
+<input class="w-full bg-surface-container-high border-none border-b-2 border-transparent focus:border-primary-container focus:ring-0 text-on-surface placeholder:text-on-surface-variant/30 px-4 py-4 rounded-xl transition-all font-light text-lg italic" placeholder="Reference or phrase..." type="text"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded-full bg-primary-container/10 text-primary-container">
+<span class="material-symbols-outlined text-sm" data-icon="auto_awesome">auto_awesome</span>
+</button>
+</div>
+</div>
+<!-- Translation Selector & Filter Chips -->
+<div class="flex items-center justify-between overflow-x-auto gap-3 pb-2 no-scrollbar">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-full text-xs font-medium tracking-widest uppercase text-on-surface-variant border border-outline-variant/10">
+<span>KJV</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="expand_more">expand_more</span>
+</button>
+<div class="flex gap-2">
+<span class="px-4 py-2 bg-primary-container/10 text-primary-container rounded-full text-[10px] font-bold tracking-[0.15em] uppercase">Old Testament</span>
+<span class="px-4 py-2 bg-surface-container-high text-on-surface-variant/60 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase">New Testament</span>
+</div>
+</div>
+</div>
+<!-- Result Cards -->
+<div class="space-y-8">
+<!-- Card 1 -->
+<div class="scripture-card bg-surface-container-low rounded-[1.5rem] p-8 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-[10px] font-bold tracking-[0.2em] text-primary-container uppercase bg-primary-container/5 px-3 py-1 rounded-full">Psalm 23:1</span>
+</div>
+<button class="text-on-surface-variant/40 hover:text-primary-container">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+</button>
+</div>
+<p class="text-lg leading-relaxed text-on-surface font-light italic mb-8">
+                    "The Lord is my shepherd; I shall not want."
+                </p>
+<div class="flex items-center justify-between pt-6 border-t border-outline-variant/5">
+<div class="flex gap-4">
+<button class="flex items-center gap-2 text-on-surface-variant/60 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="add_notes">add_notes</span>
+<span class="text-[10px] font-semibold tracking-widest uppercase">Insert into note</span>
+</button>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-on-surface-variant/40 text-lg cursor-pointer" data-icon="content_copy">content_copy</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 text-lg cursor-pointer" data-icon="share">share</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="scripture-card bg-surface-container-low rounded-[1.5rem] p-8 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-[10px] font-bold tracking-[0.2em] text-primary-container uppercase bg-primary-container/5 px-3 py-1 rounded-full">Matthew 11:28</span>
+</div>
+<button class="text-on-surface-variant/40 hover:text-primary-container">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+</button>
+</div>
+<p class="text-lg leading-relaxed text-on-surface font-light italic mb-8">
+                    "Come unto me, all ye that labour and are heavy laden, and I will give you rest."
+                </p>
+<div class="flex items-center justify-between pt-6 border-t border-outline-variant/5">
+<div class="flex gap-4">
+<button class="flex items-center gap-2 text-on-surface-variant/60 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="note_add">note_add</span>
+<span class="text-[10px] font-semibold tracking-widest uppercase">New note</span>
+</button>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-on-surface-variant/40 text-lg cursor-pointer" data-icon="content_copy">content_copy</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 text-lg cursor-pointer" data-icon="share">share</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="scripture-card bg-surface-container-low rounded-[1.5rem] p-8 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="text-[10px] font-bold tracking-[0.2em] text-primary-container uppercase bg-primary-container/5 px-3 py-1 rounded-full">John 14:27</span>
+</div>
+<button class="text-on-surface-variant/40 hover:text-primary-container">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+</button>
+</div>
+<p class="text-lg leading-relaxed text-on-surface font-light italic mb-8">
+                    "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid."
+                </p>
+<div class="flex items-center justify-between pt-6 border-t border-outline-variant/5">
+<div class="flex gap-4">
+<button class="flex items-center gap-2 text-on-surface-variant/60 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="add_notes">add_notes</span>
+<span class="text-[10px] font-semibold tracking-widest uppercase">Insert into note</span>
+</button>
+</div>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-on-surface-variant/40 text-lg cursor-pointer" data-icon="content_copy">content_copy</span>
+<span class="material-symbols-outlined text-on-surface-variant/40 text-lg cursor-pointer" data-icon="share">share</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State / Suggestion -->
+<div class="mt-16 text-center py-12 px-8 border border-dashed border-outline-variant/10 rounded-[2rem]">
+<span class="material-symbols-outlined text-primary-container/40 text-4xl mb-4" data-icon="auto_stories">auto_stories</span>
+<p class="text-sm text-on-surface-variant/40 font-light italic leading-relaxed">
+                “Search for ‘faith’, ‘mountain’, or ‘love’ to find relevant verses.”
+            </p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#101319]/60 backdrop-blur-xl rounded-t-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.4)]">
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</div>
+</nav>
+</body></html>

@@ -107,12 +107,12 @@ export function ReceivedSharedNoteView({ noteId }: { noteId: string }) {
   }
 
   return (
-    <div className="page-section">
-      <header className="page-header">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', alignItems: 'center' }}>
+    <div className="page-container page-section">
+      <header className="hero-surface">
+        <div className="meta-row">
           <span className="badge">{note.type ?? 'Shared note'}</span>
-          <span style={{ color: 'var(--muted)' }}>Shared by {share.shared_by_label}</span>
-          <span style={{ color: 'var(--muted)' }}>Permission: {share.permissions.join(', ')}</span>
+          <span>Shared by {share.shared_by_label}</span>
+          <span>Permission: {share.permissions.join(', ')}</span>
         </div>
         <h1>{note.title?.trim() || 'Untitled'}</h1>
         <p className="page-description">
@@ -120,89 +120,81 @@ export function ReceivedSharedNoteView({ noteId }: { noteId: string }) {
         </p>
       </header>
 
-      {activeReference ? (
-        <ScriptureReferencePreview reference={activeReference} onClose={() => setActiveReference(null)} />
-      ) : null}
+      <div className="note-detail-layout">
+        <div className="note-detail-main">
+          <section className="reading-surface" style={{ background: 'transparent', padding: 0, gap: '1.25rem' }}>
+            <div className="meta-row">
+              <span>{wordCount} words</span>
+              <span>{readingMinutes} min read</span>
+              <span>{scriptureCount} ref{scriptureCount === 1 ? '' : 's'}</span>
+            </div>
+            <div
+              className="note-body-content"
+              style={{
+                whiteSpace: 'pre-wrap',
+                lineHeight: 1.9,
+                color: 'var(--text)',
+                fontSize: '1.02rem',
+                minHeight: '220px',
+              }}
+            >
+              {(note.body ?? '').trim() ? (
+                <ScriptureReferenceText text={(note.body ?? '').trim()} onReferenceClick={setActiveReference} />
+              ) : (
+                'No body content yet.'
+              )}
+            </div>
+          </section>
 
-      <section
-        style={{
-          display: 'grid',
-          gap: '0.85rem',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-        }}
-      >
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Length</span>
-          <strong style={{ fontSize: '1.15rem' }}>{wordCount} words</strong>
-          <span style={{ color: 'var(--muted)' }}>{readingMinutes} min read</span>
-        </article>
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Scripture</span>
-          <strong style={{ fontSize: '1.15rem' }}>{scriptureCount}</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            {scriptureCount === 1 ? 'reference detected' : 'references detected'}
-          </span>
-        </article>
-        <article className="status-card" style={{ padding: '1rem' }}>
-          <span className="eyebrow">Preview</span>
-          <strong style={{ fontSize: '1.05rem' }}>{getNoteExcerpt(note)}</strong>
-        </article>
-      </section>
+          {note.clips?.length ? <NoteClipsList clips={note.clips} title="Shared audio clips" /> : null}
 
-      {references.length > 0 ? (
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-          <span className="eyebrow">Detected references</span>
+          <SharedNoteComments noteId={note.id} />
+
           <div className="cta-row">
-            {references.map((reference) => (
-              <button
-                key={reference}
-                type="button"
-                className="button button-secondary"
-                onClick={() => setActiveReference(reference)}
-              >
-                {reference}
-              </button>
-            ))}
+            {canEditSharedNote ? (
+              <Link className="button button-primary" href={`/notes/shared/${note.id}/edit`}>
+                Edit together
+              </Link>
+            ) : null}
+            <button className="button button-primary" type="button" disabled={duplicating} onClick={onCopyToMyNotes}>
+              {duplicating ? 'Copying…' : 'Copy to my notes'}
+            </button>
+            <Link className="button button-secondary" href="/notes">
+              Back to notes
+            </Link>
           </div>
-        </section>
-      ) : null}
-
-      <section className="panel" style={{ padding: '1rem' }}>
-        <div
-          className="note-body-content"
-          style={{
-            whiteSpace: 'pre-wrap',
-            lineHeight: 1.8,
-            color: 'var(--text)',
-            fontSize: '1rem',
-            minHeight: '220px',
-            padding: '0.25rem 0',
-          }}
-        >
-          {(note.body ?? '').trim() ? (
-            <ScriptureReferenceText text={(note.body ?? '').trim()} onReferenceClick={setActiveReference} />
-          ) : (
-            'No body content yet.'
-          )}
         </div>
-      </section>
 
-      {note.clips?.length ? <NoteClipsList clips={note.clips} title="Shared audio clips" /> : null}
+        <aside className="note-detail-rail">
+          {activeReference ? (
+            <ScriptureReferencePreview reference={activeReference} onClose={() => setActiveReference(null)} />
+          ) : null}
 
-      <SharedNoteComments noteId={note.id} />
+          <div className="inline-support-stack">
+            <div className="support-block">
+              <span className="eyebrow">Preview</span>
+              <strong className="support-block-title">{getNoteExcerpt(note)}</strong>
+            </div>
+          </div>
 
-      <div className="cta-row">
-        {canEditSharedNote ? (
-          <Link className="button button-primary" href={`/notes/shared/${note.id}/edit`}>
-            Edit together
-          </Link>
-        ) : null}
-        <button className="button button-primary" type="button" disabled={duplicating} onClick={onCopyToMyNotes}>
-          {duplicating ? 'Copying…' : 'Copy to my notes'}
-        </button>
-        <Link className="button button-secondary" href="/notes">
-          Back to notes
-        </Link>
+          {references.length > 0 ? (
+            <div className="inline-support-stack">
+              <span className="eyebrow">Detected references</span>
+              <div className="note-reference-row">
+                {references.map((reference) => (
+                  <button
+                    key={reference}
+                    type="button"
+                    className="button button-secondary"
+                    onClick={() => setActiveReference(reference)}
+                  >
+                    {reference}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </aside>
       </div>
     </div>
   );

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GospelPad | The Digital Sanctuary</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&amp;family=Poppins:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#43474c",
+                    "tertiary": "#cecccc",
+                    "surface-container-lowest": "#0b0e14",
+                    "primary-fixed-dim": "#e7c183",
+                    "primary": "#eec789",
+                    "on-tertiary-container": "#434444",
+                    "surface-tint": "#e7c183",
+                    "on-background": "#e1e2ea",
+                    "outline": "#9a8f81",
+                    "on-primary-container": "#59400d",
+                    "surface-container-high": "#272a30",
+                    "on-secondary-container": "#b2b5bb",
+                    "surface-container-highest": "#32353b",
+                    "on-error": "#690005",
+                    "secondary-fixed-dim": "#c3c7cc",
+                    "inverse-primary": "#775926",
+                    "on-tertiary-fixed-variant": "#464747",
+                    "on-secondary-fixed-variant": "#43474c",
+                    "surface-dim": "#101319",
+                    "tertiary-fixed-dim": "#c7c6c6",
+                    "on-secondary": "#2d3135",
+                    "error-container": "#93000a",
+                    "error": "#ffb4ab",
+                    "surface-bright": "#363940",
+                    "surface": "#101319",
+                    "surface-container-low": "#191c22",
+                    "on-tertiary": "#303031",
+                    "on-secondary-fixed": "#181c20",
+                    "on-primary-fixed": "#281900",
+                    "tertiary-container": "#b2b1b1",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "on-surface": "#e1e2ea",
+                    "secondary": "#c3c7cc",
+                    "secondary-fixed": "#e0e3e9",
+                    "inverse-on-surface": "#2d3037",
+                    "tertiary-fixed": "#e3e2e2",
+                    "surface-container": "#1d2026",
+                    "inverse-surface": "#e1e2ea",
+                    "primary-container": "#d1ac70",
+                    "on-error-container": "#ffdad6",
+                    "surface-variant": "#32353b",
+                    "outline-variant": "#4e463a",
+                    "on-primary-fixed-variant": "#5c4210",
+                    "on-primary": "#422c00",
+                    "primary-fixed": "#ffdeab",
+                    "on-surface-variant": "#d1c5b5",
+                    "background": "#101319"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Poppins", "sans-serif"],
+                    "body": ["Poppins", "sans-serif"],
+                    "label": ["Poppins", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4e463a33; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface flex min-h-screen overflow-hidden selection:bg-primary-container selection:text-on-primary">
+<!-- Predicted Component: SideNavBar -->
+<aside class="h-screen w-72 left-0 sticky bg-[#101319] dark:bg-[#0B0E14] flex flex-col p-8 gap-6 shadow-[40px_0_60px_-15px_rgba(0,0,0,0.3)] bg-[#191C22]">
+<div class="flex flex-col gap-1 mb-4">
+<span class="text-[#D1AC70] font-bold text-lg">The Curator</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.7rem] text-[#DCDFE5] opacity-50">In Silent Reflection</span>
+</div>
+<button class="bg-primary-container text-on-primary py-3 px-4 rounded-xl font-medium flex items-center justify-center gap-2 transition-all duration-500 ease-in-out hover:scale-105">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]">New Journal Entry</span>
+</button>
+<nav class="flex flex-col gap-2 mt-4">
+<!-- Active State: My Notes -->
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70] transition-all duration-500 ease-in-out font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="library_books">library_books</span>
+<span>Library</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#D1AC70] font-bold border-r-2 border-[#D1AC70] bg-[#191C22] transition-all duration-500 ease-in-out font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span>My Notes</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70] transition-all duration-500 ease-in-out font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Groups</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70] transition-all duration-500 ease-in-out font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span>Daily Verses</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 rounded-lg text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70] transition-all duration-500 ease-in-out font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-2 border-t border-[#4E463A]/15 pt-6">
+<a class="flex items-center gap-4 px-4 py-2 text-[#DCDFE5] opacity-50 hover:opacity-100 transition-opacity font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span>Help</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-2 text-[#DCDFE5] opacity-50 hover:opacity-100 transition-opacity font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="lock">lock</span>
+<span>Privacy</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col h-screen overflow-hidden">
+<!-- Predicted Component: TopNavBar -->
+<header class="w-full top-0 sticky z-50 bg-[#101319] dark:bg-[#0B0E14] flex justify-between items-center px-12 py-6 w-full max-w-screen-2xl mx-auto bg-[#191C22]">
+<div class="flex items-center gap-12">
+<h1 class="text-2xl font-semibold tracking-tighter text-[#D1AC70]">The Sanctuary</h1>
+<nav class="hidden md:flex items-center gap-8 font-['Plus_Jakarta_Sans'] font-light tracking-wide">
+<a class="text-[#DCDFE5] opacity-70 hover:text-[#D1AC70] transition-colors duration-300" href="#">Meditations</a>
+<a class="text-[#DCDFE5] opacity-70 hover:text-[#D1AC70] transition-colors duration-300" href="#">Scriptures</a>
+<a class="text-[#D1AC70] border-b-2 border-[#D1AC70] pb-1 transition-colors duration-300" href="#">Reflections</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-sm" data-icon="search">search</span>
+<input class="bg-surface-container-high border-none rounded-full pl-10 pr-6 py-2 text-sm w-64 focus:ring-1 focus:ring-primary-container italic transition-all duration-300" placeholder="Search your sanctuary..." type="text"/>
+</div>
+<button class="text-[#DCDFE5] opacity-70 hover:text-[#D1AC70] transition-all transform hover:scale-110 active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Dynamic Content Section -->
+<section class="flex-1 overflow-y-auto px-12 py-12 custom-scrollbar">
+<div class="max-w-6xl mx-auto space-y-16">
+<!-- Hero Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-outline-variant/10 pb-8">
+<div class="space-y-2">
+<span class="font-['Plus_Jakarta_Sans'] text-xs uppercase tracking-[0.2em] text-primary/60">Digital Journal</span>
+<h2 class="text-5xl font-semibold tracking-tight text-on-surface">Your notes</h2>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 bg-primary-container text-on-primary px-8 py-3 rounded-full font-medium transition-all hover:brightness-110">
+<span class="material-symbols-outlined text-xl" data-icon="add">add</span>
+<span>New note</span>
+</button>
+<button class="flex items-center gap-2 bg-surface-container-high text-on-surface px-8 py-3 rounded-full font-medium transition-all hover:bg-surface-bright">
+<span class="material-symbols-outlined text-xl" data-icon="mic">mic</span>
+<span>Dictate note</span>
+</button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Left Column: Collapsible Sections -->
+<div class="col-span-12 lg:col-span-4 space-y-8">
+<!-- Overview Section -->
+<div class="bg-surface-container-low rounded-xl p-6 space-y-6">
+<div class="flex items-center justify-between group cursor-pointer">
+<h3 class="text-sm font-semibold uppercase tracking-widest text-primary">Overview</h3>
+<span class="material-symbols-outlined text-primary/40 group-hover:text-primary transition-colors" data-icon="expand_less">expand_less</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface/60">Total Reflections</span>
+<span class="font-bold">128</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-on-surface/60">Recent Activity</span>
+<span class="text-primary-fixed-dim">2 hours ago</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[65%]"></div>
+</div>
+<p class="text-[0.8rem] text-on-surface/50 italic leading-relaxed">"The heart of the discerning acquires knowledge, for the ears of the wise seek it out."</p>
+</div>
+</div>
+<!-- Discovery Section -->
+<div class="bg-surface-container-low rounded-xl p-6 space-y-6">
+<div class="flex items-center justify-between group cursor-pointer">
+<h3 class="text-sm font-semibold uppercase tracking-widest text-on-surface/70">Discovery</h3>
+<span class="material-symbols-outlined text-on-surface/20" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<!-- Scripture Search -->
+<div class="bg-surface-container-low rounded-xl p-6 space-y-6">
+<div class="flex items-center justify-between group cursor-pointer">
+<h3 class="text-sm font-semibold uppercase tracking-widest text-on-surface/70">Scripture Search</h3>
+<span class="material-symbols-outlined text-on-surface/20" data-icon="expand_more">expand_more</span>
+</div>
+</div>
+<!-- Featured Card -->
+<div class="relative aspect-square rounded-xl overflow-hidden group">
+<img alt="Quiet chapel interior with sunlight streaming through stained glass" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Quiet chapel interior with sunlight streaming through stained glass onto old wooden pews, atmosphere of peace and reverence" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA6Aujhcbmt5RNVs4tQWMa-j1gOWMHlu6XyEJErjYdr7FUNNPTT-oY4cu7vCcwLwSdfuwjKj04IaKcqt5Ut4cDHiKEwS_dVI0ZbqQ9XfeZorLW3k5oayXfXXU_AecexZXPn7EIZyIJLrMaHXlsGOYUtltLhvHygmfk4PK6FLv_FvU03qaR7-POGlw_6sD8bARMYMEwIVxZVdYRo9H4LRaIIE-aFz3wt896yn6MtKUgwi5r15gLJ1REFnUU2bSsBfUcyn-5yhEHxNAV3"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent opacity-80"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<span class="bg-primary-container/20 backdrop-blur-md border border-primary-container/20 text-primary-fixed-dim text-[10px] uppercase tracking-widest px-2 py-1 rounded-md">Weekly Meditation</span>
+<h4 class="text-xl font-medium mt-2">The Silence of Prayer</h4>
+</div>
+</div>
+</div>
+<!-- Right Column: Note Shelf Grid -->
+<div class="col-span-12 lg:col-span-8">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-6">
+<button class="text-sm font-medium border-b-2 border-primary text-primary pb-1">All Notes</button>
+<button class="text-sm font-medium text-on-surface/40 hover:text-on-surface transition-colors pb-1">Favorites</button>
+<button class="text-sm font-medium text-on-surface/40 hover:text-on-surface transition-colors pb-1">Recent</button>
+</div>
+<button class="material-symbols-outlined text-on-surface/40 hover:text-primary transition-colors" data-icon="grid_view">grid_view</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Note Card 1 -->
+<div class="group bg-surface-container-low p-8 rounded-xl space-y-6 transition-all duration-300 hover:bg-surface-container-high hover:-translate-y-1">
+<div class="flex justify-between items-start">
+<div class="flex gap-2">
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] font-medium uppercase tracking-widest px-3 py-1 rounded-full">Sabbath</span>
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] font-medium uppercase tracking-widest px-3 py-1 rounded-full">Peace</span>
+</div>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors text-sm" data-icon="more_vert">more_vert</span>
+</div>
+<div class="space-y-3">
+<h5 class="text-xl font-medium group-hover:text-primary transition-colors">Finding Stillness in a Noisy World</h5>
+<p class="text-on-surface/60 text-sm leading-relaxed line-clamp-3">Reflecting on Psalm 46:10 today. The modern world demands constant noise, but the Spirit moves in the quiet. How can I cultivate 10 minutes of pure silence today...</p>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant/5">
+<span class="text-[10px] font-medium uppercase tracking-widest text-on-surface/40">Oct 24, 2023</span>
+<span class="material-symbols-outlined text-lg text-primary/40 group-hover:text-primary" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Note Card 2 -->
+<div class="group bg-surface-container-low p-8 rounded-xl space-y-6 transition-all duration-300 hover:bg-surface-container-high hover:-translate-y-1">
+<div class="flex justify-between items-start">
+<div class="flex gap-2">
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] font-medium uppercase tracking-widest px-3 py-1 rounded-full">Study</span>
+</div>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors text-sm" data-icon="more_vert">more_vert</span>
+</div>
+<div class="space-y-3">
+<h5 class="text-xl font-medium group-hover:text-primary transition-colors">The Bread of Life (John 6)</h5>
+<p class="text-on-surface/60 text-sm leading-relaxed line-clamp-3">Diving deep into the cultural context of the bread of life discourse. The metaphorical significance of manna vs. the true bread from heaven. Notes from the sermon...</p>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant/5">
+<span class="text-[10px] font-medium uppercase tracking-widest text-on-surface/40">Oct 21, 2023</span>
+<span class="material-symbols-outlined text-lg text-primary/40 group-hover:text-primary" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Note Card 3 -->
+<div class="group bg-surface-container-low p-8 rounded-xl space-y-6 transition-all duration-300 hover:bg-surface-container-high hover:-translate-y-1">
+<div class="flex justify-between items-start">
+<div class="flex gap-2">
+<span class="bg-secondary-container/30 text-on-secondary-container text-[10px] font-medium uppercase tracking-widest px-3 py-1 rounded-full">Prayer</span>
+</div>
+<span class="material-symbols-outlined text-on-surface/20 group-hover:text-primary transition-colors text-sm" data-icon="more_vert">more_vert</span>
+</div>
+<div class="space-y-3">
+<h5 class="text-xl font-medium group-hover:text-primary transition-colors">Gratitude Journal - Morning</h5>
+<p class="text-on-surface/60 text-sm leading-relaxed line-clamp-3">1. For the crisp autumn air. 2. For the coffee shared with Sarah. 3. For the strength to tackle the coming project. Remembering that every good gift is from above...</p>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-outline-variant/5">
+<span class="text-[10px] font-medium uppercase tracking-widest text-on-surface/40">Oct 19, 2023</span>
+<span class="material-symbols-outlined text-lg text-primary/40 group-hover:text-primary" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+<!-- Note Card 4 -->
+<div class="group bg-surface-container-low border border-dashed border-outline-variant/30 p-8 rounded-xl flex flex-col items-center justify-center space-y-4 hover:border-primary/50 transition-colors cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="add">add</span>
+</div>
+<span class="text-sm font-medium tracking-wider text-on-surface/40 group-hover:text-primary transition-colors uppercase">Create New Reflection</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Predicted Component: Footer -->
+<footer class="w-full py-12 bg-[#0B0E14] border-t border-[#4E463A]/15 flex flex-col items-center justify-center space-y-4 px-8 w-full font-['Plus_Jakarta_Sans'] text-sm tracking-widest">
+<div class="flex items-center gap-8 text-[#DCDFE5] opacity-40">
+<a class="hover:text-[#D1AC70] hover:opacity-100 transition-all" href="#">Terms of Peace</a>
+<a class="hover:text-[#D1AC70] hover:opacity-100 transition-all" href="#">Privacy Policy</a>
+<a class="hover:text-[#D1AC70] hover:opacity-100 transition-all" href="#">Contact Curator</a>
+</div>
+<p class="text-[#DCDFE5] opacity-20">© 2024 The Digital Sanctuary. All rights reserved.</p>
+</footer>
+</main>
+</body></html>

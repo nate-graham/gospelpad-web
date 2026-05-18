@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:wght@300;400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            font-size: 24px;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#59400d",
+                        "surface-container-highest": "#32353b",
+                        "secondary-fixed-dim": "#c3c7cc",
+                        "tertiary-fixed": "#e3e2e2",
+                        "background": "#101319",
+                        "primary-container": "#d1ac70",
+                        "outline": "#9a8f81",
+                        "surface": "#101319",
+                        "secondary-fixed": "#e0e3e9",
+                        "secondary": "#c3c7cc",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#32353b",
+                        "on-primary": "#422c00",
+                        "inverse-surface": "#e1e2ea",
+                        "on-primary-fixed-variant": "#5c4210",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#434444",
+                        "surface-container-lowest": "#0b0e14",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#2d3037",
+                        "primary-fixed-dim": "#e7c183",
+                        "on-secondary-fixed": "#181c20",
+                        "secondary-container": "#43474c",
+                        "tertiary-container": "#b2b1b1",
+                        "outline-variant": "#4e463a",
+                        "on-surface": "#e1e2ea",
+                        "surface-container-high": "#272a30",
+                        "on-background": "#e1e2ea",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "primary": "#eec789",
+                        "surface-dim": "#101319",
+                        "on-tertiary": "#303031",
+                        "surface-container-low": "#191c22",
+                        "primary-fixed": "#ffdeab",
+                        "on-surface-variant": "#d1c5b5",
+                        "on-secondary-container": "#b2b5bb",
+                        "surface-bright": "#363940",
+                        "inverse-primary": "#775926",
+                        "error-container": "#93000a",
+                        "surface-container": "#1d2026",
+                        "on-secondary": "#2d3135",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-primary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#43474c",
+                        "surface-tint": "#e7c183",
+                        "tertiary": "#cecccc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen pb-32">
+<!-- Top Navigation -->
+<nav class="bg-[#101319] w-full top-0 sticky z-50 flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D1AC70]">menu</span>
+<span class="font-['Plus_Jakarta_Sans'] text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase">GospelPad</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#DCDFE5]">notifications</span>
+</div>
+</nav>
+<main class="px-6 pt-8">
+<!-- Hero Editorial Section -->
+<header class="mb-12">
+<p class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.2em] uppercase text-[#D1AC70] mb-2">Fellowship</p>
+<h1 class="text-[2.75rem] font-semibold leading-tight tracking-tight text-on-surface mb-4">Spiritual Spaces</h1>
+<p class="text-on-surface-variant text-sm font-light leading-relaxed max-w-[280px]">Gather in quiet reverence. Share the word and find strength in shared silence and study.</p>
+</header>
+<!-- Quiet Actions: Bento Grid Layout -->
+<section class="grid grid-cols-2 gap-4 mb-12">
+<div class="bg-surface-container-low rounded-[1.5rem] p-6 aspect-square flex flex-col justify-between hover:bg-surface-bright transition-colors cursor-pointer group">
+<div class="bg-[#D1AC70]/10 w-10 h-10 rounded-xl flex items-center justify-center text-[#D1AC70]">
+<span class="material-symbols-outlined">add_circle</span>
+</div>
+<div>
+<h3 class="font-semibold text-on-surface text-lg">Create Space</h3>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 mt-1">Start Circle</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-[1.5rem] p-6 aspect-square flex flex-col justify-between hover:bg-surface-bright transition-colors cursor-pointer group">
+<div class="bg-[#DCDFE5]/10 w-10 h-10 rounded-xl flex items-center justify-center text-[#DCDFE5]">
+<span class="material-symbols-outlined">key</span>
+</div>
+<div>
+<h3 class="font-semibold text-on-surface text-lg">Join by Invite</h3>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant/60 mt-1">Access Code</p>
+</div>
+</div>
+</section>
+<!-- Active Circles -->
+<section>
+<div class="flex justify-between items-end mb-8">
+<h2 class="text-sm font-semibold tracking-[0.1em] uppercase text-[#DCDFE5]">Active Circles</h2>
+<span class="text-[10px] text-[#D1AC70] uppercase tracking-widest">See all</span>
+</div>
+<div class="space-y-6">
+<!-- Group Item 1 -->
+<div class="group relative bg-surface-container-low rounded-[1.5rem] p-5 flex items-center gap-5 hover:bg-surface-bright transition-all duration-500">
+<div class="relative h-16 w-16 shrink-0 rounded-2xl overflow-hidden">
+<img alt="Study group image" class="h-full w-full object-cover" data-alt="candlelit wooden table with open ancient books in a dimly lit library atmosphere with warm amber glow" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIMzlhGEzqWLOAZBaJvV4uAUYmOBMEVFGrdIJfy5FULV5-xkWZ-5cDMlKtHQKSzX9qWJY2D9GwYs291Wds-uDfhuevhKt-DEOVyM3GiMa9bexrFBL6-0nXqdchPdN3ItlWYnfMEQ-wGcGxMc6kJ1V0vtC59zYxTsUsz2CzFJk75EokU6Vyoiqb7yyfDq9Gk-5HkFcBCRlg6f2Cw8z_NHUH6FYYaFHa5y1W2c6nvZ5yECGr_4cMu6GUaBTtB1rtjaNwHuUQilQ4of97"/>
+<div class="absolute inset-0 bg-[#D1AC70]/20"></div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-medium text-on-surface">The Morning Psalms</h3>
+<span class="flex items-center gap-1 text-[10px] bg-[#D1AC70]/20 text-[#D1AC70] px-2 py-0.5 rounded-full font-medium">LIVE</span>
+</div>
+<p class="text-xs text-on-surface-variant font-light mb-2">8 members currently reflecting</p>
+<div class="flex -space-x-2 overflow-hidden">
+<div class="inline-block h-6 w-6 rounded-full ring-2 ring-surface-container-low">
+<img class="h-full w-full object-cover rounded-full" data-alt="Portrait of a young man with a serene expression in soft daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMh5Tlj4ad9YxAnHfbFHsHRM43XVxDPQ2GIZFkIKm_1J7aLqoJAT-otUcMXUuNC-g-vUZvCVJkSdZTo5Ehby9F23ViCTUNC_qTs4KRhmqCUyXOTJ5N5L5CzEPT-P-7gOFaM5k_ShGqzgp4RqcsQNFoOasiR2yyo1AOpjj4ClH-e8GU-p_G22uCwNviRPqEEkZqDMoxAeqQOR4uw1QaZus2EHB285U7vCKHiA3PxVPU3lgo3MbA3isTpiXAJuTra-SNubDi29isGNjb"/>
+</div>
+<div class="inline-block h-6 w-6 rounded-full ring-2 ring-surface-container-low">
+<img class="h-full w-full object-cover rounded-full" data-alt="Close up of a smiling woman with a focused, peaceful look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK6eHp84cqMXBOKhheGkn4qWQRu1VY7HP8zx7LgHUxw3VkgHPkixEcO_6Rruihz1pYWZWwysZgFCNzrxYO2zM8zHmGvENfx0QAjjimsmiElXA1Dj_PIleNKU1fmC5S27lU1QeSj5YuKy8u7af0RQARgsIKcZN_rGu0k7Smory1yRvVyKsB9-JsBIkaXNV2lO62Yy7-fP8zqm8ErgyH9KkDZzvTGcRfEYevsaFTkdFJ2kEwer3FJMRhiYRyK-oMlHis1YbbQO_iRf1B"/>
+</div>
+<div class="inline-block h-6 w-6 rounded-full ring-2 ring-surface-container-low bg-surface-container-high flex items-center justify-center text-[8px] text-on-surface-variant">+6</div>
+</div>
+</div>
+</div>
+<!-- Group Item 2 -->
+<div class="group relative bg-surface-container-low rounded-[1.5rem] p-5 flex items-center gap-5 hover:bg-surface-bright transition-all duration-500">
+<div class="relative h-16 w-16 shrink-0 rounded-2xl overflow-hidden">
+<img alt="Group gathering image" class="h-full w-full object-cover" data-alt="silhouettes of a group of people sitting in a circle in a garden at dusk with soft string lights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDm5Fy9BxwUMLvxFQtS0bO-YsFjjzlOpPYl9c1wXKuitruSenprK2bZ7xDC5-wYMXNWxNHNVpaohwWplTD8-3ypl6eGewLtMzgyScgq108hTymE3s_NFE7OM3y7a6v660JNQVv3YMLC2Uh3EUCgWVTLGd35mekwFuqxhq6_ByPjf-gQF_Yo6Nojh_R-8890d6VoGWggzpVcWlOUPG28ZZeJ0H2AMHFI3pRh__n3gfoUAjCQzCb1VrWuqDaYZ9SR5g-B3QvUxBH_cUdp"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-medium text-on-surface">Wisdom Seekers</h3>
+</div>
+<p class="text-xs text-on-surface-variant font-light mb-2">Meeting in 2 hours</p>
+<div class="flex items-center gap-2">
+<div class="bg-surface-container-high px-2 py-1 rounded-md text-[9px] uppercase tracking-tighter text-[#DCDFE5]/60">Proverbs 4:7</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+<!-- Group Item 3 -->
+<div class="group relative bg-surface-container-low rounded-[1.5rem] p-5 flex items-center gap-5 hover:bg-surface-bright transition-all duration-500">
+<div class="relative h-16 w-16 shrink-0 rounded-2xl overflow-hidden">
+<img alt="Nature meditation image" class="h-full w-full object-cover" data-alt="misty mountain peak at sunrise with soft purple and orange sky gradient" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjDY9YfHo0DHlCx8jxtqRthXdXKFDJYIVK98VGX36Juq3rBN2NO3p5zbUpd0u1rTUo1e3_s__OuVil_0P4KPlADGdPZnAyOo59yScC8LuUebhgPD3yHYHZu5RXalf8p8V8S4I5cXTQoILW__bHvHaaMyZzoBbmzOOvt0YqR6OJ4QwCkwSpzPNyGgtB2-ch12ufrhhcUaU-2ExqfVVnbcRNthNLQh2BMIDt4qxFrc-kJDO9onf5f7d7W3o_ST9pC4EskQSmBDevvO3O"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-medium text-on-surface">Global Prayer Chain</h3>
+</div>
+<p class="text-xs text-on-surface-variant font-light mb-2">Quietly active • 12.4k others</p>
+<div class="flex items-center gap-2">
+<div class="bg-surface-container-high px-2 py-1 rounded-md text-[9px] uppercase tracking-tighter text-[#DCDFE5]/60">World Peace</div>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant/40">chevron_right</span>
+</div>
+</div>
+</section>
+<!-- Suggested Communities Card -->
+<section class="mt-12">
+<div class="bg-[#D1AC70]/5 border border-[#D1AC70]/10 rounded-[2rem] p-8 overflow-hidden relative">
+<div class="relative z-10">
+<h3 class="text-xl font-semibold text-[#D1AC70] mb-2">Discover New Circles</h3>
+<p class="text-sm text-on-surface-variant font-light mb-6">Find brothers and sisters walking the same path as you.</p>
+<button class="bg-[#D1AC70] text-[#422C00] font-bold text-xs uppercase tracking-widest px-6 py-3 rounded-full hover:opacity-90 transition-opacity">Explore Communities</button>
+</div>
+<span class="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] opacity-[0.03] text-[#D1AC70]">group</span>
+</div>
+</section>
+</main>
+<!-- Navigation Shell (BottomNavBar) -->
+<div class="fixed bottom-0 w-full z-50 rounded-t-[1.5rem] bg-[#101319]/60 backdrop-blur-xl shadow-[0_-8px_40px_rgba(0,0,0,0.4)] flex justify-around items-center px-4 pb-6 pt-3">
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500 cursor-pointer">
+<span class="material-symbols-outlined">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</div>
+<!-- Active Tab: Groups -->
+<div class="flex flex-col items-center justify-center text-[#D1AC70] space-y-1 bg-[#D1AC70]/10 rounded-xl px-4 py-2 transition-all duration-500 cursor-pointer">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500 cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500 cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</div>
+</div>
+</body></html>

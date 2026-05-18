@@ -107,22 +107,13 @@ export function GroupsListView() {
   };
 
   return (
-    <div className="page-section">
-      <header
-        className="page-header"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-        }}
-      >
-        <div className="page-header">
+    <div className="page-container page-section">
+      <header className="page-header" style={{ gap: '0.8rem' }}>
+        <div className="note-list-title">
           <span className="eyebrow">Groups</span>
           <h1>Your groups</h1>
           <p className="page-description">
-            Create a group, join with an invite, and keep up with shared notes, announcements, and member activity.
+            Shared spaces for reflection, study, and notes that continue together.
           </p>
         </div>
       </header>
@@ -130,10 +121,11 @@ export function GroupsListView() {
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
 
       <section className="responsive-grid">
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-          <div style={{ display: 'grid', gap: '0.35rem' }}>
+        <section className="support-tray">
+          <div className="support-block">
             <span className="eyebrow">Create group</span>
-            <strong style={{ fontSize: '1.1rem' }}>Start a private or public group</strong>
+            <strong className="support-block-title">Start a new shared space</strong>
+            <p className="support-block-copy">Make it private for invitation-only conversation or public for open participation.</p>
           </div>
           <form onSubmit={onCreateSubmit} style={{ display: 'grid', gap: '0.85rem' }}>
             <label style={fieldStyle}>
@@ -171,10 +163,11 @@ export function GroupsListView() {
           </form>
         </section>
 
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-          <div style={{ display: 'grid', gap: '0.35rem' }}>
+        <section className="support-tray">
+          <div className="support-block">
             <span className="eyebrow">Join by invite</span>
-            <strong style={{ fontSize: '1.1rem' }}>Use a group code</strong>
+            <strong className="support-block-title">Enter a shared space</strong>
+            <p className="support-block-copy">Use an invite code to step into an existing group and keep the thread going.</p>
           </div>
           <form onSubmit={onJoinSubmit} style={{ display: 'grid', gap: '0.85rem' }}>
             <label style={fieldStyle}>
@@ -222,7 +215,7 @@ export function GroupsListView() {
       ) : null}
 
       {!loading && !error && groups.length > 0 ? (
-        <section className="responsive-grid">
+        <section className="group-card-grid">
           {groups.map(({ group, role }) => (
             <GroupCard group={group} key={group.id} role={role} />
           ))}
@@ -234,15 +227,15 @@ export function GroupsListView() {
 
 function GroupCard({ group, role }: { group: Group; role: 'admin' | 'member' }) {
   return (
-    <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.8rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'start' }}>
-        <div style={{ display: 'grid', gap: '0.35rem' }}>
+    <article className="note-card">
+      <div className="note-card-meta">
+        <div className="note-hero-block" style={{ gap: '0.35rem' }}>
           <span className="badge">{getGroupVisibilityLabel(group)}</span>
-          <strong style={{ fontSize: '1.1rem', lineHeight: 1.3 }}>{group.name}</strong>
+          <strong className="note-card-title">{group.name}</strong>
         </div>
         <span style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>{role}</span>
       </div>
-      <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+      <span className="note-card-excerpt">
         {group.description?.trim() || 'No description yet.'}
       </span>
       <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
@@ -259,7 +252,7 @@ function GroupCard({ group, role }: { group: Group; role: 'admin' | 'member' }) 
 
 const fieldStyle: CSSProperties = {
   display: 'grid',
-  gap: '0.45rem',
+  gap: '0.5rem',
 };
 
 const labelTextStyle: CSSProperties = {
@@ -267,18 +260,16 @@ const labelTextStyle: CSSProperties = {
 };
 
 const inputStyle: CSSProperties = {
-  minHeight: 48,
-  borderRadius: 14,
-  border: '1px solid var(--line)',
-  padding: '0.85rem 1rem',
+  minHeight: 54,
+  borderRadius: 18,
+  padding: '0.95rem 1.05rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',
 };
 
 const textareaStyle: CSSProperties = {
   minHeight: 120,
-  borderRadius: 16,
-  border: '1px solid var(--line)',
+  borderRadius: 18,
   padding: '1rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',

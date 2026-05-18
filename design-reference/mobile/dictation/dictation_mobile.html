@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#59400d",
+                        "surface-container-highest": "#32353b",
+                        "secondary-fixed-dim": "#c3c7cc",
+                        "tertiary-fixed": "#e3e2e2",
+                        "background": "#101319",
+                        "primary-container": "#d1ac70",
+                        "outline": "#9a8f81",
+                        "surface": "#101319",
+                        "secondary-fixed": "#e0e3e9",
+                        "secondary": "#c3c7cc",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#32353b",
+                        "on-primary": "#422c00",
+                        "inverse-surface": "#e1e2ea",
+                        "on-primary-fixed-variant": "#5c4210",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#434444",
+                        "surface-container-lowest": "#0b0e14",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#2d3037",
+                        "primary-fixed-dim": "#e7c183",
+                        "on-secondary-fixed": "#181c20",
+                        "secondary-container": "#43474c",
+                        "tertiary-container": "#b2b1b1",
+                        "outline-variant": "#4e463a",
+                        "on-surface": "#e1e2ea",
+                        "surface-container-high": "#272a30",
+                        "on-background": "#e1e2ea",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "primary": "#eec789",
+                        "surface-dim": "#101319",
+                        "on-tertiary": "#303031",
+                        "surface-container-low": "#191c22",
+                        "primary-fixed": "#ffdeab",
+                        "on-surface-variant": "#d1c5b5",
+                        "on-secondary-container": "#b2b5bb",
+                        "surface-bright": "#363940",
+                        "inverse-primary": "#775926",
+                        "error-container": "#93000a",
+                        "surface-container": "#1d2026",
+                        "on-secondary": "#2d3135",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-primary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#43474c",
+                        "surface-tint": "#e7c183",
+                        "tertiary": "#cecccc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0e14; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24;
+            color: inherit;
+        }
+        .reverent-blur {
+            backdrop-filter: blur(24px);
+        }
+        .pulsing-glow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.15; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.1); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen flex flex-col">
+<!-- Top AppBar - Following Shared Components JSON -->
+<header class="w-full top-0 sticky bg-[#101319] z-50">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#D1AC70] hover:opacity-80 transition-opacity active:scale-95 duration-300">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<h1 class="font-['Plus_Jakarta_Sans'] tracking-wide text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase">
+                GospelPad
+            </h1>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D1AC70]">more_vert</span>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col px-6 pt-4 pb-32">
+<!-- Mode Selection: Personal vs Record -->
+<div class="flex items-center justify-center mb-12">
+<div class="bg-surface-container-low p-1.5 rounded-full flex gap-1">
+<button class="px-6 py-2.5 rounded-full text-[10px] font-semibold tracking-[0.1em] uppercase transition-all duration-500 bg-surface-container-high text-on-surface-variant">
+                    Personal
+                </button>
+<button class="px-6 py-2.5 rounded-full text-[10px] font-semibold tracking-[0.1em] uppercase transition-all duration-500 bg-primary-container text-on-primary">
+                    Record/Transcribe
+                </button>
+</div>
+</div>
+<!-- Live Transcript Canvas -->
+<section class="flex-1 flex flex-col justify-center items-center relative">
+<!-- Background Depth Element -->
+<div class="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none">
+<div class="w-64 h-64 bg-primary-container rounded-full pulsing-glow blur-[80px]"></div>
+</div>
+<!-- Transcription Area -->
+<div class="w-full max-w-lg space-y-8">
+<div class="text-center opacity-40">
+<span class="font-label text-[10px] tracking-[0.2em] uppercase text-on-surface-variant">Recording in Progress</span>
+</div>
+<div class="space-y-6 overflow-y-auto max-h-[353px] py-4">
+<p class="text-on-surface-variant text-lg leading-relaxed font-light opacity-60">
+                        The essence of true meditation begins not in the mind, but in the silence of the heart...
+                    </p>
+<p class="text-on-surface text-2xl leading-relaxed font-medium">
+                        When we approach the sacred text, we are not just reading words; we are entering into a living conversation. Every phrase is a breath of life.
+                    </p>
+<div class="flex items-center gap-2">
+<div class="w-1.5 h-1.5 bg-primary-container rounded-full animate-pulse"></div>
+<p class="text-primary text-xl italic font-light">
+                            Transcribing thought...
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Dynamic Recording Status -->
+<section class="mt-auto space-y-12">
+<div class="flex flex-col items-center gap-8">
+<!-- Recording Visualizer (Simplified Editorial Style) -->
+<div class="flex items-end justify-center gap-1.5 h-8">
+<div class="w-0.5 bg-primary-container/20 h-4 rounded-full"></div>
+<div class="w-0.5 bg-primary-container/40 h-6 rounded-full"></div>
+<div class="w-0.5 bg-primary-container/60 h-8 rounded-full"></div>
+<div class="w-0.5 bg-primary-container/40 h-5 rounded-full"></div>
+<div class="w-0.5 bg-primary-container/30 h-7 rounded-full"></div>
+<div class="w-0.5 bg-primary-container h-4 rounded-full"></div>
+<div class="w-0.5 bg-primary-container/50 h-6 rounded-full"></div>
+</div>
+<!-- Control Center -->
+<div class="flex items-center justify-between w-full max-w-xs mx-auto">
+<!-- Cancel Action -->
+<button class="w-12 h-12 rounded-full flex items-center justify-center bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+<!-- Main Record Toggle -->
+<button class="group relative">
+<div class="absolute inset-0 bg-primary-container/20 blur-xl rounded-full scale-125 group-hover:scale-150 transition-transform"></div>
+<div class="relative w-20 h-20 rounded-full bg-primary-container flex items-center justify-center text-on-primary shadow-2xl active:scale-95 transition-transform duration-300">
+<span class="material-symbols-outlined text-4xl" data-weight="fill">stop</span>
+</div>
+</button>
+<!-- Finish/Hand-off Action -->
+<button class="w-12 h-12 rounded-full flex items-center justify-center bg-primary-container/10 text-primary border border-primary/20 hover:bg-primary-container/20 transition-colors">
+<span class="material-symbols-outlined text-xl">auto_fix</span>
+</button>
+</div>
+</div>
+<!-- Handoff Suggestion -->
+<div class="flex justify-center">
+<button class="flex items-center gap-3 px-6 py-4 bg-surface-container-high rounded-2xl hover:bg-surface-bright transition-all group">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-lg">edit_note</span>
+</div>
+<div class="text-left">
+<p class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant group-hover:text-primary transition-colors">Next Phase</p>
+<p class="text-xs text-on-surface/60">Convert to Sermon Draft</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant ml-2">chevron_right</span>
+</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar - Mapping active state to 'Notes' (Closest to transcription task) -->
+<nav class="fixed bottom-0 w-full z-50 bg-[#101319]/60 backdrop-blur-xl rounded-t-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.4)]">
+<div class="flex justify-around items-center px-4 pb-6 pt-3">
+<!-- Active Item: Notes (Closest to Dictation) -->
+<div class="flex flex-col items-center justify-center text-[#D1AC70] space-y-1 bg-[#D1AC70]/10 rounded-xl px-4 py-2 transition-all ease-out duration-500">
+<span class="material-symbols-outlined">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</div>
+</div>
+</nav>
+</body></html>

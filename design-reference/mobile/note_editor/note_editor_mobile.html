@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-primary-container": "#59400d",
+                "surface-container-highest": "#32353b",
+                "secondary-fixed-dim": "#c3c7cc",
+                "tertiary-fixed": "#e3e2e2",
+                "background": "#101319",
+                "primary-container": "#d1ac70",
+                "outline": "#9a8f81",
+                "surface": "#101319",
+                "secondary-fixed": "#e0e3e9",
+                "secondary": "#c3c7cc",
+                "on-error-container": "#ffdad6",
+                "surface-variant": "#32353b",
+                "on-primary": "#422c00",
+                "inverse-surface": "#e1e2ea",
+                "on-primary-fixed-variant": "#5c4210",
+                "error": "#ffb4ab",
+                "on-tertiary-container": "#434444",
+                "surface-container-lowest": "#0b0e14",
+                "on-error": "#690005",
+                "inverse-on-surface": "#2d3037",
+                "primary-fixed-dim": "#e7c183",
+                "on-secondary-fixed": "#181c20",
+                "secondary-container": "#43474c",
+                "tertiary-container": "#b2b1b1",
+                "outline-variant": "#4e463a",
+                "on-surface": "#e1e2ea",
+                "surface-container-high": "#272a30",
+                "on-background": "#e1e2ea",
+                "tertiary-fixed-dim": "#c7c6c6",
+                "primary": "#eec789",
+                "surface-dim": "#101319",
+                "on-tertiary": "#303031",
+                "surface-container-low": "#191c22",
+                "primary-fixed": "#ffdeab",
+                "on-surface-variant": "#d1c5b5",
+                "on-secondary-container": "#b2b5bb",
+                "surface-bright": "#363940",
+                "inverse-primary": "#775926",
+                "error-container": "#93000a",
+                "surface-container": "#1d2026",
+                "on-secondary": "#2d3135",
+                "on-tertiary-fixed-variant": "#464747",
+                "on-tertiary-fixed": "#1b1c1c",
+                "on-primary-fixed": "#281900",
+                "on-secondary-fixed-variant": "#43474c",
+                "surface-tint": "#e7c183",
+                "tertiary": "#cecccc"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["Plus Jakarta Sans"],
+                "body": ["Poppins"],
+                "label": ["Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; background-color: #101319; color: #e1e2ea; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(25, 28, 34, 0.6); backdrop-filter: blur(24px); }
+        .editor-container { min-height: calc(100vh - 180px); }
+        .reflection-chip { background: rgba(209, 172, 112, 0.15); border: 1px solid rgba(209, 172, 112, 0.2); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background selection:bg-primary-container/30">
+<!-- Top Navigation Shell -->
+<header class="w-full top-0 sticky z-50 bg-[#101319] flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-4">
+<button class="text-[#D1AC70] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">close</span>
+</button>
+<h1 class="font-['Plus_Jakarta_Sans'] text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase">GospelPad</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#DCDFE5] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="text-[#D1AC70] font-semibold tracking-wider text-sm uppercase">Save</button>
+</div>
+</header>
+<main class="px-6 pt-4 pb-32 max-w-2xl mx-auto">
+<!-- Note Type Selector (Reflection Chips) -->
+<div class="flex gap-3 mb-8 overflow-x-auto pb-2 no-scrollbar">
+<button class="reflection-chip px-5 py-2 rounded-full text-xs font-semibold tracking-[0.1em] uppercase text-[#D1AC70]">Reflection</button>
+<button class="px-5 py-2 rounded-full text-xs font-semibold tracking-[0.1em] uppercase text-[#DCDFE5]/40 hover:bg-[#DCDFE5]/5">Prayer</button>
+<button class="px-5 py-2 rounded-full text-xs font-semibold tracking-[0.1em] uppercase text-[#DCDFE5]/40 hover:bg-[#DCDFE5]/5">Dream</button>
+</div>
+<!-- Editor Header -->
+<div class="mb-10">
+<input class="w-full bg-transparent border-none focus:ring-0 text-3xl font-medium placeholder:text-[#DCDFE5]/20 text-[#e1e2ea] tracking-tight p-0 mb-2" placeholder="Untitled Sanctuary" type="text" value="Morning Stillness"/>
+<div class="flex items-center gap-2 text-[10px] text-[#DCDFE5]/40 tracking-widest uppercase">
+<span>October 24, 2023</span>
+<span class="w-1 h-1 rounded-full bg-[#DCDFE5]/20"></span>
+<span>Edited 2m ago</span>
+</div>
+</div>
+<!-- Central Sanctuary Editor -->
+<div class="editor-container relative">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-lg leading-[1.8] text-[#DCDFE5] placeholder:text-[#DCDFE5]/10 resize-none h-full min-h-[500px] p-0" placeholder="Begin your meditation...">There is a profound sense of peace found in the early hours. As I was reading today, I felt drawn to the promise of rest. 
+
+The spirit reminds me that even in the storm, there is a center that remains untouched. It brings to mind the strength found in quietness.
+
+When we look at [Psalm 23:2], it speaks of green pastures and still waters. This isn't just a physical location, but a state of the soul that we can access even amidst the noise of the world.
+
+I am learning to lean into this silence, to let it inform my words and my actions. The "Digital Sanctuary" is not just an app, but a commitment to keeping the inner altar clean and the lamp burning.</textarea>
+<!-- Detected Scripture Chip Inline -->
+<div class="absolute top-[214px] left-[105px]">
+<button class="reflection-chip px-3 py-1 rounded-lg text-sm text-[#D1AC70] flex items-center gap-2 shadow-xl shadow-black/20">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+                    Psalm 23:2
+                </button>
+</div>
+</div>
+</main>
+<!-- Companion Panel (Scripture Preview) -->
+<div class="fixed bottom-24 left-6 right-6 z-40">
+<div class="glass-panel p-6 rounded-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.4)] border border-[#D1AC70]/10">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#D1AC70]/20 flex items-center justify-center text-[#D1AC70]">
+<span class="material-symbols-outlined text-[18px]" data-weight="fill">auto_stories</span>
+</div>
+<div>
+<h3 class="text-xs font-semibold tracking-widest uppercase text-[#D1AC70]">Psalm 23:2</h3>
+<p class="text-[10px] text-[#DCDFE5]/40 uppercase tracking-tighter">New King James Version</p>
+</div>
+</div>
+<button class="text-[#DCDFE5]/40"><span class="material-symbols-outlined">close</span></button>
+</div>
+<p class="text-[#DCDFE5] italic leading-relaxed text-sm mb-4">
+                "He makes me to lie down in green pastures; He leads me beside the still waters."
+            </p>
+<div class="flex gap-4">
+<button class="flex-1 py-2 bg-[#D1AC70]/10 rounded-xl text-[10px] font-bold uppercase tracking-widest text-[#D1AC70] border border-[#D1AC70]/20">Full Chapter</button>
+<button class="flex-1 py-2 bg-[#D1AC70] rounded-xl text-[10px] font-bold uppercase tracking-widest text-[#422C00]">Add Note</button>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Shell (Labels & Icons) -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#101319]/60 backdrop-blur-xl rounded-t-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.4)]">
+<button class="flex flex-col items-center justify-center text-[#D1AC70] space-y-1 bg-[#D1AC70]/10 rounded-xl px-4 py-2 transition-all ease-out duration-500">
+<span class="material-symbols-outlined" data-weight="fill">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</button>
+<button class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</button>
+</nav>
+<!-- Aesthetic Ambient Elements -->
+<div class="fixed top-0 left-0 w-full h-screen pointer-events-none -z-10 overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-[60%] h-[40%] bg-[#D1AC70]/5 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-5%] left-[-10%] w-[50%] h-[30%] bg-[#D1AC70]/3 blur-[100px] rounded-full"></div>
+</div>
+</body></html>

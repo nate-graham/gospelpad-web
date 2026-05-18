@@ -110,5 +110,5 @@ export function formatScriptureForInsertion(result: ScriptureResult) {
 }
 
 export function formatScriptureTextForInsertion(result: ScriptureResult) {
-  return result.text.trim();
+  return `${result.reference} [${result.translation}] ${result.text.trim()}`.trim();
 }

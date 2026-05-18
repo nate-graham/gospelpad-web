@@ -130,10 +130,6 @@ export default async function AdminSignupsPage() {
     throw new Error(error.message);
   }
 
-  if (subscriptionsError) {
-    throw new Error(subscriptionsError.message);
-  }
-
   const signups: SignupRecord[] = (data?.users ?? [])
     .map((entry) => ({
       id: entry.id,
@@ -156,7 +152,8 @@ export default async function AdminSignupsPage() {
   const dailySeries = buildDailySeries(signups);
   const maxDailyCount = Math.max(...dailySeries.map((entry) => entry.count), 1);
   const allowlist = getAdminEmailAllowlist();
-  const activeSubscriptions: ActiveSubscriptionRecord[] = (subscriptions ?? []).map((entry) => ({
+  const billingMetricsAvailable = !subscriptionsError && !planChangesError;
+  const activeSubscriptions: ActiveSubscriptionRecord[] = (billingMetricsAvailable ? (subscriptions ?? []) : []).map((entry) => ({
     userId: entry.user_id,
     planCode: entry.plan_code,
     status: entry.status,
@@ -166,13 +163,16 @@ export default async function AdminSignupsPage() {
     return acc;
   }, {});
   const totalPaid = activeSubscriptions.length;
-  const paidMetricsAvailable = !planChangesError || !isMissingRelationError(planChangesError.code, planChangesError.message);
+  const planChangesMissingRelation =
+    Boolean(planChangesError) &&
+    isMissingRelationError(
+      planChangesError ? ('code' in planChangesError ? String(planChangesError.code) : null) : null,
+      planChangesError ? ('message' in planChangesError ? String(planChangesError.message) : null) : null
+    );
+  const paidMetricsAvailable = billingMetricsAvailable && !planChangesMissingRelation;
+  const rawPlanChangeRows = billingMetricsAvailable && paidMetricsAvailable ? (planChanges ?? []) : [];
 
-  if (planChangesError && paidMetricsAvailable) {
-    throw new Error(planChangesError.message);
-  }
-
-  const paidPlanEvents: PlanChangeRecord[] = ((planChangesError && !paidMetricsAvailable) ? [] : (planChanges ?? [])).map((entry) => ({
+  const paidPlanEvents: PlanChangeRecord[] = rawPlanChangeRows.map((entry) => ({
     id: entry.id,
     userId: entry.user_id,
     userEmail: entry.user_email ?? null,
@@ -272,7 +272,17 @@ export default async function AdminSignupsPage() {
         </div>
       </section>
 
-      {!paidMetricsAvailable ? (
+      {!billingMetricsAvailable ? (
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.5rem' }}>
+          <span className="eyebrow">Paid plans</span>
+          <strong style={{ fontSize: '1.05rem' }}>Paid metrics unavailable</strong>
+          <span style={{ color: 'var(--muted)' }}>
+            The sign-up dashboard is working, but the server could not read billing metrics yet.
+          </span>
+        </section>
+      ) : null}
+
+      {billingMetricsAvailable && !paidMetricsAvailable ? (
         <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.5rem' }}>
           <span className="eyebrow">Paid plans</span>
           <strong style={{ fontSize: '1.05rem' }}>Paid metrics pending</strong>

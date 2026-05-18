@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GospelPad | Your Digital Sanctuary</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#59400d",
+                        "surface-container-highest": "#32353b",
+                        "secondary-fixed-dim": "#c3c7cc",
+                        "tertiary-fixed": "#e3e2e2",
+                        "background": "#101319",
+                        "primary-container": "#d1ac70",
+                        "outline": "#9a8f81",
+                        "surface": "#101319",
+                        "secondary-fixed": "#e0e3e9",
+                        "secondary": "#c3c7cc",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#32353b",
+                        "on-primary": "#422c00",
+                        "inverse-surface": "#e1e2ea",
+                        "on-primary-fixed-variant": "#5c4210",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#434444",
+                        "surface-container-lowest": "#0b0e14",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#2d3037",
+                        "primary-fixed-dim": "#e7c183",
+                        "on-secondary-fixed": "#181c20",
+                        "secondary-container": "#43474c",
+                        "tertiary-container": "#b2b1b1",
+                        "outline-variant": "#4e463a",
+                        "on-surface": "#e1e2ea",
+                        "surface-container-high": "#272a30",
+                        "on-background": "#e1e2ea",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "primary": "#eec789",
+                        "surface-dim": "#101319",
+                        "on-tertiary": "#303031",
+                        "surface-container-low": "#191c22",
+                        "primary-fixed": "#ffdeab",
+                        "on-surface-variant": "#d1c5b5",
+                        "on-secondary-container": "#b2b5bb",
+                        "surface-bright": "#363940",
+                        "inverse-primary": "#775926",
+                        "error-container": "#93000a",
+                        "surface-container": "#1d2026",
+                        "on-secondary": "#2d3135",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-primary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#43474c",
+                        "surface-tint": "#e7c183",
+                        "tertiary": "#cecccc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Poppins", "sans-serif"],
+                        "body": ["Poppins", "sans-serif"],
+                        "label": ["Plus Jakarta Sans", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; background-color: #0b0e14; color: #e1e2ea; -webkit-font-smoothing: antialiased; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(25, 28, 34, 0.6); backdrop-filter: blur(24px); }
+        .text-shadow-subtle { text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-[#101319] flex items-center justify-between px-6 py-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D1AC70]" data-icon="menu">menu</span>
+</div>
+<h1 class="font-['Plus_Jakarta_Sans'] tracking-wide text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase">GospelPad</h1>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-[#D1AC70]" data-icon="search">search</span>
+</div>
+</header>
+<main class="pb-32 overflow-x-hidden">
+<!-- Hero Section -->
+<section class="relative min-h-[751px] flex flex-col justify-end px-8 pb-16 pt-32 overflow-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Divine Light" class="w-full h-full object-cover opacity-60" data-alt="Cinematic wide shot of sunlight streaming through ancient cathedral windows onto stone floor, creating long shadows and hazy dust motes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTGzJI5FJRNzoMPNSCbiuBfRn4sQTnI0YwqbF5v6FOn0Y20tn_9TcNHctNYLd3GgSq4exs3CJIq69oC-kYIvZz6ugLd8vRZdV-nN4L633C5W-mSEIVi4q21pMKDcPndTiHU_pAqgvSlLZ-8ycyOUFalSVlGWARuWQnLLg07iwSWlOdzYUCGs_us0Ze48UubsMdFnIBN-RtoDgNhbbmxQghUHGTAusxvQJwlQreRjhfsPJeRYvFkGr3sob_-GqmRUjJc0uNoc6xu0Fr"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent"></div>
+</div>
+<div class="relative z-10 space-y-6">
+<div class="inline-block px-3 py-1 rounded-full bg-primary-container/10 border border-primary-container/20">
+<span class="text-[10px] font-bold tracking-[0.2em] text-primary uppercase">Sanctuary Awaits</span>
+</div>
+<h2 class="text-5xl font-semibold leading-[1.1] text-on-surface tracking-tight">Your Presence <br/><span class="text-primary italic font-light">is the Prayer</span></h2>
+<p class="text-on-surface-variant text-lg max-w-[280px] leading-relaxed">Find your quiet space in a loud world. Reconnect with the Word through a curated digital experience.</p>
+<div class="pt-4">
+<button class="bg-primary-container text-on-primary px-8 py-4 rounded-xl text-sm font-bold tracking-widest uppercase shadow-2xl hover:opacity-90 transition-all active:scale-95 duration-300">
+                        Begin Journey
+                    </button>
+</div>
+</div>
+</section>
+<!-- Daily Bread Section -->
+<section class="px-6 -mt-12 relative z-20">
+<div class="bg-surface-container-low rounded-[2rem] p-8 shadow-2xl border-t border-white/5">
+<div class="flex justify-between items-start mb-6">
+<div class="space-y-1">
+<span class="text-[10px] font-bold tracking-[0.15em] text-primary uppercase">Daily Bread</span>
+<h3 class="text-xl font-medium text-on-surface">Evening Reflection</h3>
+</div>
+<span class="material-symbols-outlined text-primary-container text-3xl" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<div class="space-y-6">
+<p class="text-2xl font-light italic leading-snug text-on-surface italic">"The Lord is my shepherd; I shall not want. He makes me lie down in green pastures."</p>
+<div class="flex items-center gap-3">
+<div class="h-[1px] w-8 bg-outline-variant"></div>
+<span class="text-xs font-semibold tracking-widest uppercase text-on-surface-variant">Psalm 23:1-2</span>
+</div>
+</div>
+<div class="mt-10 flex gap-4">
+<button class="flex-1 bg-surface-container-high py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold tracking-widest uppercase text-on-surface transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="share">share</span> Share
+                    </button>
+<button class="flex-1 bg-primary-container/10 border border-primary-container/20 py-4 rounded-xl flex items-center justify-center gap-2 text-xs font-bold tracking-widest uppercase text-primary transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm" data-icon="bookmark">bookmark</span> Save
+                    </button>
+</div>
+</div>
+</section>
+<!-- Silent Sanctuary Section -->
+<section class="mt-16 px-6">
+<div class="flex items-end justify-between mb-8 px-2">
+<div class="space-y-2">
+<span class="text-[10px] font-bold tracking-[0.2em] text-primary uppercase">Guided Peace</span>
+<h3 class="text-3xl font-medium text-on-surface tracking-tight">Silent Sanctuary</h3>
+</div>
+<button class="text-primary text-xs font-bold tracking-widest uppercase mb-1">View All</button>
+</div>
+<div class="flex overflow-x-auto gap-6 pb-6 no-scrollbar snap-x px-2">
+<!-- Meditation Card 1 -->
+<div class="flex-shrink-0 w-72 snap-center">
+<div class="relative h-96 rounded-[2rem] overflow-hidden group">
+<img alt="Forest Mist" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Ethereal forest at dawn with thick morning mist swirling around ancient redwood trees and soft golden light filtering through leaves" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADUFErd86-LbitIaksmloGgU2MH-9hNaq9IjdMaof1kCtKClive4Czs9TFZVo8OolMmeJEpPntFcI6CO8OGXS2XtQahp_sBqOOTNOgHonC0HE1T34k852Pd9ZLkexdIq2IRRVSWVp5WDlgVjwuf0xz3k1zlVuCsdkaXKicI6K2bvAtJG7TBwHj3h8xXdphic6b7nvBLBCG41sSCQt8C11Xm2mMbxV2nBBkTBm3VccjcXFNGJEx0JH3vCo5znJ8Y8cLb4OF8e1pZ1wp"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full">
+<div class="glass-panel p-6 rounded-2xl border border-white/5 space-y-3">
+<span class="text-[10px] font-bold tracking-widest text-primary uppercase">12 Minutes</span>
+<h4 class="text-lg font-medium text-on-surface leading-tight">Breathing in the Word</h4>
+<div class="flex items-center justify-between pt-2">
+<span class="text-[10px] text-on-surface-variant uppercase font-medium">Restoration</span>
+<span class="material-symbols-outlined text-primary" data-icon="play_circle" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Meditation Card 2 -->
+<div class="flex-shrink-0 w-72 snap-center">
+<div class="relative h-96 rounded-[2rem] overflow-hidden group">
+<img alt="Calm Water" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" data-alt="Still blue lake water at twilight reflecting a single bright star with subtle circular ripples moving outward" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv6SlYByMszmZw-oGnZetSwHwdHcVe4eZ0GvhX8qIOjYL7OKe2tQAtXy-fwASSf9a-KW3Lj5gZs-bo5u6icsbwD5qFgt2i71QphtMup2XTfFH3ZpF5_rbVvsIoLkYb98P4Nkgk87nbG-kt8AhOOb0wRkXOfggeygPDc0oiaovlHjtagrmBWytiXnpk3AssFVSZUeouzkvfkI_typyt4A21gC21iGYZNHSTX0qgpWtMSeJdB7uR9uCOJgBTHhhtzXCK-6PAtgI5uDgm"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full">
+<div class="glass-panel p-6 rounded-2xl border border-white/5 space-y-3">
+<span class="text-[10px] font-bold tracking-widest text-primary uppercase">8 Minutes</span>
+<h4 class="text-lg font-medium text-on-surface leading-tight">Still Waters Flow</h4>
+<div class="flex items-center justify-between pt-2">
+<span class="text-[10px] text-on-surface-variant uppercase font-medium">Clarity</span>
+<span class="material-symbols-outlined text-primary" data-icon="play_circle" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Community CTA Section -->
+<section class="mt-12 px-6">
+<div class="relative rounded-[2.5rem] bg-surface-container-high overflow-hidden p-10">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+<div class="relative z-10 text-center space-y-6">
+<span class="material-symbols-outlined text-primary text-5xl" data-icon="groups">groups</span>
+<h3 class="text-3xl font-medium text-on-surface tracking-tight">Join the <span class="text-primary">Community</span></h3>
+<p class="text-on-surface-variant text-base leading-relaxed">Walk together with thousands of believers worldwide. Share prayers, notes, and strength.</p>
+<div class="pt-4">
+<button class="w-full bg-on-surface text-surface-container-lowest py-5 rounded-2xl font-bold tracking-[0.1em] uppercase shadow-lg active:scale-95 transition-all">
+                            Connect Now
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Reflection Bento Grid -->
+<section class="mt-20 px-6">
+<div class="space-y-4 mb-8">
+<span class="text-[10px] font-bold tracking-[0.2em] text-primary uppercase">Curated Collections</span>
+<h3 class="text-3xl font-medium text-on-surface tracking-tight">Focus Your Spirit</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="col-span-2 relative h-48 rounded-3xl overflow-hidden">
+<img alt="Morning Prayer" class="w-full h-full object-cover opacity-70" data-alt="Warm sunlight spilling across an open Bible on a wooden table with a steaming cup of coffee in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2Yv7rocLDg7w0jOB6H6Xk9QEDYJ57eLUg7UcI2R8tnmKSFd2YuH9R3-floxMx83gdZ4yaQpOYv24PvmRM0iENcQFQtLYK0tgI_BhfKNI1d-ILYLYpPmSf5BprxU5E4l2ILeTnWP6NATWwLjXfLrJfssH7RKexWVfgr1LxXHojKYHuNdnURe8rzEgpacmJ4ThpON9D0Xlf_9nHEJDaAX16TfykPPGBJdyHmreeDYOiWNnI_RIRFWF_rSR5caUjVDE8kgwvgR7p2Hve"/>
+<div class="absolute inset-0 bg-black/40"></div>
+<div class="absolute inset-0 p-6 flex flex-col justify-end">
+<h4 class="text-xl font-bold text-white">Morning Gratitude</h4>
+</div>
+</div>
+<div class="h-48 bg-surface-container rounded-3xl p-6 flex flex-col justify-between">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="favorite">favorite</span>
+<h4 class="text-sm font-semibold tracking-wide text-on-surface leading-tight uppercase">Love &amp; Grace</h4>
+</div>
+<div class="h-48 bg-primary-container rounded-3xl p-6 flex flex-col justify-between">
+<span class="material-symbols-outlined text-on-primary text-3xl" data-icon="bolt">bolt</span>
+<h4 class="text-sm font-semibold tracking-wide text-on-primary leading-tight uppercase">Inner Strength</h4>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 bg-[#101319]/60 backdrop-blur-xl rounded-t-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.4)] flex justify-around items-center px-4 pb-6 pt-3">
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</div>
+</nav>
+</body></html>

@@ -76,8 +76,8 @@ export function SharedNoteComments({ noteId }: SharedNoteCommentsProps) {
   };
 
   return (
-    <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-      <div className="page-header" style={{ gap: '0.35rem' }}>
+    <section className="panel note-section-panel">
+      <div className="page-header note-hero-block" style={{ gap: '0.35rem' }}>
         <span className="eyebrow">Shared note comments</span>
         <strong style={{ fontSize: '1.1rem' }}>{commentCountLabel}</strong>
       </div>
@@ -90,9 +90,9 @@ export function SharedNoteComments({ noteId }: SharedNoteCommentsProps) {
           <span style={{ color: 'var(--muted)' }}>Fetching the current shared-note discussion.</span>
         </section>
       ) : comments.length > 0 ? (
-        <div style={{ display: 'grid', gap: '0.75rem' }}>
+        <div className="conversation-card-grid">
           {comments.map((comment) => (
-            <article className="status-card" key={comment.id} style={{ padding: '1rem', display: 'grid', gap: '0.45rem' }}>
+            <article className="status-card" key={comment.id} style={{ padding: '1.1rem', display: 'grid', gap: '0.6rem' }}>
               <span style={{ color: 'var(--text)', lineHeight: 1.6 }}>{comment.body}</span>
               <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
                 {comment.user_id === viewerId ? 'You' : `Member ${comment.user_id.slice(0, 8)}`} • {new Date(comment.created_at).toLocaleString('en-GB')}
@@ -128,7 +128,7 @@ export function SharedNoteComments({ noteId }: SharedNoteCommentsProps) {
 
 const fieldStyle: React.CSSProperties = {
   display: 'grid',
-  gap: '0.45rem',
+  gap: '0.5rem',
 };
 
 const labelTextStyle: React.CSSProperties = {
@@ -138,7 +138,6 @@ const labelTextStyle: React.CSSProperties = {
 const textareaStyle: React.CSSProperties = {
   minHeight: 110,
   borderRadius: 18,
-  border: '1px solid var(--line)',
   padding: '1rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',

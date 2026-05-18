@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GospelPad - Shared Reflection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "on-primary-container": "#59400d",
+                  "surface-container-highest": "#32353b",
+                  "secondary-fixed-dim": "#c3c7cc",
+                  "tertiary-fixed": "#e3e2e2",
+                  "background": "#101319",
+                  "primary-container": "#d1ac70",
+                  "outline": "#9a8f81",
+                  "surface": "#101319",
+                  "secondary-fixed": "#e0e3e9",
+                  "secondary": "#c3c7cc",
+                  "on-error-container": "#ffdad6",
+                  "surface-variant": "#32353b",
+                  "on-primary": "#422c00",
+                  "inverse-surface": "#e1e2ea",
+                  "on-primary-fixed-variant": "#5c4210",
+                  "error": "#ffb4ab",
+                  "on-tertiary-container": "#434444",
+                  "surface-container-lowest": "#0b0e14",
+                  "on-error": "#690005",
+                  "inverse-on-surface": "#2d3037",
+                  "primary-fixed-dim": "#e7c183",
+                  "on-secondary-fixed": "#181c20",
+                  "secondary-container": "#43474c",
+                  "tertiary-container": "#b2b1b1",
+                  "outline-variant": "#4e463a",
+                  "on-surface": "#e1e2ea",
+                  "surface-container-high": "#272a30",
+                  "on-background": "#e1e2ea",
+                  "tertiary-fixed-dim": "#c7c6c6",
+                  "primary": "#eec789",
+                  "surface-dim": "#101319",
+                  "on-tertiary": "#303031",
+                  "surface-container-low": "#191c22",
+                  "primary-fixed": "#ffdeab",
+                  "on-surface-variant": "#d1c5b5",
+                  "on-secondary-container": "#b2b5bb",
+                  "surface-bright": "#363940",
+                  "inverse-primary": "#775926",
+                  "error-container": "#93000a",
+                  "surface-container": "#1d2026",
+                  "on-secondary": "#2d3135",
+                  "on-tertiary-fixed-variant": "#464747",
+                  "on-tertiary-fixed": "#1b1c1c",
+                  "on-primary-fixed": "#281900",
+                  "on-secondary-fixed-variant": "#43474c",
+                  "surface-tint": "#e7c183",
+                  "tertiary": "#cecccc"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "fontFamily": {
+                  "headline": ["Poppins", "sans-serif"],
+                  "body": ["Poppins", "sans-serif"],
+                  "label": ["Poppins", "sans-serif"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      font-size: 20px;
+    }
+    body { font-family: 'Poppins', sans-serif; }
+    .glass-effect {
+      background: rgba(16, 19, 25, 0.6);
+      backdrop-filter: blur(24px);
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #272a30; border-radius: 10px; }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface selection:bg-primary-container selection:text-on-primary">
+<!-- Top Navigation Shell -->
+<header class="w-full top-0 sticky z-40 bg-[#101319] flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#DCDFE5] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<h1 class="text-[#D1AC70] font-['Plus_Jakarta_Sans'] tracking-wide text-lg font-semibold tracking-[0.2em] uppercase">GospelPad</h1>
+<span class="text-[10px] text-outline tracking-widest uppercase">Shared Note</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-full border border-outline-variant/30 overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="portrait of a calm man in a linen shirt looking thoughtful with soft natural window light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjlg-rv0IdyDhEqRIDBFY2bgm3uUV1NcOFSzVQXKTQ39L4ilvAmXRSxBxW9TTWJY0Zyx-ZqdLjp6aBdZ898p8QY454gk3TMlBwSwAcHwWllYvzTPeQJnBHUbTldocEt2gps5N1Xw-fhVWUv3Gc0Wwz3nS0HtnFlBJB4Zj8MIz_d3XesCeLjykS298VUxfa4IQAe9ZaKS2qrS-UzT5fdnbBE3w2LBPWdhSnmawjXct4GQbOMb864JOQwMDS_kpdoPXGj_63JPI_hjom"/>
+</button>
+<span class="material-symbols-outlined text-[#D1AC70]">more_vert</span>
+</div>
+</header>
+<main class="min-h-screen pb-32">
+<!-- Original Note Context -->
+<section class="px-6 py-8">
+<div class="mb-2">
+<span class="bg-primary-container/10 text-primary px-3 py-1 rounded-full text-[10px] font-medium tracking-widest uppercase tracking-[0.1em]">Ecclesiastes 3:1</span>
+</div>
+<h2 class="text-3xl font-semibold leading-tight text-on-surface mb-6 tracking-tight">To every thing there is a season, and a time to every purpose under the heaven.</h2>
+<div class="flex items-center gap-3 mb-8 p-4 bg-surface-container-low rounded-xl">
+<div class="w-10 h-10 rounded-full bg-secondary-container/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">description</span>
+</div>
+<div>
+<p class="text-sm text-on-surface font-medium">Initial Reflection</p>
+<p class="text-xs text-outline italic">Shared by Sarah Miller • 2 hours ago</p>
+</div>
+</div>
+<div class="space-y-6">
+<p class="text-on-surface-variant leading-relaxed text-lg">
+          I've been thinking about how this relates to our current project transition. The 'season' of planning is closing, and the 'season' of execution is arriving. It feels both daunting and sacred.
+        </p>
+</div>
+</section>
+<!-- Discussion Thread -->
+<section class="px-6 space-y-8">
+<div class="flex items-center gap-4">
+<div class="h-[1px] flex-grow bg-outline-variant/20"></div>
+<span class="text-[10px] text-outline uppercase tracking-[0.2em] font-medium">Dialogue</span>
+<div class="h-[1px] flex-grow bg-outline-variant/20"></div>
+</div>
+<!-- Comment 1 -->
+<div class="flex gap-4">
+<div class="flex-shrink-0">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-primary/20">
+<img alt="John" class="w-full h-full object-cover" data-alt="close-up portrait of a kind middle-aged woman with glasses and silver hair in a soft focus library setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAmWfHBWvdGmoDSDpUEHOo0S5ePz_v6becZCxR8XlqaMV68jC8NDOT__S8LmQ-NB1ZlznRH0W2EymuXPthV1-J8di3VcgEgAapHnXa6evxYbz5ZDXhqa8MwvfluyE_wSlwO9mp8gGRmGdT_6ZEP9M-0IsJbXHib5m-Aq3gS0B0swHM27ukJAha7mGfHMV90CfaHpQIM8PKjQEWx_XGz8fF-r6pi_DUW1C0qZmNM87czZ7ZPsgDMVasQy9tRI5KWsf70E_PJFUsBPwp"/>
+</div>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex justify-between items-center">
+<span class="text-sm font-semibold text-primary">Marcus Thorne</span>
+<span class="text-[10px] text-outline">1h ago</span>
+</div>
+<div class="p-4 bg-surface-container-low rounded-2xl rounded-tl-none relative">
+<p class="text-on-surface text-[15px] leading-relaxed">
+              That's a beautiful way to frame it. I often struggle with the "in-between" times. The space between the seasons feels like a desert sometimes.
+            </p>
+<div class="mt-3 flex gap-4">
+<button class="flex items-center gap-1 text-[10px] text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined !text-[14px]">favorite</span> 12
+              </button>
+<button class="flex items-center gap-1 text-[10px] text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined !text-[14px]">reply</span> Reply
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Comment 2 (Nested/Reply) -->
+<div class="flex gap-4 ml-8">
+<div class="flex-shrink-0">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Sarah" class="w-full h-full object-cover" data-alt="smiling young woman with braided hair wearing a knit sweater in soft warm lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsDe6E7-LNSr9sM4r7F8z_mR1ZeWpzIZXEWUGAJCOCbfsx00Q6oPwavPUPQFMKEwnrDNSVV_E-yQemLB-0arKt4plfUo2c1GwuRH42Gr2JOK1qWuJmPNOce06pj-DZdqnOz7AmilX2zEUCWSYiOiv_XN0ogYd2JiOiwDJEpIAwRpdIs4iCDebAoIEt8IyTuFTzEy52mncpYKKwYifRmvpWjmfu4gQsQHKJwUvl23dyIXcfhK9tT6FdHluYHZB4exR0aO2uJ77M_PbW"/>
+</div>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex justify-between items-center">
+<span class="text-xs font-semibold text-secondary-fixed">Sarah Miller</span>
+<span class="text-[10px] text-outline">45m ago</span>
+</div>
+<div class="p-4 bg-surface-container-high/40 rounded-2xl rounded-tl-none border-l-2 border-primary/30">
+<p class="text-on-surface-variant text-[14px] leading-relaxed">
+              The "desert" is where the deep roots grow, Marcus. Maybe that's the "purpose under heaven" for that specific moment.
+            </p>
+<div class="mt-3 flex gap-4">
+<button class="flex items-center gap-1 text-[10px] text-primary">
+<span class="material-symbols-outlined !text-[14px]" style="font-variation-settings: 'FILL' 1;">favorite</span> 4
+              </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Comment 3 -->
+<div class="flex gap-4">
+<div class="flex-shrink-0">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="Elena" class="w-full h-full object-cover" data-alt="man in his 30s with a short beard and peaceful expression outdoors in a mountain landscape" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAW1Ba9JqOQOYFvuphR2fm5h9VpAAjpvVpRyQmpeic94-k6PfddOrG3R8Wt7UHaBF5jeCARJkZdaxVdhsN5-qOyrKIYgteqNQs439h1SSQiq7HSF4XI1kzpogsv93s-yznLOexxzQ_lGI0LpbUB7BMqJjulkxKvFCQjOUBzaMELcoHlmr2DNIP9riWS4amjuTv_27yMroCHmabjqXFWelU4pZHS_dkLeIXqqARexcmj4hNHMsxmCOb9s2VOPQargbih3EgVxVF42luA"/>
+</div>
+</div>
+<div class="flex-grow space-y-2">
+<div class="flex justify-between items-center">
+<span class="text-sm font-semibold text-secondary-fixed">James Wu</span>
+<span class="text-[10px] text-outline">12m ago</span>
+</div>
+<div class="p-4 bg-surface-container-low rounded-2xl rounded-tl-none">
+<p class="text-on-surface text-[15px] leading-relaxed">
+              I'm taking this into my morning prayer tomorrow. "A time to keep silence, and a time to speak." (v. 7). I think I need more silence this week.
+            </p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Reflection Composer -->
+<div class="fixed bottom-24 left-0 w-full px-4 z-50">
+<div class="glass-effect rounded-3xl p-2 border border-outline-variant/10 shadow-2xl">
+<div class="flex items-end gap-2">
+<div class="flex-grow bg-surface-container-high/40 rounded-2xl p-3">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-sm text-on-surface placeholder:text-on-surface-variant/50 resize-none min-h-[44px] max-h-32 custom-scrollbar" placeholder="Add to the reflection..."></textarea>
+<div class="flex justify-between items-center mt-2 px-1">
+<div class="flex gap-2">
+<button class="p-1.5 hover:bg-surface-bright rounded-lg transition-colors">
+<span class="material-symbols-outlined text-outline">format_quote</span>
+</button>
+<button class="p-1.5 hover:bg-surface-bright rounded-lg transition-colors">
+<span class="material-symbols-outlined text-outline">attachment</span>
+</button>
+</div>
+<button class="bg-primary-container text-on-primary px-4 py-1.5 rounded-xl text-xs font-bold tracking-wider hover:opacity-90 transition-all flex items-center gap-2">
+              POST <span class="material-symbols-outlined !text-[16px]">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 w-full z-50 bg-[#101319]/60 backdrop-blur-xl rounded-t-[1.5rem] flex justify-around items-center px-4 pb-6 pt-3 shadow-[0_-8px_40px_rgba(0,0,0,0.4)]">
+<a class="flex flex-col items-center justify-center text-[#D1AC70] space-y-1 bg-[#D1AC70]/10 rounded-xl px-4 py-2 hover:text-[#D1AC70] transition-all duration-500" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</a>
+</nav>
+</body></html>

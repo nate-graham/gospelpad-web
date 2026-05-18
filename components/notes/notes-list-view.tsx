@@ -9,12 +9,13 @@ import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 import type { ScriptureResult } from '@/lib/scripture';
-import { InfoHint } from '@/components/feedback/info-hint';
+import { useSupabaseAuth } from '@/components/providers/supabase-auth-provider';
 
 export function NotesListView() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { user } = useSupabaseAuth();
   const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [receivedSharedNotes, setReceivedSharedNotes] = useState<ReceivedSharedNoteSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +26,13 @@ export function NotesListView() {
   const [deletingSelected, setDeletingSelected] = useState(false);
   const [inlineNotice, setInlineNotice] = useState<string | null>(null);
   const [coarsePointer, setCoarsePointer] = useState(false);
+
+  const headerName =
+    (typeof user?.user_metadata?.username === 'string' && user.user_metadata.username.trim()) ||
+    (typeof user?.user_metadata?.display_name === 'string' && user.user_metadata.display_name.trim()) ||
+    (typeof user?.user_metadata?.name === 'string' && user.user_metadata.name.trim()) ||
+    user?.email?.split('@')[0] ||
+    'Account';
 
   const query = useMemo<NoteListQuery>(
     () => ({
@@ -184,204 +192,45 @@ export function NotesListView() {
   };
 
   return (
-    <div className="page-section">
-      <header
-        className="page-header"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '1rem',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
+    <div className="page-container page-section notes-list-page" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <header 
+        className="note-list-hero" 
+        style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '0.25rem',
+          gap: '2rem'
         }}
       >
-        <div className="page-header">
-          <span className="eyebrow">Notes</span>
-          <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <h1 style={{ margin: 0 }}>Your notes</h1>
-            <InfoHint
-              label="About notes"
-              text="Capture, organize, dictate, share, and revisit your notes across phone, tablet, and desktop."
-            />
-          </div>
+        <div className="note-list-title" style={{ letterSpacing: '-0.02em' }}>
+          <span className="eyebrow" style={{ color: 'var(--tertiary)', letterSpacing: '0.05em', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0', display: 'block', opacity: 0.7, textTransform: 'none' }}>{headerName}</span>
+          <h1 style={{ margin: 0, fontSize: '4.2rem', fontWeight: 500, letterSpacing: '-0.05em', color: 'var(--secondary)', lineHeight: 1 }}>Your notes</h1>
         </div>
-        <div className="cta-row">
-          <button className="button button-secondary" onClick={toggleSelectionMode} type="button">
-            {selectionMode ? 'Cancel select' : 'Select'}
+        <div className="cta-row notes-list-actions" style={{ flexShrink: 0, gap: '1.25rem', alignItems: 'center' }}>
+          <button className="button button-secondary" onClick={toggleSelectionMode} type="button" style={{ borderRadius: '24px', padding: '0.4rem 1rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', fontSize: '0.8rem', opacity: 0.8 }}>
+            {selectionMode ? 'Cancel' : 'Select'}
           </button>
           {selectionMode ? (
             <button
-              className="button button-ghost"
+              className="button button-primary"
               disabled={selectedNoteIds.length === 0 || deletingSelected}
               onClick={requestDeleteSelected}
-              type="button"
+              type="button" style={{ borderRadius: '24px', padding: '0.4rem 1.25rem' }}
             >
               {deletingSelected ? 'Deleting…' : selectedNoteIds.length > 0 ? `Delete selected (${selectedNoteIds.length})` : 'Delete selected'}
             </button>
           ) : null}
-          <Link className="button button-secondary" href="/notes/dictate">
-            Dictate note
+          <Link className="button" href="/notes/dictate" style={{ borderRadius: '24px', padding: '0.4rem 1.25rem', background: '#1A1D26', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--tertiary)', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', fontWeight: 500 }}>
+            <span style={{ fontSize: '1rem', opacity: 0.6 }}>🎙</span> Dictate note
           </Link>
-          <Link className="button button-primary" href="/notes/new">
-            New note
+          <Link className="button button-primary" href="/notes/new" style={{ borderRadius: '24px', padding: '0.4rem 1.4rem', background: '#D1AC70', color: '#101319', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.8rem' }}>
+            <span style={{ fontSize: '1.3rem', fontWeight: 300, marginTop: '-1px' }}>+</span> New note
           </Link>
         </div>
       </header>
 
       {successMessage ? <div className="empty-state status-message" role="status" aria-live="polite">{successMessage}</div> : null}
-
-      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
-        <summary style={summaryStyle}>
-          <span>Overview</span>
-          <span style={summaryMetaStyle}>
-            {noteCountLabel} • {receivedSharedNotes.length} shared • Scripture-aware editor
-          </span>
-        </summary>
-        <section className="responsive-grid compact" style={{ marginTop: '0.85rem' }}>
-          <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
-            <span className="eyebrow">Library</span>
-            <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <strong style={{ fontSize: '1.5rem' }}>{noteCountLabel}</strong>
-              <InfoHint
-                label="About library"
-                text={
-                  activeFilterCount > 0
-                    ? `${activeFilterCount} active discovery filter${activeFilterCount === 1 ? '' : 's'}.`
-                    : 'Everything you have saved is ready to browse here.'
-                }
-              />
-            </div>
-          </article>
-          <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
-            <span className="eyebrow">Shared with you</span>
-            <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <strong style={{ fontSize: '1.5rem' }}>
-                {receivedSharedNotes.length} {receivedSharedNotes.length === 1 ? 'note' : 'notes'}
-              </strong>
-              <InfoHint
-                label="About shared notes"
-                text="Notes other people share with you will appear here."
-              />
-            </div>
-          </article>
-          <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.35rem' }}>
-            <span className="eyebrow">Writing tools</span>
-            <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <strong style={{ fontSize: '1.5rem' }}>Scripture-aware editor</strong>
-              <InfoHint
-                label="About writing tools"
-                text="Write by typing or dictation, add scripture references, and keep note details together in one place."
-              />
-            </div>
-          </article>
-        </section>
-      </details>
-
-      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
-        <summary style={summaryStyle}>
-          <span>Discovery</span>
-          <span style={summaryMetaStyle}>
-            {activeFilterCount > 0 ? `${activeFilterCount} active filter${activeFilterCount === 1 ? '' : 's'}` : 'Search, filter, and sort'}
-          </span>
-        </summary>
-        <section style={{ marginTop: '0.85rem', display: 'grid', gap: '1rem' }}>
-          <div style={{ display: 'grid', gap: '0.35rem' }}>
-            <span className="eyebrow">Discovery</span>
-            <strong style={{ fontSize: '1.1rem' }}>Search, filter, and sort your notes</strong>
-          </div>
-
-          <div
-            style={{
-              display: 'grid',
-              gap: '0.85rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-            }}
-          >
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Search</span>
-              <input
-                onChange={(event) => updateQuery({ search: event.target.value })}
-                placeholder="Search title, speaker, or note body"
-                style={inputStyle}
-                value={query.search ?? ''}
-              />
-            </label>
-
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Type</span>
-              <select
-                onChange={(event) => updateQuery({ type: event.target.value as NoteListQuery['type'] })}
-                style={inputStyle}
-                value={query.type ?? 'all'}
-              >
-                <option value="all">All note types</option>
-                {NOTE_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Status</span>
-              <select
-                onChange={(event) => updateQuery({ status: event.target.value as NoteListQuery['status'] })}
-                style={inputStyle}
-                value={query.status ?? 'all'}
-              >
-                <option value="all">Any status</option>
-                <option value="with-status">Has status</option>
-                <option value="no-status">No status</option>
-              </select>
-            </label>
-
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Scope</span>
-              <select
-                onChange={(event) => updateQuery({ scope: event.target.value as NoteListQuery['scope'] })}
-                style={inputStyle}
-                value={query.scope ?? 'personal'}
-              >
-                <option value="personal">Personal notes</option>
-                <option value="all">All available notes</option>
-                <option value="group">Group-linked notes</option>
-              </select>
-            </label>
-
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Sort</span>
-              <select
-                onChange={(event) => updateQuery({ sort: event.target.value as NoteListQuery['sort'] })}
-                style={inputStyle}
-                value={query.sort ?? 'updated-desc'}
-              >
-                <option value="updated-desc">Recently updated</option>
-                <option value="updated-asc">Oldest updated</option>
-                <option value="created-desc">Recently created</option>
-                <option value="created-asc">Oldest created</option>
-                <option value="title-asc">Title A-Z</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="cta-row">
-            <button className="button button-secondary" onClick={resetFilters} type="button">
-              Reset filters
-            </button>
-          </div>
-        </section>
-      </details>
-
-      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
-        <summary style={summaryStyle}>
-          <span>Scripture search</span>
-          <span style={summaryMetaStyle}>Reference, phrase, or keyword</span>
-        </summary>
-        <div style={{ marginTop: '0.85rem' }}>
-          <ScriptureSearchPanel compact onCreateNote={createScriptureNote} />
-        </div>
-      </details>
 
       {loading ? (
         <section className="loading-state status-message" role="status" aria-live="polite">
@@ -422,179 +271,292 @@ export function NotesListView() {
         </section>
       ) : null}
 
-      {!loading && !error && notes.length > 0 ? (
-        <section className="responsive-grid">
-          {notes.map((note) => (
-            <article
-              key={note.id}
-              className="panel"
-              onClick={() => {
-                if (selectionMode) {
-                  toggleSelectedNote(note.id);
-                  return;
-                }
-                if (coarsePointer) {
-                  return;
-                }
-                router.push(`/notes/${note.id}`);
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                  event.preventDefault();
-                  if (selectionMode) {
-                    toggleSelectedNote(note.id);
-                    return;
-                  }
-                  router.push(`/notes/${note.id}`);
-                }
-              }}
-              role={coarsePointer && !selectionMode ? undefined : 'button'}
-              aria-pressed={selectionMode ? selectedNoteIds.includes(note.id) : undefined}
-              tabIndex={coarsePointer && !selectionMode ? -1 : 0}
-              style={{
-                padding: '1rem',
-                display: 'grid',
-                gap: '0.85rem',
-                alignContent: 'start',
-                cursor: selectionMode || coarsePointer ? 'default' : 'pointer',
-                outline: selectionMode && selectedNoteIds.includes(note.id) ? '2px solid var(--accent)' : undefined,
-                background: selectionMode && selectedNoteIds.includes(note.id)
-                  ? 'color-mix(in srgb, var(--field-bg) 72%, var(--accent-soft) 28%)'
-                  : undefined,
+      {!loading && !error ? (
+        <div className="note-library-layout" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '1rem', alignItems: 'start' }}>
+          <aside className="note-library-rail" style={{ display: 'grid', gap: '1rem' }}>
+            <section style={panelCardStyle}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                <span className="eyebrow" style={{ color: '#D1AC70', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em' }}>OVERVIEW</span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--tertiary)', transform: 'rotate(180deg)' }}>▼</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'baseline' }}>
+                <span style={{ color: 'var(--tertiary)', fontSize: '0.9rem', opacity: 0.8 }}>Total Reflections</span>
+                <strong style={{ fontSize: '2rem', fontWeight: 400, color: 'var(--secondary)', letterSpacing: '-0.02em' }}>{notes.length}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2.2rem', alignItems: 'baseline' }}>
+                <span style={{ color: 'var(--tertiary)', fontSize: '0.9rem', opacity: 0.8 }}>Recent Activity</span>
+                <strong style={{ fontSize: '0.92rem', fontWeight: 500, color: '#D1AC70' }}>2 hours ago</strong>
+              </div>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.5rem' }}>
+                <p style={{ color: 'var(--tertiary)', fontStyle: 'italic', fontSize: '0.92rem', lineHeight: 1.9, margin: 0, opacity: 0.6 }}>
+                  "The heart of the discerning acquires knowledge, for the ears of the wise seek it out."
+                </p>
+              </div>
+            </section>
+
+            <details style={panelCardStyle}>
+              <summary style={panelSummaryStyle}>
+                <span className="eyebrow" style={{ color: 'var(--secondary)', fontSize: '0.75rem', letterSpacing: '0.1em' }}>DISCOVERY</span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--tertiary)' }}>▼</span>
+              </summary>
+              <div style={{ display: 'grid', gap: '1.5rem', paddingTop: '1.5rem' }}>
+                <label style={fieldStyle}>
+                  <span className="eyebrow" style={labelTextStyle}>Search</span>
+                  <input
+                    onChange={(e) => updateQuery({ search: e.target.value })}
+                    placeholder="Search title, speaker, or body..."
+                    style={inputStyle}
+                    value={query.search ?? ''}
+                  />
+                </label>
+
+                <label style={fieldStyle}>
+                  <span className="eyebrow" style={labelTextStyle}>Type</span>
+                  <select
+                    onChange={(event) => updateQuery({ type: event.target.value as NoteListQuery['type'] })}
+                    style={inputStyle}
+                    value={query.type ?? 'all'}
+                  >
+                    <option value="all">All note types</option>
+                    {NOTE_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label style={fieldStyle}>
+                  <span className="eyebrow" style={labelTextStyle}>Status</span>
+                  <select
+                    onChange={(event) => updateQuery({ status: event.target.value as NoteListQuery['status'] })}
+                    style={inputStyle}
+                    value={query.status ?? 'all'}
+                  >
+                    <option value="all">Any status</option>
+                    <option value="with-status">Has status</option>
+                    <option value="no-status">No status</option>
+                  </select>
+                </label>
+
+                <label style={fieldStyle}>
+                  <span className="eyebrow" style={labelTextStyle}>Scope</span>
+                  <select
+                    onChange={(event) => updateQuery({ scope: event.target.value as NoteListQuery['scope'] })}
+                    style={inputStyle}
+                    value={query.scope ?? 'personal'}
+                  >
+                    <option value="personal">Personal notes</option>
+                    <option value="all">All available notes</option>
+                    <option value="group">Group-linked notes</option>
+                  </select>
+                </label>
+
+                <label style={fieldStyle}>
+                  <span className="eyebrow" style={labelTextStyle}>Sort</span>
+                  <select
+                    onChange={(event) => updateQuery({ sort: event.target.value as NoteListQuery['sort'] })}
+                    style={inputStyle}
+                    value={query.sort ?? 'updated-desc'}
+                  >
+                    <option value="updated-desc">Recently updated</option>
+                    <option value="updated-asc">Oldest updated</option>
+                    <option value="created-desc">Recently created</option>
+                    <option value="created-asc">Oldest created</option>
+                    <option value="title-asc">Title A-Z</option>
+                  </select>
+                </label>
+              </div>
+              <div className="cta-row">
+                <button className="button button-secondary" onClick={resetFilters} type="button">
+                  Reset filters
+                </button>
+              </div>
+            </details>
+
+            <details style={panelCardStyle}>
+              <summary style={panelSummaryStyle}>
+                <span className="eyebrow" style={{ color: 'var(--secondary)', fontSize: '0.75rem', letterSpacing: '0.1em' }}>SCRIPTURE SEARCH</span>
+                <span style={{ fontSize: '0.6rem', color: 'var(--tertiary)' }}>▼</span>
+              </summary>
+              <div style={{ paddingTop: '1.5rem' }}>
+                <ScriptureSearchPanel compact onCreateNote={createScriptureNote} />
+              </div>
+            </details>
+          </aside>
+
+          <div className="note-library-main">
+            <nav 
+              className="tab-bar" 
+              style={{ 
+                position: 'relative',
+                display: 'flex', 
+                gap: '3.5rem', 
+                justifyContent: 'center',
+                marginBottom: '0.5rem', 
+                borderBottom: '1px solid var(--border-soft)' 
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'start' }}>
-                <div style={{ display: 'grid', gap: '0.35rem' }}>
-                  <span className="badge">{note.type ?? 'Note'}</span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center' }}>
-                    {note.type === 'Prayer Requests' && note.status ? (
-                      <span style={{ color: 'var(--muted)', fontSize: '0.86rem' }}>Prayer status: {note.status}</span>
-                    ) : null}
-                    {note.type === 'Dream' ? (
-                      <span style={{ color: 'var(--muted)', fontSize: '0.86rem' }}>
-                        {note.is_lucid_dream ? 'Lucid' : 'Not lucid'}
-                      </span>
-                    ) : null}
-                    {note.shared ? (
-                      <span style={{ color: 'var(--muted)', fontSize: '0.86rem' }}>Shared</span>
-                    ) : null}
-                  </div>
-                  <strong style={{ fontSize: '1.1rem', lineHeight: 1.3 }}>
-                    {note.title?.trim() || 'Untitled'}
-                  </strong>
-                </div>
-                <div style={{ display: 'grid', gap: '0.45rem', justifyItems: 'end' }}>
-                  <span style={{ color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'right' }}>
-                    {formatNoteDate(note.updated_at)}
-                  </span>
-                  {selectionMode ? (
-                    <label style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', color: 'var(--muted)', fontSize: '0.85rem' }}>
-                      <input
-                        checked={selectedNoteIds.includes(note.id)}
-                        onClick={(event) => event.stopPropagation()}
-                        onChange={() => toggleSelectedNote(note.id)}
-                        type="checkbox"
-                      />
-                      {selectedNoteIds.includes(note.id) ? 'Selected' : 'Select'}
-                    </label>
-                  ) : null}
-                </div>
-              </div>
-              <span
-                style={{
-                  color: 'var(--muted)',
-                  lineHeight: 1.6,
-                  overflowWrap: 'anywhere',
-                  wordBreak: 'break-word',
-                  display: '-webkit-box',
-                  WebkitBoxOrient: 'vertical',
-                  WebkitLineClamp: 4,
-                  overflow: 'hidden',
+              <button 
+                className="tab-item" 
+                onClick={() => resetFilters()}
+                style={{ 
+                  position: 'relative',
+                  background: 'none', 
+                  border: 'none', 
+                  padding: '1.2rem 0', 
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  color: activeFilterCount === 0 ? 'var(--secondary)' : 'var(--tertiary)',
+                  fontWeight: activeFilterCount === 0 ? 500 : 400,
+                  opacity: activeFilterCount === 0 ? 1 : 0.4
                 }}
               >
-                {getNoteExcerpt(note)}
-              </span>
-              {note.speaker ? (
-                <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>Speaker: {note.speaker}</span>
-              ) : null}
-              <div className="cta-row">
-                <Link className="button button-primary" href={`/notes/${note.id}/edit`} onClick={(event) => event.stopPropagation()}>
-                  Open
-                </Link>
-                <Link className="button button-secondary" href={`/notes/${note.id}`} onClick={(event) => event.stopPropagation()}>
-                  View
-                </Link>
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : null}
+                All Notes
+                {activeFilterCount === 0 && (
+                  <div style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: '20px', height: '2px', background: '#D1AC70' }} />
+                )}
+              </button>
+              <button 
+                className="tab-item" 
+                disabled
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  padding: '1.2rem 0', 
+                  cursor: 'not-allowed',
+                  fontSize: '0.95rem',
+                  color: 'var(--tertiary)',
+                  opacity: 0.3
+                }}
+              >
+                Favorites
+              </button>
+              <button 
+                className="tab-item" 
+                onClick={() => updateQuery({ sort: 'updated-desc' })}
+                style={{ 
+                  position: 'relative',
+                  background: 'none', 
+                  border: 'none', 
+                  padding: '1.2rem 0', 
+                  cursor: 'pointer',
+                  fontSize: '0.95rem',
+                  color: query.sort === 'updated-desc' && activeFilterCount > 0 ? 'var(--secondary)' : 'var(--tertiary)',
+                  fontWeight: query.sort === 'updated-desc' && activeFilterCount > 0 ? 500 : 400,
+                  opacity: query.sort === 'updated-desc' && activeFilterCount > 0 ? 1 : 0.4
+                }}
+              >
+                Recent
+                {query.sort === 'updated-desc' && activeFilterCount > 0 && (
+                  <div style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: '20px', height: '2px', background: '#D1AC70' }} />
+                )}
+              </button>
+              <button 
+                style={{ 
+                  position: 'absolute',
+                  right: 0,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none', 
+                  border: 'none', 
+                  color: 'var(--tertiary)', 
+                  fontSize: '1.2rem', 
+                  cursor: 'pointer', 
+                  padding: 0, 
+                  opacity: 0.5 
+                }}
+              >
+                ⊞
+              </button>
+            </nav>
 
-      {!loading && !error ? (
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-          <div style={{ display: 'grid', gap: '0.35rem' }}>
-            <span className="eyebrow">Shared with you</span>
-            <strong style={{ fontSize: '1.1rem' }}>Notes other people shared directly with your account</strong>
-          </div>
-
-          {receivedSharedNotes.length === 0 ? (
-            <section className="empty-state status-message" role="status">
-              <strong>No direct shares yet</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                When another user shares a note directly with you, it will appear here.
-              </span>
-            </section>
-          ) : (
-            <section className="responsive-grid">
-              {receivedSharedNotes.map((share) => (
-                <article
-                  key={share.note.id}
-                  className="panel"
-                  style={{
-                    padding: '1rem',
-                    display: 'grid',
-                    gap: '0.85rem',
-                    alignContent: 'start',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'start' }}>
-                    <div style={{ display: 'grid', gap: '0.35rem' }}>
-                      <span className="badge">{share.note.type ?? 'Shared note'}</span>
-                      <strong style={{ fontSize: '1.1rem', lineHeight: 1.3 }}>
-                        {share.note.title?.trim() || 'Untitled'}
-                      </strong>
-                    </div>
-                    <span style={{ color: 'var(--muted)', fontSize: '0.85rem', textAlign: 'right' }}>
-                      {formatNoteDate(share.shared_at)}
-                    </span>
-                  </div>
-                  <span
+            {notes.length > 0 ? (
+              <section className="note-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.2rem' }}>
+                {notes.map((note) => (
+                  <article
+                    key={note.id}
+                    className="note-card"
+                    onClick={() => {
+                      if (selectionMode) {
+                        toggleSelectedNote(note.id);
+                        return;
+                      }
+                      if (coarsePointer) {
+                        return;
+                      }
+                      router.push(`/notes/${note.id}`);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        if (selectionMode) {
+                          toggleSelectedNote(note.id);
+                          return;
+                        }
+                        router.push(`/notes/${note.id}`);
+                      }
+                    }}
+                    role={coarsePointer && !selectionMode ? undefined : 'button'}
+                    aria-pressed={selectionMode ? selectedNoteIds.includes(note.id) : undefined}
+                    tabIndex={coarsePointer && !selectionMode ? -1 : 0}
                     style={{
-                      color: 'var(--muted)',
-                      lineHeight: 1.6,
-                      overflowWrap: 'anywhere',
-                      wordBreak: 'break-word',
-                      display: '-webkit-box',
-                      WebkitBoxOrient: 'vertical',
-                      WebkitLineClamp: 4,
-                      overflow: 'hidden',
+                      cursor: selectionMode ? 'default' : 'pointer',
+                      outline: selectionMode && selectedNoteIds.includes(note.id) ? '2px solid #D1AC70' : undefined,
+                      background: '#1A1D26',
+                      borderRadius: '20px',
+                      padding: '1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minHeight: '240px',
+                      border: '1px solid rgba(255,255,255,0.03)',
+                      boxShadow: 'none',
                     }}
                   >
-                    {getNoteExcerpt(share.note)}
-                  </span>
-                  <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
-                    Shared by {share.shared_by_label} • Permission: {share.permissions.join(', ')}
-                  </span>
-                  <div className="cta-row">
-                    <Link className="button button-primary" href={`/notes/shared/${share.note.id}`}>
-                      Open shared note
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </section>
-          )}
-        </section>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.75rem' }}>
+                        <span className="badge" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--secondary)', padding: '0.5rem 1rem', borderRadius: '14px', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.08em' }}>
+                          {(note.type ?? 'Note').toUpperCase()}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        {selectionMode && (
+                          <input
+                            checked={selectedNoteIds.includes(note.id)}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={() => toggleSelectedNote(note.id)}
+                            type="checkbox"
+                            style={{ width: '18px', height: '18px', accentColor: '#D1AC70' }}
+                          />
+                        )}
+                        <button style={{ background: 'none', border: 'none', color: 'var(--tertiary)', fontSize: '1.2rem', cursor: 'pointer', padding: 0 }}>⋮</button>
+                      </div>
+                    </div>
+                    <h3 style={{ fontSize: '1.6rem', fontWeight: 500, lineHeight: 1.3, marginBottom: '0.4rem', color: 'var(--secondary)', letterSpacing: '-0.02em' }}>
+                      {note.title?.trim() || 'Untitled'}
+                    </h3>
+                    <p style={{ color: 'var(--tertiary)', fontSize: '0.92rem', lineHeight: 1.4, margin: 0, opacity: 0.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {getNoteExcerpt(note)}
+                    </p>
+                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '2.5rem' }}>
+                      <span style={{ color: 'var(--tertiary)', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        {formatNoteDate(note.updated_at)}
+                      </span>
+                      <span style={{ color: '#D1AC70', fontSize: '1.4rem', fontWeight: 300 }}>→</span>
+                    </div>
+                  </article>
+                ))}
+                {!selectionMode && (
+                  <Link href="/notes/new" style={{ background: 'transparent', borderRadius: '20px', border: '2px dashed rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '240px' }}>
+                    <div style={{ width: '64px', height: '64px', borderRadius: '32px', background: 'rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#D1AC70', fontSize: '1.8rem', fontWeight: 300 }}>
+                      +
+                    </div>
+                  </Link>
+                )}
+              </section>
+            ) : null}
+          </div>
+        </div>
       ) : null}
       <DeleteNotesDialog
         deleting={deletingSelected}
@@ -607,6 +569,22 @@ export function NotesListView() {
   );
 }
 
+const panelCardStyle: React.CSSProperties = {
+  background: '#1A1D26',
+  borderRadius: '20px',
+  padding: '1.5rem',
+  border: '1px solid rgba(255,255,255,0.03)',
+  width: '100%',
+};
+
+const panelSummaryStyle: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  cursor: 'pointer',
+  listStyle: 'none',
+};
+
 function setParam(params: URLSearchParams, key: string, value: string, defaultValue: string) {
   if (!value || value === defaultValue) {
     params.delete(key);
@@ -618,33 +596,23 @@ function setParam(params: URLSearchParams, key: string, value: string, defaultVa
 
 const fieldStyle: React.CSSProperties = {
   display: 'grid',
-  gap: '0.45rem',
+  gap: '0.4rem',
 };
 
 const labelTextStyle: React.CSSProperties = {
-  fontSize: '0.72rem',
+  fontSize: '0.68rem',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  color: 'var(--tertiary)',
 };
 
 const inputStyle: React.CSSProperties = {
-  minHeight: 48,
-  borderRadius: 14,
-  border: '1px solid var(--line)',
-  padding: '0.85rem 1rem',
-  background: 'var(--field-bg)',
+  minHeight: 40,
+  borderRadius: 0,
+  padding: '0.4rem 0',
+  background: 'transparent',
+  border: 'none',
+  borderBottom: '1px solid rgba(255, 248, 235, 0.1)',
   color: 'var(--text)',
-};
-
-const summaryStyle: React.CSSProperties = {
-  cursor: 'pointer',
-  fontWeight: 700,
-  color: 'var(--text)',
-  listStyle: 'none',
-  display: 'grid',
-  gap: '0.2rem',
-};
-
-const summaryMetaStyle: React.CSSProperties = {
-  color: 'var(--muted)',
-  fontSize: '0.92rem',
-  fontWeight: 500,
+  fontSize: '0.9rem',
 };

@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { createNote, duplicateNote, getNoteById, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteInput, type NoteRecord, type NoteUserShare } from '@/lib/notes';
 import {
@@ -25,7 +24,6 @@ import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 import type { ScriptureResult } from '@/lib/scripture';
-import { getMyEntitlements } from '@/lib/entitlements';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -42,7 +40,6 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [updatingPrayerStatus, setUpdatingPrayerStatus] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [transcriptionEnabled, setTranscriptionEnabled] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -120,27 +117,6 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       active = false;
     };
   }, [note?.id]);
-
-  useEffect(() => {
-    let active = true;
-
-    const loadEntitlements = async () => {
-      try {
-        const next = await getMyEntitlements();
-        if (!active) return;
-        setTranscriptionEnabled(Boolean(next.transcriptionEnabled));
-      } catch {
-        if (!active) return;
-        setTranscriptionEnabled(false);
-      }
-    };
-
-    void loadEntitlements();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Note created successfully.';
@@ -303,10 +279,6 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
 
   const onTranscribeClip = async (clip: NonNullable<NoteRecord['clips']>[number]) => {
     if (!note) return;
-    if (!transcriptionEnabled) {
-      throw new Error('Dictation and transcription are available on Premium, Team, and Ministry.');
-    }
-
     const clipUrl = /^https?:\/\//i.test(clip.uri) ? clip.uri : await createRecordingSignedUrl(clip.uri);
     const result = await transcribeRecording(clipUrl, clip.uri);
     const transcript = formatTranscriptText(result.text?.trim() || '');
@@ -375,16 +347,16 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   }
 
   return (
-    <div className="page-section">
+    <div className="page-container page-section">
       <header className="page-header">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', alignItems: 'center' }}>
+        <div className="meta-row">
           <span className="badge">{note.type ?? 'Note'}</span>
-          {note.speaker && supportsSpeakerField(note.type) ? <span style={{ color: 'var(--muted)' }}>Speaker: {note.speaker}</span> : null}
-          {note.status ? <span style={{ color: 'var(--muted)' }}>Status: {note.status}</span> : null}
-          {note.type === 'Dream' && note.is_lucid_dream ? <span style={{ color: 'var(--muted)' }}>Lucid dream</span> : null}
-          {note.type === 'Dream' && !note.is_lucid_dream ? <span style={{ color: 'var(--muted)' }}>Not lucid</span> : null}
-          {note.type === 'Dream' && note.dream_role ? <span style={{ color: 'var(--muted)' }}>Role: {note.dream_role}</span> : null}
-          {note.shared ? <span style={{ color: 'var(--muted)' }}>Shared</span> : null}
+          {note.speaker && supportsSpeakerField(note.type) ? <span>Speaker: {note.speaker}</span> : null}
+          {note.status ? <span>Status: {note.status}</span> : null}
+          {note.type === 'Dream' && note.is_lucid_dream ? <span>Lucid dream</span> : null}
+          {note.type === 'Dream' && !note.is_lucid_dream ? <span>Not lucid</span> : null}
+          {note.type === 'Dream' && note.dream_role ? <span>Role: {note.dream_role}</span> : null}
+          {note.shared ? <span>Shared</span> : null}
         </div>
         <h1>{note.title?.trim() || 'Untitled'}</h1>
         <p className="page-description">
@@ -395,196 +367,172 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
       {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
 
-      {activeReference ? (
-        <ScriptureReferencePreview
-          onClose={() => setActiveReference(null)}
-          reference={activeReference}
-        />
-      ) : null}
-
-      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
-        <summary
-          style={{
-            cursor: 'pointer',
-            fontWeight: 700,
-            color: 'var(--text)',
-            listStyle: 'none',
-            display: 'grid',
-            gap: '0.2rem',
-          }}
-        >
-          <span>Note details</span>
-          <span style={{ color: 'var(--muted)', fontSize: '0.92rem', fontWeight: 500 }}>{metadataSummary}</span>
-        </summary>
-
-        <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.9rem' }}>
-          <div
+      <div className="note-detail-layout">
+        <div className="note-detail-main">
+          <section
+            className="reading-surface"
             style={{
-              display: 'grid',
-              gap: '0.6rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              background: 'transparent',
+              padding: 0,
+              gap: '1.4rem',
             }}
           >
-            <div className="status-card" style={{ padding: '0.9rem' }}>
-              <span className="eyebrow">Length</span>
-              <strong>{wordCount} words</strong>
-              <span style={{ color: 'var(--muted)' }}>{readingMinutes} min read</span>
+            <div className="meta-row">
+              <span>{wordCount} words</span>
+              <span>{readingMinutes} min read</span>
+              <span>{scriptureCount} ref{scriptureCount === 1 ? '' : 's'}</span>
             </div>
-            <div className="status-card" style={{ padding: '0.9rem' }}>
-              <span className="eyebrow">Scripture</span>
-              <strong>{scriptureCount}</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                {scriptureCount === 1 ? 'reference detected' : 'references detected'}
-              </span>
+            <div
+              className="note-body-content"
+              style={{
+                whiteSpace: 'pre-wrap',
+                lineHeight: 1.92,
+                color: 'var(--text)',
+                fontSize: '1.03rem',
+                minHeight: '260px',
+              }}
+            >
+              {(note.body ?? '').trim() ? (
+                <ScriptureReferenceText
+                  onReferenceClick={setActiveReference}
+                  text={(note.body ?? '').trim()}
+                />
+              ) : (
+                'No body content yet.'
+              )}
             </div>
-            <div className="status-card" style={{ padding: '0.9rem' }}>
-              <span className="eyebrow">Type</span>
-              <strong>{note.type ?? 'Note'}</strong>
-              <span style={{ color: 'var(--muted)' }}>{note.status?.trim() || 'No status'}</span>
+            <div className="cta-row">
+              <Link className="button button-primary" href={`/notes/${note.id}/edit`}>
+                Edit note
+              </Link>
+              <button className="button button-secondary" disabled={duplicating} onClick={onDuplicate} type="button">
+                {duplicating ? 'Duplicating…' : 'Duplicate note'}
+              </button>
+              <button className="button button-ghost" disabled={deleting} onClick={onDelete} type="button">
+                {deleting ? 'Deleting…' : 'Delete note'}
+              </button>
+              <Link className="button button-secondary" href="/notes">
+                Back to list
+              </Link>
             </div>
-          </div>
+          </section>
 
-          <div className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.35rem' }}>
-            <span className="eyebrow">Guidance</span>
-            <strong>{note.type ?? 'Note'}</strong>
-          </div>
+          {note.shared || groupShares.length > 0 ? (
+            <SharedNoteComments noteId={note.id} />
+          ) : null}
+        </div>
 
-          {note.type === 'Prayer Requests' ? (
-            <div className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.65rem' }}>
-              <span className="eyebrow">Prayer workflow</span>
-              <strong>{prayerRequest?.status ?? note.status ?? 'Ongoing'}</strong>
-              <div className="cta-row">
-                <button
-                  className="button button-secondary"
-                  disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Ongoing'}
-                  onClick={() => onPrayerStatusChange('Ongoing')}
-                  type="button"
-                >
-                  {updatingPrayerStatus ? 'Updating…' : 'Mark ongoing'}
-                </button>
-                <button
-                  className="button button-primary"
-                  disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Answered'}
-                  onClick={() => onPrayerStatusChange('Answered')}
-                  type="button"
-                >
-                  {updatingPrayerStatus ? 'Updating…' : 'Mark answered'}
-                </button>
+        <aside className="note-detail-rail">
+          {activeReference ? (
+            <ScriptureReferencePreview
+              onClose={() => setActiveReference(null)}
+              reference={activeReference}
+            />
+          ) : null}
+
+          <details className="detail-toggle" open style={{ background: 'transparent', padding: 0 }}>
+            <summary>
+              <span>Note details</span>
+              <span>{metadataSummary}</span>
+            </summary>
+
+            <div className="detail-toggle-content">
+              <div className="support-block">
+                <span className="eyebrow">Guidance</span>
+                <strong className="support-block-title">{getNoteTypeGuidance(note.type ?? 'Note')}</strong>
+              </div>
+
+              {note.type === 'Prayer Requests' ? (
+                <div className="inline-support-stack">
+                  <span className="eyebrow">Prayer workflow</span>
+                  <strong className="support-block-title">{prayerRequest?.status ?? note.status ?? 'Ongoing'}</strong>
+                  <div className="cta-row">
+                    <button
+                      className="button button-secondary"
+                      disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Ongoing'}
+                      onClick={() => onPrayerStatusChange('Ongoing')}
+                      type="button"
+                    >
+                      {updatingPrayerStatus ? 'Updating…' : 'Mark ongoing'}
+                    </button>
+                    <button
+                      className="button button-primary"
+                      disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Answered'}
+                      onClick={() => onPrayerStatusChange('Answered')}
+                      type="button"
+                    >
+                      {updatingPrayerStatus ? 'Updating…' : 'Mark answered'}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="support-block">
+                <span className="eyebrow">Visibility</span>
+                <strong className="support-block-title">
+                  {groupShares.length + userShares.length > 0
+                    ? `Shared to ${groupShares.length} group${groupShares.length === 1 ? '' : 's'} and ${userShares.length} user${userShares.length === 1 ? '' : 's'}`
+                    : 'Private note'}
+                </strong>
+                <p className="support-block-copy">
+                  {groupShares.length + userShares.length > 0
+                    ? [
+                        ...groupShares.map((share) => share.group_name),
+                        ...userShares.map((share) => share.user_label),
+                      ].join(', ')
+                    : 'Visible only to you.'}
+                </p>
+              </div>
+            </div>
+          </details>
+
+          {detectedReferences.length > 0 ? (
+            <div className="inline-support-stack">
+              <div className="support-block">
+                <span className="eyebrow">Detected references</span>
+                <p className="support-block-copy">Tap a reference to read it in context.</p>
+              </div>
+              <div className="note-reference-row">
+                {detectedReferences.map((reference) => (
+                  <button
+                    className="button button-secondary"
+                    key={reference}
+                    onClick={() => setActiveReference(reference)}
+                    type="button"
+                  >
+                    {reference}
+                  </button>
+                ))}
               </div>
             </div>
           ) : null}
 
-          <div className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.35rem' }}>
-            <span className="eyebrow">Visibility</span>
-            <strong>
-              {groupShares.length + userShares.length > 0
-                ? `Shared to ${groupShares.length} group${groupShares.length === 1 ? '' : 's'} and ${userShares.length} user${userShares.length === 1 ? '' : 's'}`
-                : 'Private note'}
-            </strong>
-            <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-              {groupShares.length + userShares.length > 0
-                ? [
-                    ...groupShares.map((share) => share.group_name),
-                    ...userShares.map((share) => share.user_label),
-                  ].join(', ')
-                : 'Visible only to you.'}
-            </span>
-          </div>
-        </div>
-      </details>
+          <details className="detail-toggle" open style={{ background: 'transparent', padding: 0 }}>
+            <summary>
+              <span>Scripture search</span>
+              <span>Reference, phrase, or keyword</span>
+            </summary>
+            <div className="detail-toggle-content">
+              <ScriptureSearchPanel compact onCreateNote={createScriptureNote} onInsert={insertScriptureIntoNote} />
+            </div>
+          </details>
 
-      {detectedReferences.length > 0 ? (
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
-          <span className="eyebrow">Detected references</span>
-          <div className="cta-row">
-            {detectedReferences.map((reference) => (
-              <button
-                className="button button-secondary"
-                key={reference}
-                onClick={() => setActiveReference(reference)}
-                type="button"
-              >
-                {reference}
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="panel" style={{ padding: '1rem' }}>
-        <div
-          className="note-body-content"
-          style={{
-            whiteSpace: 'pre-wrap',
-            lineHeight: 1.8,
-            color: 'var(--text)',
-            fontSize: '1rem',
-            minHeight: '220px',
-            padding: '0.25rem 0',
-          }}
-        >
-          {(note.body ?? '').trim() ? (
-            <ScriptureReferenceText
-              onReferenceClick={setActiveReference}
-              text={(note.body ?? '').trim()}
+          {note.clips?.length ? (
+            <NoteClipsList
+              clips={note.clips}
+              onTranscribeClip={onTranscribeClip}
             />
-          ) : (
-            'No body content yet.'
-          )}
-        </div>
-      </section>
+          ) : null}
 
-      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
-        <summary style={detailsSummaryStyle}>
-          <span>Scripture search</span>
-          <span style={detailsMetaStyle}>Reference, phrase, or keyword</span>
-        </summary>
-        <div style={{ marginTop: '0.85rem' }}>
-          <ScriptureSearchPanel compact onCreateNote={createScriptureNote} onInsert={insertScriptureIntoNote} />
-        </div>
-      </details>
-
-      {note.clips?.length ? (
-        <NoteClipsList
-          clips={note.clips}
-          onTranscribeClip={transcriptionEnabled ? onTranscribeClip : undefined}
-          paywallMessage={!transcriptionEnabled ? 'Upgrade to Premium, Team, or Ministry to transcribe saved clips.' : undefined}
-        />
-      ) : null}
-
-      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
-        <summary
-          style={{
-            cursor: 'pointer',
-            fontWeight: 700,
-            color: 'var(--text)',
-            listStyle: 'none',
-          }}
-        >
-          Share note
-        </summary>
-        <div style={{ marginTop: '0.85rem' }}>
-          <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
-        </div>
-      </details>
-
-      {note.shared || groupShares.length > 0 ? (
-        <SharedNoteComments noteId={note.id} />
-      ) : null}
-
-      <div className="cta-row">
-        <Link className="button button-primary" href={`/notes/${note.id}/edit`}>
-          Edit note
-        </Link>
-        <button className="button button-secondary" disabled={duplicating} onClick={onDuplicate} type="button">
-          {duplicating ? 'Duplicating…' : 'Duplicate note'}
-        </button>
-        <button className="button button-ghost" disabled={deleting} onClick={onDelete} type="button">
-          {deleting ? 'Deleting…' : 'Delete note'}
-        </button>
-        <Link className="button button-secondary" href="/notes">
-          Back to list
-        </Link>
+          <details className="detail-toggle" style={{ background: 'transparent', padding: 0 }}>
+            <summary>
+              <span>Share note</span>
+            </summary>
+            <div className="detail-toggle-content">
+              <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
+            </div>
+          </details>
+        </aside>
       </div>
 
       <DeleteNotesDialog
@@ -597,18 +545,3 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
     </div>
   );
 }
-
-const detailsSummaryStyle: CSSProperties = {
-  cursor: 'pointer',
-  fontWeight: 700,
-  color: 'var(--text)',
-  listStyle: 'none',
-  display: 'grid',
-  gap: '0.2rem',
-};
-
-const detailsMetaStyle: CSSProperties = {
-  color: 'var(--muted)',
-  fontSize: '0.92rem',
-  fontWeight: 500,
-};

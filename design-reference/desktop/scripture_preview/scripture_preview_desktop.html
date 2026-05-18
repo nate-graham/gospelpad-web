@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#43474c",
+                    "tertiary": "#cecccc",
+                    "surface-container-lowest": "#0b0e14",
+                    "primary-fixed-dim": "#e7c183",
+                    "primary": "#eec789",
+                    "on-tertiary-container": "#434444",
+                    "surface-tint": "#e7c183",
+                    "on-background": "#e1e2ea",
+                    "outline": "#9a8f81",
+                    "on-primary-container": "#59400d",
+                    "surface-container-high": "#272a30",
+                    "on-secondary-container": "#b2b5bb",
+                    "surface-container-highest": "#32353b",
+                    "on-error": "#690005",
+                    "secondary-fixed-dim": "#c3c7cc",
+                    "inverse-primary": "#775926",
+                    "on-tertiary-fixed-variant": "#464747",
+                    "on-secondary-fixed-variant": "#43474c",
+                    "surface-dim": "#101319",
+                    "tertiary-fixed-dim": "#c7c6c6",
+                    "on-secondary": "#2d3135",
+                    "error-container": "#93000a",
+                    "error": "#ffb4ab",
+                    "surface-bright": "#363940",
+                    "surface": "#101319",
+                    "surface-container-low": "#191c22",
+                    "on-tertiary": "#303031",
+                    "on-secondary-fixed": "#181c20",
+                    "on-primary-fixed": "#281900",
+                    "tertiary-container": "#b2b1b1",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "on-surface": "#e1e2ea",
+                    "secondary": "#c3c7cc",
+                    "secondary-fixed": "#e0e3e9",
+                    "inverse-on-surface": "#2d3037",
+                    "tertiary-fixed": "#e3e2e2",
+                    "surface-container": "#1d2026",
+                    "inverse-surface": "#e1e2ea",
+                    "primary-container": "#d1ac70",
+                    "on-error-container": "#ffdad6",
+                    "surface-variant": "#32353b",
+                    "outline-variant": "#4e463a",
+                    "on-primary-fixed-variant": "#5c4210",
+                    "on-primary": "#422c00",
+                    "primary-fixed": "#ffdeab",
+                    "on-surface-variant": "#d1c5b5",
+                    "background": "#101319"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "1rem",
+                    "xl": "1.5rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Poppins", "Plus Jakarta Sans"],
+                    "body": ["Poppins", "Plus Jakarta Sans"],
+                    "label": ["Poppins", "Plus Jakarta Sans"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4e463a33; border-radius: 10px; }
+        .glass-panel {
+            background: rgba(39, 42, 48, 0.6);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface flex min-h-screen">
+<!-- SideNavBar (Authority: JSON) -->
+<aside class="h-screen w-72 left-0 sticky flex flex-col p-8 gap-6 bg-[#101319] dark:bg-[#0B0E14] shadow-[40px_0_60px_-15px_rgba(0,0,0,0.3)] bg-[#191C22]">
+<div class="flex items-center gap-4 mb-8">
+<img alt="Curator Profile" class="w-10 h-10 rounded-full" data-alt="profile portrait of a serene person in soft warm lighting against a dark neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_GRonJNRSL3SgyV-RcM-0ObEaMavFSkKb5hLQIHnUT-9op__4JxlAEAP3lnO6lgPyyXa9GrAn76QEXo9-clzwH3ACmHrkPrMaQqNXlYqqO192aGxGwjRr0UMSm1ds-Qylj5XILwyowBqmHIdJvuFIxud9moChUjCtDSCxTVr3kLHjka3Njoyoxs3rpbplISiCVEQCJPT9zazVW5aR-TNMWZ3gYGVLuAgPA7t1OzjupUEkMMUHtDQImAmAp-mhdB0Qollur5b-ISSB"/>
+<div>
+<p class="text-[#D1AC70] font-bold text-[0.75rem] uppercase tracking-[0.1em]">The Curator</p>
+<p class="text-[#DCDFE5] opacity-50 text-[0.65rem] uppercase tracking-[0.1em]">In Silent Reflection</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-4 p-3 transition-all duration-500 ease-in-out text-[#D1AC70] font-bold border-r-2 border-[#D1AC70] bg-[#191C22]" href="#">
+<span class="material-symbols-outlined" data-icon="library_books">library_books</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]">Library</span>
+</a>
+<a class="flex items-center gap-4 p-3 transition-all duration-500 ease-in-out text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70]" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]">My Notes</span>
+</a>
+<a class="flex items-center gap-4 p-3 transition-all duration-500 ease-in-out text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70]" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]">Groups</span>
+</a>
+<a class="flex items-center gap-4 p-3 transition-all duration-500 ease-in-out text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70]" href="#">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]">Daily Verses</span>
+</a>
+<a class="flex items-center gap-4 p-3 transition-all duration-500 ease-in-out text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70]" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]">Settings</span>
+</a>
+</nav>
+<button class="mt-auto bg-primary-container text-on-primary py-4 px-6 rounded-xl font-bold tracking-widest text-[0.7rem] uppercase hover:opacity-90 transition-opacity">
+            New Journal Entry
+        </button>
+<div class="mt-8 flex flex-col gap-4">
+<a class="flex items-center gap-3 text-[#DCDFE5] opacity-40 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline">help_outline</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.65rem]">Help</span>
+</a>
+<a class="flex items-center gap-3 text-[#DCDFE5] opacity-40 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="lock">lock</span>
+<span class="font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.65rem]">Privacy</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-h-screen">
+<!-- TopNavBar (Authority: JSON) -->
+<header class="w-full top-0 sticky z-10 bg-[#191C22] no-border flat no shadows">
+<div class="flex justify-between items-center px-12 py-6 w-full max-w-screen-2xl mx-auto">
+<div class="text-2xl font-semibold tracking-tighter text-[#D1AC70]">The Sanctuary</div>
+<nav class="hidden md:flex items-center gap-10">
+<a class="text-[#DCDFE5] opacity-70 font-['Plus_Jakarta_Sans'] font-light tracking-wide hover:text-[#D1AC70] transition-colors duration-300" href="#">Meditations</a>
+<a class="text-[#D1AC70] border-b-2 border-[#D1AC70] pb-1 font-['Plus_Jakarta_Sans'] font-light tracking-wide transition-colors duration-300" href="#">Scriptures</a>
+<a class="text-[#DCDFE5] opacity-70 font-['Plus_Jakarta_Sans'] font-light tracking-wide hover:text-[#D1AC70] transition-colors duration-300" href="#">Reflections</a>
+</nav>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined text-[#DCDFE5] opacity-70 absolute left-3 top-1/2 -translate-y-1/2 text-lg">search</span>
+<input class="bg-[#272A30] border-none rounded-full py-2 pl-10 pr-4 text-sm text-on-surface focus:ring-1 focus:ring-[#D1AC70] w-48 transition-all" placeholder="Search wisdom..." type="text"/>
+</div>
+<button class="text-[#DCDFE5] hover:text-[#D1AC70] transition-colors scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Scripture Reading Panel -->
+<section class="flex-1 px-12 py-16 flex justify-center items-start">
+<div class="w-full max-w-5xl grid grid-cols-12 gap-12">
+<!-- Main Reading Area (Asymmetric Bento Style) -->
+<div class="col-span-12 lg:col-span-8 space-y-8">
+<!-- Title & Header -->
+<div class="flex flex-col gap-2">
+<span class="text-[#D1AC70] text-xs font-semibold tracking-[0.2em] uppercase">Current Passage</span>
+<h1 class="text-5xl font-semibold tracking-tight text-on-surface leading-tight">Psalm 23:1-6</h1>
+</div>
+<!-- Reading Card -->
+<div class="bg-surface-container-low rounded-xl p-12 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-container/5 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-primary-container/10 transition-all duration-1000"></div>
+<div class="relative z-10">
+<!-- Translation Dropdown -->
+<div class="flex justify-between items-center mb-12">
+<div class="relative group/dropdown">
+<button class="flex items-center gap-2 text-on-surface-variant text-sm border-b border-outline-variant/30 pb-1 hover:text-[#D1AC70] transition-colors">
+                                        English Standard Version (ESV)
+                                        <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<div class="flex gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-high text-on-surface hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-high text-on-surface hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined text-[20px]">bookmark</span>
+</button>
+</div>
+</div>
+<!-- Sacred Text Content -->
+<article class="space-y-10">
+<div class="relative">
+<p class="text-2xl leading-[1.8] text-on-surface font-light">
+<sup class="text-primary-container font-bold mr-2 text-sm">1</sup>The Lord is my shepherd; I shall not want.
+                                    </p>
+</div>
+<p class="text-2xl leading-[1.8] text-on-surface font-light">
+<sup class="text-primary-container font-bold mr-2 text-sm">2</sup>He makes me lie down in green pastures. He leads me beside still waters.
+                                </p>
+<p class="text-2xl leading-[1.8] text-on-surface font-light">
+<sup class="text-primary-container font-bold mr-2 text-sm">3</sup>He restores my soul. He leads me in paths of righteousness for his name’s sake.
+                                </p>
+<p class="text-2xl leading-[1.8] text-on-surface font-light">
+<sup class="text-primary-container font-bold mr-2 text-sm">4</sup>Even though I walk through the valley of the shadow of death, I will fear no evil, for you are with me; your rod and your staff, they comfort me.
+                                </p>
+<p class="text-2xl leading-[1.8] text-on-surface font-light">
+<sup class="text-primary-container font-bold mr-2 text-sm">5</sup>You prepare a table before me in the presence of my enemies; you anoint my head with oil; my cup overflows.
+                                </p>
+<p class="text-2xl leading-[1.8] text-on-surface font-light">
+<sup class="text-primary-container font-bold mr-2 text-sm">6</sup>Surely goodness and mercy shall follow me all the days of my life, and I shall dwell in the house of the Lord forever.
+                                </p>
+</article>
+<div class="mt-16 pt-12 border-t border-outline-variant/10 flex justify-between items-center">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+<span class="text-sm font-medium tracking-wide">Previous Chapter</span>
+</button>
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="text-sm font-medium tracking-wide">Next Chapter</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Action Panel -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Reflection Chip Action -->
+<div class="bg-surface-container-low rounded-xl p-8 border border-outline-variant/10">
+<h3 class="text-[#D1AC70] text-xs font-bold tracking-widest uppercase mb-6">Action Center</h3>
+<div class="space-y-4">
+<button class="w-full flex items-center justify-between bg-primary-container text-on-primary p-4 rounded-xl font-semibold hover:brightness-110 transition-all group">
+<span class="flex items-center gap-3">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">note_add</span>
+                                    Insert into note
+                                </span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between bg-surface-container-high text-on-surface p-4 rounded-xl font-medium hover:bg-surface-bright transition-all">
+<span class="flex items-center gap-3">
+<span class="material-symbols-outlined">share</span>
+                                    Share Verse
+                                </span>
+</button>
+</div>
+</div>
+<!-- Context Card -->
+<div class="bg-[#191C22] rounded-xl overflow-hidden">
+<div class="h-32 bg-cover bg-center" data-alt="soft landscape of a calm rolling hill with a single tree under a foggy morning sky" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCu8gTqldGsh51ixmdxBipvo4c_Vc2SuTBuWEu6MyerVvC96bfTNchWxSQsMQZqrCFnw8UbJx0e-kS_qd21jyG4yA4mL0n9682TRsdH0y4Cq1SAZoV3n2whvHMStDLMYwyOU0K1YTYebIpEm5LRI7GbZut-VpSEY8CN8sGxnIvkZltrPY4t_4BRu4tMloq264XlJ2DQafyEqCr715Y0nWZbnh2xQy8h_Jj51bBTONulo3MyHczoX3Jq0q17yNEFqw5vNlenJ_NPrdeF')"></div>
+<div class="p-8 space-y-4">
+<h4 class="font-semibold text-lg">Morning Meditation</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed italic opacity-80">
+                                "This psalm is a masterpiece of spiritual assurance, reminding us of the unwavering guidance available to us even in the darkest shadows."
+                            </p>
+<div class="flex flex-wrap gap-2 pt-2">
+<span class="bg-secondary-container/40 text-secondary-fixed text-[10px] px-3 py-1 rounded-full uppercase tracking-widest">Comfort</span>
+<span class="bg-secondary-container/40 text-secondary-fixed text-[10px] px-3 py-1 rounded-full uppercase tracking-widest">Guidance</span>
+</div>
+</div>
+</div>
+<!-- Audio Feature -->
+<div class="glass-panel rounded-xl p-8 flex items-center gap-6">
+<button class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div>
+<p class="text-sm font-semibold">Listen to Passage</p>
+<p class="text-xs text-on-surface-variant">Narrated by The Curator</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer (Authority: JSON) -->
+<footer class="w-full py-12 bg-[#0B0E14] border-t border-[#4E463A]/15 mt-auto">
+<div class="flex flex-col items-center justify-center space-y-4 px-8 w-full">
+<nav class="flex gap-8 mb-4">
+<a class="font-['Plus_Jakarta_Sans'] text-sm tracking-widest text-[#DCDFE5] opacity-40 hover:opacity-100 transition-opacity" href="#">Terms of Peace</a>
+<a class="font-['Plus_Jakarta_Sans'] text-sm tracking-widest text-[#DCDFE5] opacity-40 hover:opacity-100 transition-opacity" href="#">Privacy Policy</a>
+<a class="font-['Plus_Jakarta_Sans'] text-sm tracking-widest text-[#DCDFE5] opacity-40 hover:opacity-100 transition-opacity" href="#">Contact Curator</a>
+</nav>
+<p class="font-['Plus_Jakarta_Sans'] text-xs tracking-[0.15em] text-[#DCDFE5] opacity-30">© 2024 The Digital Sanctuary. All rights reserved.</p>
+</div>
+</footer>
+</main>
+</body></html>

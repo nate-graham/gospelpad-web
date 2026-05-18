@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GospelPad | Shared Reflection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#59400d",
+                    "surface-container-highest": "#32353b",
+                    "secondary-fixed-dim": "#c3c7cc",
+                    "tertiary-fixed": "#e3e2e2",
+                    "background": "#101319",
+                    "primary-container": "#d1ac70",
+                    "outline": "#9a8f81",
+                    "surface": "#101319",
+                    "secondary-fixed": "#e0e3e9",
+                    "secondary": "#c3c7cc",
+                    "on-error-container": "#ffdad6",
+                    "surface-variant": "#32353b",
+                    "on-primary": "#422c00",
+                    "inverse-surface": "#e1e2ea",
+                    "on-primary-fixed-variant": "#5c4210",
+                    "error": "#ffb4ab",
+                    "on-tertiary-container": "#434444",
+                    "surface-container-lowest": "#0b0e14",
+                    "on-error": "#690005",
+                    "inverse-on-surface": "#2d3037",
+                    "primary-fixed-dim": "#e7c183",
+                    "on-secondary-fixed": "#181c20",
+                    "secondary-container": "#43474c",
+                    "tertiary-container": "#b2b1b1",
+                    "outline-variant": "#4e463a",
+                    "on-surface": "#e1e2ea",
+                    "surface-container-high": "#272a30",
+                    "on-background": "#e1e2ea",
+                    "tertiary-fixed-dim": "#c7c6c6",
+                    "primary": "#eec789",
+                    "surface-dim": "#101319",
+                    "on-tertiary": "#303031",
+                    "surface-container-low": "#191c22",
+                    "primary-fixed": "#ffdeab",
+                    "on-surface-variant": "#d1c5b5",
+                    "on-secondary-container": "#b2b5bb",
+                    "surface-bright": "#363940",
+                    "inverse-primary": "#775926",
+                    "error-container": "#93000a",
+                    "surface-container": "#1d2026",
+                    "on-secondary": "#2d3135",
+                    "on-tertiary-fixed-variant": "#464747",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "on-primary-fixed": "#281900",
+                    "on-secondary-fixed-variant": "#43474c",
+                    "surface-tint": "#e7c183",
+                    "tertiary": "#cecccc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Poppins", "sans-serif"],
+                    "body": ["Poppins", "sans-serif"],
+                    "label": ["Poppins", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0b0e14;
+            color: #e1e2ea;
+        }
+        .glass-panel {
+            background: rgba(25, 28, 34, 0.6);
+            backdrop-filter: blur(24px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-24">
+<!-- TopAppBar -->
+<nav class="w-full top-0 sticky z-50 bg-[#101319] flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#DCDFE5] hover:opacity-80 transition-opacity cursor-pointer">menu</span>
+</div>
+<div class="text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase font-['Plus_Jakarta_Sans']">GospelPad</div>
+<div class="w-6"></div> <!-- Spacer for center alignment -->
+</nav>
+<main class="px-6 pt-8 max-w-md mx-auto">
+<!-- Hero Header -->
+<header class="mb-12">
+<div class="flex items-center gap-3 mb-4">
+<div class="h-10 w-10 rounded-full overflow-hidden border border-primary/20">
+<img class="w-full h-full object-cover" data-alt="Portrait of a serene older man with a grey beard and kind eyes, soft cinematic lighting against a dark studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrv9GfofQWig37iITGGyR527rFRMa0tsq5JR01fcm09chJqXEaRg0N-5Z4QdkeFj3c69oXia0Z0w79WGp87sp00x-uNIiXxKlNqB0VqN7eys2lmp24VSDmjalD2xOIDSsCnEXh5MdxvAJUbx29yKub0NUulc3aLL4SepH3b84NCkG7_8C8EJClMMw3-nuXZp-7G3DFldwNHo6V6kS-oU8d9948XlRdTbYSOS00imiAXI2l6J1kZu-aZHUXE5dkHJfniMYglOFdQtT3"/>
+</div>
+<div>
+<p class="text-[10px] font-medium tracking-[0.1em] uppercase text-primary/70">Reflections by</p>
+<p class="text-on-surface font-semibold">Elder Samuel Thorne</p>
+</div>
+</div>
+<h1 class="text-[2.75rem] leading-[1.1] font-semibold text-on-surface tracking-tight mb-4">Finding Peace in the Stillness</h1>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-secondary-container/40 rounded-full text-[10px] font-medium tracking-widest uppercase text-on-secondary-container">Psalms 46:10</span>
+<span class="px-3 py-1 bg-secondary-container/40 rounded-full text-[10px] font-medium tracking-widest uppercase text-on-secondary-container">Meditation</span>
+</div>
+</header>
+<!-- Main Content (The Note) -->
+<article class="space-y-8 mb-16">
+<div class="relative">
+<div class="absolute -left-4 top-0 bottom-0 w-[1px] bg-gradient-to-b from-primary/40 to-transparent"></div>
+<p class="text-lg leading-relaxed text-on-surface-variant font-light italic">
+                    "Be still, and know that I am God..."
+                </p>
+</div>
+<div class="space-y-6 text-on-surface/90 leading-[1.8] font-light">
+<p>
+                    Today's world moves at a pace that often feels designed to drown out the internal whisper of the spirit. I found myself sitting by the old oak tree this morning, watching the fog lift off the valley floor.
+                </p>
+<div class="w-full h-64 rounded-xl overflow-hidden my-8">
+<img class="w-full h-full object-cover grayscale opacity-70 hover:grayscale-0 transition-all duration-700" data-alt="Breathtaking morning landscape of a misty valley at dawn with a single ancient tree in the foreground and soft purple and gold light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDF7cyC5gp7g0HyRf3IIMfsXiQVq96OTS1PGPcvTqIefRTGTQy76pwWWtVsT_02WTx8Tx5XUHyhp4t-jr38BtFuxOoVOmBCsIbzHSJ-nX1KqoekIW7GOwroCGKwkWx3xJtITWxTyZDERncVKl-LNLN3gCOz1YwmBenEdOqogJF0MVkL3dpj6cnWZS9QSAsbBM2fYBAJQiDJWBdta9DYJ4vjcrcNTIF75E3O_ynqAps_VS25sQqQEV4IEgVcNZUqrMCYddXdrE71LML6"/>
+</div>
+<p>
+                    It occurred to me that stillness isn't the absence of motion, but the presence of focus. In the quiet, the patterns of grace become visible. We are not called to be busy; we are called to be faithful.
+                </p>
+<p>
+                    When we stop striving, we begin seeing. The gold in the palette of our lives isn't found in the highlight reels, but in the subtle gradients of daily devotion.
+                </p>
+</div>
+</article>
+<!-- CTA Section -->
+<section class="glass-panel rounded-xl p-8 mb-12 text-center border border-outline-variant/10">
+<h3 class="text-primary text-xl font-medium mb-2">Resonate with this?</h3>
+<p class="text-on-surface-variant text-sm mb-8 leading-relaxed">This reflection is shared publicly. You can add it to your personal sanctuary to revisit later.</p>
+<button class="w-full bg-primary-container text-on-primary py-4 rounded-xl font-semibold tracking-wide flex items-center justify-center gap-2 mb-6 hover:scale-[0.98] transition-transform active:scale-95">
+<span class="material-symbols-outlined">description</span>
+                Copy to my notes
+            </button>
+<div class="pt-6 border-t border-outline-variant/15">
+<p class="text-xs text-secondary mb-4 uppercase tracking-[0.2em]">New to GospelPad?</p>
+<p class="text-sm text-on-surface-variant mb-6">Create your own digital sanctuary for study and reflection.</p>
+<button class="text-primary font-bold tracking-widest text-xs uppercase hover:opacity-80 transition-opacity">
+                    Join the Community
+                </button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#101319]/60 backdrop-blur-xl rounded-t-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.4)]">
+<div class="flex flex-col items-center justify-center text-[#D1AC70] space-y-1 bg-[#D1AC70]/10 rounded-xl px-4 py-2">
+<span class="material-symbols-outlined">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</div>
+</nav>
+</body></html>

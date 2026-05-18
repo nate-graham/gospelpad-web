@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:wght@300;400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#59400d",
+                        "surface-container-highest": "#32353b",
+                        "secondary-fixed-dim": "#c3c7cc",
+                        "tertiary-fixed": "#e3e2e2",
+                        "background": "#101319",
+                        "primary-container": "#d1ac70",
+                        "outline": "#9a8f81",
+                        "surface": "#101319",
+                        "secondary-fixed": "#e0e3e9",
+                        "secondary": "#c3c7cc",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#32353b",
+                        "on-primary": "#422c00",
+                        "inverse-surface": "#e1e2ea",
+                        "on-primary-fixed-variant": "#5c4210",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#434444",
+                        "surface-container-lowest": "#0b0e14",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#2d3037",
+                        "primary-fixed-dim": "#e7c183",
+                        "on-secondary-fixed": "#181c20",
+                        "secondary-container": "#43474c",
+                        "tertiary-container": "#b2b1b1",
+                        "outline-variant": "#4e463a",
+                        "on-surface": "#e1e2ea",
+                        "surface-container-high": "#272a30",
+                        "on-background": "#e1e2ea",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "primary": "#eec789",
+                        "surface-dim": "#101319",
+                        "on-tertiary": "#303031",
+                        "surface-container-low": "#191c22",
+                        "primary-fixed": "#ffdeab",
+                        "on-surface-variant": "#d1c5b5",
+                        "on-secondary-container": "#b2b5bb",
+                        "surface-bright": "#363940",
+                        "inverse-primary": "#775926",
+                        "error-container": "#93000a",
+                        "surface-container": "#1d2026",
+                        "on-secondary": "#2d3135",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-primary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#43474c",
+                        "surface-tint": "#e7c183",
+                        "tertiary": "#cecccc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Poppins", "sans-serif"],
+                        "body": ["Poppins", "sans-serif"],
+                        "label": ["Plus Jakarta Sans", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen pb-32">
+<!-- Top Navigation Anchor -->
+<header class="w-full top-0 sticky z-50 bg-[#101319] flex items-center justify-between px-6 py-4 font-['Plus_Jakarta_Sans'] tracking-wide">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#D1AC70]">menu</span>
+<h1 class="text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase">GospelPad</h1>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-[#D1AC70] text-sm">person</span>
+</div>
+</header>
+<main class="px-6 pt-12 max-w-md mx-auto">
+<!-- Hero Section -->
+<section class="mb-16 text-center">
+<span class="text-[0.75rem] font-medium tracking-[0.2em] uppercase text-primary mb-4 block">Elevate Your Devotion</span>
+<h2 class="text-[2.5rem] leading-[1.1] font-semibold text-on-surface mb-6 tracking-tight">Tools for Sustained Practice</h2>
+<p class="text-on-surface-variant text-lg leading-relaxed opacity-80">Deepen your spiritual rhythm with advanced focus and collaborative tools.</p>
+</section>
+<!-- Bento Grid Highlights -->
+<section class="grid grid-cols-2 gap-4 mb-16">
+<div class="col-span-2 bg-surface-container-low p-6 rounded-xl flex items-center gap-6 overflow-hidden relative">
+<div class="z-10">
+<span class="material-symbols-outlined text-primary mb-2" style="font-variation-settings: 'FILL' 1;">mic</span>
+<h3 class="font-semibold text-on-surface">Dictation</h3>
+<p class="text-sm text-on-surface-variant leading-snug">Capture reflections instantly through voice.</p>
+</div>
+<div class="absolute right-[-20px] top-0 h-full w-32 bg-gradient-to-l from-primary/10 to-transparent blur-2xl"></div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl">
+<span class="material-symbols-outlined text-primary mb-2">search</span>
+<h3 class="font-semibold text-on-surface">Search</h3>
+<p class="text-xs text-on-surface-variant">Instant scripture cross-referencing.</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl">
+<span class="material-symbols-outlined text-primary mb-2">group</span>
+<h3 class="font-semibold text-on-surface">Groups</h3>
+<p class="text-xs text-on-surface-variant">Shared journals for ministry teams.</p>
+</div>
+</section>
+<!-- Pricing Stack -->
+<div class="space-y-6">
+<!-- Free Plan -->
+<div class="bg-surface-container-low p-8 rounded-xl relative overflow-hidden group transition-all duration-500 hover:bg-surface-container-high">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h4 class="text-xl font-semibold mb-1">Free</h4>
+<p class="text-on-surface-variant text-sm">Essential journaling</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold">$0</span>
+<span class="text-xs text-on-surface-variant block uppercase tracking-wider">Forever</span>
+</div>
+</div>
+<ul class="space-y-4 mb-8">
+<li class="flex items-center gap-3 text-sm text-on-surface/80">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                        Standard Editor
+                    </li>
+<li class="flex items-center gap-3 text-sm text-on-surface/80">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                        Daily Verse Search
+                    </li>
+</ul>
+<button class="w-full py-4 rounded-xl border border-outline-variant/30 text-on-surface font-medium tracking-wide uppercase text-xs hover:bg-surface-bright transition-colors">Current Plan</button>
+</div>
+<!-- Premium Plan (Featured) -->
+<div class="bg-primary-container p-8 rounded-xl relative overflow-hidden shadow-2xl">
+<div class="absolute top-0 right-0 p-4">
+<span class="bg-on-primary/10 text-on-primary text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">Most Revered</span>
+</div>
+<div class="flex justify-between items-start mb-8">
+<div>
+<h4 class="text-xl font-bold text-on-primary mb-1">Premium</h4>
+<p class="text-on-primary/70 text-sm">The complete sanctuary</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold text-on-primary">$9</span>
+<span class="text-xs text-on-primary/70 block uppercase tracking-wider">/Month</span>
+</div>
+</div>
+<ul class="space-y-4 mb-8">
+<li class="flex items-center gap-3 text-sm text-on-primary font-medium">
+<span class="material-symbols-outlined text-on-primary text-lg" style="font-variation-settings: 'FILL' 1;">mic</span>
+                        Advanced Dictation Tools
+                    </li>
+<li class="flex items-center gap-3 text-sm text-on-primary font-medium">
+<span class="material-symbols-outlined text-on-primary text-lg" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                        AI Devotional Insights
+                    </li>
+<li class="flex items-center gap-3 text-sm text-on-primary font-medium">
+<span class="material-symbols-outlined text-on-primary text-lg" style="font-variation-settings: 'FILL' 1;">cloud_sync</span>
+                        Cross-device Sync
+                    </li>
+</ul>
+<button class="w-full py-4 rounded-xl bg-on-primary text-primary-container font-bold tracking-wide uppercase text-xs shadow-lg transform active:scale-95 transition-transform">Upgrade Now</button>
+</div>
+<!-- Team Plan -->
+<div class="bg-surface-container-low p-8 rounded-xl">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h4 class="text-xl font-semibold mb-1">Team</h4>
+<p class="text-on-surface-variant text-sm">For small study groups</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold">$29</span>
+<span class="text-xs text-on-surface-variant block uppercase tracking-wider">/Month</span>
+</div>
+</div>
+<ul class="space-y-4 mb-8">
+<li class="flex items-center gap-3 text-sm text-on-surface/80">
+<span class="material-symbols-outlined text-primary text-lg">groups</span>
+                        Up to 10 Members
+                    </li>
+<li class="flex items-center gap-3 text-sm text-on-surface/80">
+<span class="material-symbols-outlined text-primary text-lg">share</span>
+                        Collaborative Journals
+                    </li>
+</ul>
+<button class="w-full py-4 rounded-xl border border-outline-variant/30 text-on-surface font-medium tracking-wide uppercase text-xs hover:bg-surface-bright transition-colors">Start Trial</button>
+</div>
+<!-- Ministry Plan -->
+<div class="bg-surface-container-low p-8 rounded-xl border-t-2 border-primary/20">
+<div class="flex justify-between items-start mb-8">
+<div>
+<h4 class="text-xl font-semibold mb-1">Ministry</h4>
+<p class="text-on-surface-variant text-sm">For church communities</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-bold">$99</span>
+<span class="text-xs text-on-surface-variant block uppercase tracking-wider">/Month</span>
+</div>
+</div>
+<p class="text-xs text-on-surface-variant mb-6 leading-relaxed italic">"Transforming collective devotion through unified digital infrastructure."</p>
+<button class="w-full py-4 rounded-xl border border-primary text-primary font-semibold tracking-wide uppercase text-xs hover:bg-primary/5 transition-colors">Contact Outreach</button>
+</div>
+</div>
+<!-- Visual Anchor: Meditative Image -->
+<section class="mt-20 mb-32 relative h-64 rounded-xl overflow-hidden group">
+<img alt="Meditative person in a quiet cathedral" class="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0 group-hover:scale-105" data-alt="dramatic interior of a minimalist modern chapel with light shafts hitting a wooden bench and person in meditation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvPft-mRP7IlFrppYMJu_BUwKULm7FXvtMjJCW0QHR0SHq8NfIvG-RacDChrVSqHUTito4tKT6A4wTOUYLxsXghJgTd19QbLgulK3gsqSUcCi2oJ2DZqPub1GG0vs0-KIeQccJhCKlcRUwD__jXf_U2DZz0uT2KB1eM_ypfdoqCOJ_KsSi21ZGLAQ8fnIJWNqgJe2qi5h_iY7nXDK1v22Zh1wrV4YvZ2S-PXRnnhlpQGkSVcrjVxK1EBLFWyeG55tjS2OesM-OyH0H"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
+<div class="absolute bottom-6 left-6 right-6">
+<h5 class="text-on-surface font-medium tracking-wide">Enter the Stillness</h5>
+<p class="text-on-surface-variant text-xs opacity-70">A sanctuary for your thoughts, wherever you go.</p>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Shell -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#101319]/60 backdrop-blur-xl rounded-t-[1.5rem] shadow-[0_-8px_40px_rgba(0,0,0,0.4)]">
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all duration-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#D1AC70] space-y-1 bg-[#D1AC70]/10 rounded-xl px-4 py-2 ease-out duration-500" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</a>
+</nav>
+</body></html>

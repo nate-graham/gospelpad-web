@@ -160,11 +160,11 @@ export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
 
   return (
     <main style={{ minHeight: '100vh', padding: '1rem', display: 'grid', justifyItems: 'center' }}>
-      <div className="page-section shell-page" style={{ width: 'min(100%, 1320px)', paddingBottom: '2rem' }}>
-        <header className="page-header">
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', alignItems: 'center' }}>
+      <div className="page-container page-section shell-page" style={{ width: 'min(100%, 1320px)', paddingBottom: '2rem' }}>
+        <header className="hero-surface">
+          <div className="meta-row">
             <span className="badge">{note.type ?? 'Shared note'}</span>
-            <span style={{ color: 'var(--muted)' }}>Read-only public share</span>
+            <span>Read-only public share</span>
           </div>
           <h1>{note.title?.trim() || 'Untitled'}</h1>
           <p className="page-description">
@@ -172,85 +172,83 @@ export function PublicSharedNoteView({ shareToken }: { shareToken: string }) {
           </p>
         </header>
 
-        {activeReference ? (
-          <ScriptureReferencePreview reference={activeReference} onClose={() => setActiveReference(null)} />
-        ) : null}
+        <div className="note-detail-layout">
+          <div className="note-detail-main">
+            <section className="reading-surface" style={{ background: 'transparent', padding: 0, gap: '1.25rem' }}>
+              <div
+                className="note-body-content"
+                style={{
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: 1.92,
+                  color: 'var(--text)',
+                  fontSize: '1.02rem',
+                  minHeight: '220px',
+                }}
+              >
+                {(note.body ?? '').trim() ? (
+                  <ScriptureReferenceText text={(note.body ?? '').trim()} onReferenceClick={setActiveReference} />
+                ) : (
+                  'No body content yet.'
+                )}
+              </div>
+            </section>
+          </div>
 
-        <section className="responsive-grid compact">
-          <article className="status-card" style={{ padding: '1rem' }}>
-            <span className="eyebrow">Preview</span>
-            <strong style={{ fontSize: '1.05rem' }}>{getNoteExcerpt(note)}</strong>
-            <span style={{ color: 'var(--muted)' }}>You can read the full note here, then sign up to save your own copy or collaborate.</span>
-          </article>
-          <article className="status-card" style={{ padding: '1rem' }}>
-            <span className="eyebrow">Scripture</span>
-            <strong style={{ fontSize: '1.05rem' }}>{scriptureCount}</strong>
-            <span style={{ color: 'var(--muted)' }}>
-              {scriptureCount === 1 ? 'reference detected' : 'references detected'}
-            </span>
-          </article>
-        </section>
+          <aside className="note-detail-rail">
+            {activeReference ? (
+              <ScriptureReferencePreview reference={activeReference} onClose={() => setActiveReference(null)} />
+            ) : null}
 
-        {references.length > 0 ? (
-          <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-            <span className="eyebrow">Detected references</span>
-            <div className="cta-row">
-              {references.map((reference) => (
-                <button
-                  key={reference}
-                  type="button"
-                  className="button button-secondary"
-                  onClick={() => setActiveReference(reference)}
-                >
-                  {reference}
-                </button>
-              ))}
+            <div className="inline-support-stack">
+              <div className="support-block">
+                <span className="eyebrow">Preview</span>
+                <strong className="support-block-title">{getNoteExcerpt(note)}</strong>
+                <p className="support-block-copy">Read the note here, then continue it in your own library if you want to keep it.</p>
+              </div>
             </div>
-          </section>
-        ) : null}
 
-        <section className="panel" style={{ padding: '1rem' }}>
-          <div
-            className="note-body-content"
-            style={{
-              whiteSpace: 'pre-wrap',
-              lineHeight: 1.8,
-              color: 'var(--text)',
-              fontSize: '1rem',
-              minHeight: '220px',
-              padding: '0.25rem 0',
-            }}
-          >
-            {(note.body ?? '').trim() ? (
-              <ScriptureReferenceText text={(note.body ?? '').trim()} onReferenceClick={setActiveReference} />
-            ) : (
-              'No body content yet.'
-            )}
-          </div>
-        </section>
+            {references.length > 0 ? (
+              <div className="inline-support-stack">
+                <span className="eyebrow">Detected references</span>
+                <div className="note-reference-row">
+                  {references.map((reference) => (
+                    <button
+                      key={reference}
+                      type="button"
+                      className="button button-secondary"
+                      onClick={() => setActiveReference(reference)}
+                    >
+                      {reference}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-          <span className="eyebrow">Keep going in GospelPad</span>
-          <strong style={{ fontSize: '1.05rem' }}>
-            {authenticated ? 'Copy this note into your own library and keep editing from there.' : 'Create an account to copy this note into your own library and keep editing.'}
-          </strong>
-          <div className="cta-row">
-            {authenticated ? (
-              <button className="button button-primary" disabled={copying} onClick={() => void onCopyToMyNotes()} type="button">
-                {copying ? 'Copying…' : 'Copy to my notes'}
-              </button>
-            ) : (
-              <>
-                <Link className="button button-primary" href={`/auth/sign-up?next=${encodeURIComponent(copyRedirectPath)}`}>
-                  Sign up
-                </Link>
-                <Link className="button button-secondary" href={`/auth/sign-in?next=${encodeURIComponent(copyRedirectPath)}`}>
-                  Sign in
-                </Link>
-              </>
-            )}
-          </div>
-        </section>
+            <section className="support-tray">
+              <span className="eyebrow">Keep going in GospelPad</span>
+              <strong className="support-block-title">
+                {authenticated ? 'Copy this note into your own library and keep editing from there.' : 'Create an account to copy this note into your own library and keep editing.'}
+              </strong>
+              <div className="cta-row">
+                {authenticated ? (
+                  <button className="button button-primary" disabled={copying} onClick={() => void onCopyToMyNotes()} type="button">
+                    {copying ? 'Copying…' : 'Copy to my notes'}
+                  </button>
+                ) : (
+                  <>
+                    <Link className="button button-primary" href={`/auth/sign-up?next=${encodeURIComponent(copyRedirectPath)}`}>
+                      Sign up
+                    </Link>
+                    <Link className="button button-secondary" href={`/auth/sign-in?next=${encodeURIComponent(copyRedirectPath)}`}>
+                      Sign in
+                    </Link>
+                  </>
+                )}
+              </div>
+            </section>
+          </aside>
+        </div>
       </div>
     </main>
   );

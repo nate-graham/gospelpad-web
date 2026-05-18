@@ -346,11 +346,11 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   }
 
   return (
-    <div className="page-section">
-      <header className="page-header">
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.7rem', alignItems: 'center' }}>
+    <div className="page-container page-section">
+      <header className="hero-surface">
+        <div className="meta-row">
           <span className="badge">{getGroupVisibilityLabel(group)}</span>
-          {membership ? <span style={{ color: 'var(--muted)' }}>Your role: {membership.role}</span> : null}
+          {membership ? <span>Your role: {membership.role}</span> : null}
         </div>
         <h1>{group.name}</h1>
         <p className="page-description">
@@ -362,32 +362,32 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       {actionNotice ? <section className="empty-state status-message" role="status">{actionNotice}</section> : null}
       {actionError ? <section className="error-state status-message" role="alert">{actionError}</section> : null}
 
-      <section className="responsive-grid compact">
-        <article className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.4rem' }}>
-          <span className="eyebrow">Created</span>
-          <strong style={{ fontSize: '1.3rem' }}>{formatGroupDate(group.created_at)}</strong>
-          <span style={{ color: 'var(--muted)' }}>{group.is_public ? 'Members can join instantly.' : 'Private groups require a join request.'}</span>
-        </article>
+      <div className="group-screen-grid">
+        <div className="group-screen-main">
+      <section className="support-tray" style={{ gap: '0.55rem' }}>
+        <div className="meta-row">
+          <span>Created {formatGroupDate(group.created_at)}</span>
+          <span>{group.is_public ? 'Members can join instantly.' : 'Private groups require a join request.'}</span>
+        </div>
       </section>
 
       <GroupInvitePanel group={group} membership={membership} />
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div className="page-header" style={{ gap: '0.35rem' }}>
+      <section className="reading-surface" style={{ background: 'transparent', padding: 0, gap: '1rem' }}>
+        <div className="support-block" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Announcements</span>
-          <strong style={{ fontSize: '1.1rem' }}>
+          <strong className="support-block-title">
             {announcements.length} {announcements.length === 1 ? 'announcement' : 'announcements'}
           </strong>
-          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+          <p className="support-block-copy">
             Keep everyone in the group up to date from one place.
-          </span>
+          </p>
         </div>
 
         {canManageAnnouncements ? (
           <div
-            className="status-card"
+            className="support-tray"
             style={{
-              padding: '1rem',
               display: 'grid',
               gap: '0.85rem',
               gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
@@ -425,9 +425,9 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             </div>
           </div>
         ) : (
-          <section className="status-card" style={{ padding: '1rem' }}>
+          <section className="support-block">
             <strong>Member view</strong>
-            <span style={{ color: 'var(--muted)' }}>
+            <span className="support-block-copy">
               Only the group owner and admins can post or delete announcements.
             </span>
           </section>
@@ -443,7 +443,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         ) : (
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {announcements.map((announcement) => (
-              <article className="status-card" key={announcement.id} style={{ padding: '1rem', display: 'grid', gap: '0.6rem' }}>
+              <article key={announcement.id} style={{ display: 'grid', gap: '0.6rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'grid', gap: '0.3rem' }}>
                     <strong>{announcement.title}</strong>
@@ -473,15 +473,15 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         )}
       </section>
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div className="page-header" style={{ gap: '0.35rem' }}>
+      <section className="support-tray">
+        <div className="support-block" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Membership</span>
-          <strong style={{ fontSize: '1.1rem' }}>
+          <strong className="support-block-title">
             {membership ? `You are a ${membership.role}` : 'Access inherited from owner visibility'}
           </strong>
-          <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+          <p className="support-block-copy">
             Manage your place in the group, review requests, and keep member roles organized.
-          </span>
+          </p>
         </div>
 
         <div className="cta-row">
@@ -495,9 +495,9 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
               {pendingAction === 'leave' ? 'Leaving…' : 'Leave group'}
             </button>
           ) : (
-            <div className="status-card" style={{ padding: '1rem' }}>
+            <div className="support-block">
               <strong>{group.created_by === membership?.user_id ? 'Owner cannot leave yet' : 'Membership action unavailable'}</strong>
-              <span style={{ color: 'var(--muted)' }}>
+              <span className="support-block-copy">
                 {group.created_by === membership?.user_id
                   ? 'The group owner needs to stay connected to the group right now.'
                   : 'This account does not currently have a leave action available.'}
@@ -508,15 +508,15 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       </section>
 
       <section className="two-column-layout">
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-          <div className="page-header" style={{ gap: '0.35rem' }}>
+        <section className="reading-surface" style={{ background: 'transparent', padding: 0 }}>
+          <div className="support-block" style={{ gap: '0.35rem' }}>
             <span className="eyebrow">Members</span>
-            <strong style={{ fontSize: '1.1rem' }}>
+            <strong className="support-block-title">
               {members.length} {members.length === 1 ? 'member' : 'members'}
             </strong>
-            <span style={{ color: 'var(--muted)' }}>
+            <p className="support-block-copy">
               See who is in the group and what role they hold.
-            </span>
+            </p>
           </div>
 
           {members.length === 0 ? (
@@ -529,11 +529,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           ) : (
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {members.map((member) => (
-                <article
-                  className="status-card"
-                  key={member.id}
-                  style={{ padding: '1rem', display: 'grid', gap: '0.45rem' }}
-                >
+                <article key={member.id} style={{ display: 'grid', gap: '0.45rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                     <strong>{getGroupMemberLabel(member)}</strong>
                     {member.is_owner ? <span className="badge">Owner</span> : null}
@@ -580,15 +576,15 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           )}
         </section>
 
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-          <div className="page-header" style={{ gap: '0.35rem' }}>
+        <section className="reading-surface" style={{ background: 'transparent', padding: 0 }}>
+          <div className="support-block" style={{ gap: '0.35rem' }}>
             <span className="eyebrow">Group notes</span>
-            <strong style={{ fontSize: '1.1rem' }}>
+            <strong className="support-block-title">
               {nativeNotes.length} {nativeNotes.length === 1 ? 'group note' : 'group notes'}
             </strong>
-            <span style={{ color: 'var(--muted)' }}>
+            <p className="support-block-copy">
               Keep shared study notes and meeting notes together for the whole group.
-            </span>
+            </p>
           </div>
 
           <div className="cta-row">
@@ -607,7 +603,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           ) : (
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {nativeNotes.map((note) => (
-                <article className="status-card" key={note.id} style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
+                <article key={note.id} style={{ display: 'grid', gap: '0.55rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                     <strong>{note.title?.trim() || 'Untitled'}</strong>
                     <span className="badge">group note</span>
@@ -635,15 +631,15 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       </section>
 
       {canManageRequests && !group.is_public ? (
-        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-          <div className="page-header" style={{ gap: '0.35rem' }}>
+        <section className="support-tray">
+          <div className="support-block" style={{ gap: '0.35rem' }}>
             <span className="eyebrow">Join requests</span>
-            <strong style={{ fontSize: '1.1rem' }}>
+            <strong className="support-block-title">
               {joinRequests.length} {joinRequests.length === 1 ? 'pending request' : 'pending requests'}
             </strong>
-            <span style={{ color: 'var(--muted)' }}>
+            <p className="support-block-copy">
               Private groups can review pending requests here. Public groups join immediately and do not use this queue.
-            </span>
+            </p>
           </div>
 
           {joinRequests.length === 0 ? (
@@ -656,7 +652,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           ) : (
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {joinRequests.map((request) => (
-                <article className="status-card" key={request.id} style={{ padding: '1rem', display: 'grid', gap: '0.65rem' }}>
+                <article key={request.id} style={{ display: 'grid', gap: '0.65rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                     <strong>{getRequestLabel(request)}</strong>
                     <span className="badge">{request.username ? `@${request.username}` : 'Pending member'}</span>
@@ -689,15 +685,18 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         </section>
       ) : null}
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div className="page-header" style={{ gap: '0.35rem' }}>
+      </div>
+
+      <aside className="group-screen-rail">
+      <section className="support-tray">
+        <div className="support-block" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Shared personal notes</span>
-            <strong style={{ fontSize: '1.1rem' }}>
-              {sharedNotes.length} {sharedNotes.length === 1 ? 'shared note' : 'shared notes'}
-            </strong>
-            <span style={{ color: 'var(--muted)' }}>
-              These are personal notes that people have shared into the group.
-            </span>
+          <strong className="support-block-title">
+            {sharedNotes.length} {sharedNotes.length === 1 ? 'shared note' : 'shared notes'}
+          </strong>
+          <p className="support-block-copy">
+            These are personal notes that people have shared into the group.
+          </p>
         </div>
 
         {sharedNotes.length === 0 ? (
@@ -710,7 +709,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         ) : (
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {sharedNotes.map((note) => (
-              <article className="status-card" key={`shared-${note.id}`} style={{ padding: '1rem', display: 'grid', gap: '0.55rem' }}>
+              <article key={`shared-${note.id}`} style={{ display: 'grid', gap: '0.55rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                   <strong>{note.title?.trim() || 'Untitled'}</strong>
                   <span className="badge">{note.permissions}</span>
@@ -730,13 +729,15 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         )}
       </section>
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+      <section className="support-tray" style={{ gap: '0.75rem' }}>
         <span className="eyebrow">Current scope</span>
         <strong>Groups bring announcements, members, shared notes, and group notes together in one place.</strong>
-        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
+        <span className="support-block-copy">
           More advanced group management options will be added over time.
         </span>
       </section>
+      </aside>
+      </div>
 
       <div className="cta-row">
         <Link className="button button-secondary" href="/groups">
@@ -749,7 +750,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
 
 const fieldStyle: React.CSSProperties = {
   display: 'grid',
-  gap: '0.45rem',
+  gap: '0.5rem',
 };
 
 const labelTextStyle: React.CSSProperties = {
@@ -757,10 +758,9 @@ const labelTextStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
-  minHeight: 48,
-  borderRadius: 14,
-  border: '1px solid var(--line)',
-  padding: '0.85rem 1rem',
+  minHeight: 54,
+  borderRadius: 18,
+  padding: '0.95rem 1.05rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',
 };
@@ -768,7 +768,6 @@ const inputStyle: React.CSSProperties = {
 const textareaStyle: React.CSSProperties = {
   minHeight: 120,
   borderRadius: 18,
-  border: '1px solid var(--line)',
   padding: '1rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',

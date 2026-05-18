@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "secondary-container": "#43474c",
+                  "tertiary": "#cecccc",
+                  "surface-container-lowest": "#0b0e14",
+                  "primary-fixed-dim": "#e7c183",
+                  "primary": "#eec789",
+                  "on-tertiary-container": "#434444",
+                  "surface-tint": "#e7c183",
+                  "on-background": "#e1e2ea",
+                  "outline": "#9a8f81",
+                  "on-primary-container": "#59400d",
+                  "surface-container-high": "#272a30",
+                  "on-secondary-container": "#b2b5bb",
+                  "surface-container-highest": "#32353b",
+                  "on-error": "#690005",
+                  "secondary-fixed-dim": "#c3c7cc",
+                  "inverse-primary": "#775926",
+                  "on-tertiary-fixed-variant": "#464747",
+                  "on-secondary-fixed-variant": "#43474c",
+                  "surface-dim": "#101319",
+                  "tertiary-fixed-dim": "#c7c6c6",
+                  "on-secondary": "#2d3135",
+                  "error-container": "#93000a",
+                  "error": "#ffb4ab",
+                  "surface-bright": "#363940",
+                  "surface": "#101319",
+                  "surface-container-low": "#191c22",
+                  "on-tertiary": "#303031",
+                  "on-secondary-fixed": "#181c20",
+                  "on-primary-fixed": "#281900",
+                  "tertiary-container": "#b2b1b1",
+                  "on-tertiary-fixed": "#1b1c1c",
+                  "on-surface": "#e1e2ea",
+                  "secondary": "#c3c7cc",
+                  "secondary-fixed": "#e0e3e9",
+                  "inverse-on-surface": "#2d3037",
+                  "tertiary-fixed": "#e3e2e2",
+                  "surface-container": "#1d2026",
+                  "inverse-surface": "#e1e2ea",
+                  "primary-container": "#d1ac70",
+                  "on-error-container": "#ffdad6",
+                  "surface-variant": "#32353b",
+                  "outline-variant": "#4e463a",
+                  "on-primary-fixed-variant": "#5c4210",
+                  "on-primary": "#422c00",
+                  "primary-fixed": "#ffdeab",
+                  "on-surface-variant": "#d1c5b5",
+                  "background": "#101319"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "1rem",
+                  "xl": "1.5rem",
+                  "full": "9999px"
+          },
+          "fontFamily": {
+                  "headline": ["Poppins", "Plus Jakarta Sans"],
+                  "body": ["Poppins", "Plus Jakarta Sans"],
+                  "label": ["Poppins", "Plus Jakarta Sans"]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body { font-family: 'Poppins', sans-serif; background-color: #0b0e14; color: #e1e2ea; }
+    .glass { background: rgba(50, 53, 59, 0.6); backdrop-filter: blur(24px); }
+    .no-border { border: none !important; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+  </style>
+</head>
+<body class="flex min-h-screen bg-surface-container-lowest text-on-background">
+<!-- SideNavBar Anchor -->
+<aside class="h-screen w-72 left-0 sticky bg-[#101319] dark:bg-[#0B0E14] shadow-[40px_0_60px_-15px_rgba(0,0,0,0.3)] bg-[#191C22] flex flex-col p-8 gap-6 transition-all duration-500 ease-in-out">
+<div class="mb-8">
+<h1 class="text-[#D1AC70] font-bold text-xl tracking-wider">The Curator</h1>
+<p class="text-[#DCDFE5] opacity-50 font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]">In Silent Reflection</p>
+</div>
+<nav class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-4 p-3 rounded-lg text-[#DCDFE5] opacity-50 font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem] hover:bg-[#272A30] hover:text-[#D1AC70] transition-colors" href="#">
+<span class="material-symbols-outlined">library_books</span>
+        Library
+      </a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-[#DCDFE5] opacity-50 font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem] hover:bg-[#272A30] hover:text-[#D1AC70] transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+        My Notes
+      </a>
+<!-- Active State: Groups -->
+<a class="flex items-center gap-4 p-3 rounded-lg text-[#D1AC70] font-bold border-r-2 border-[#D1AC70] bg-[#191C22] font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined">group</span>
+        Groups
+      </a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-[#DCDFE5] opacity-50 font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem] hover:bg-[#272A30] hover:text-[#D1AC70] transition-colors" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+        Daily Verses
+      </a>
+<a class="flex items-center gap-4 p-3 rounded-lg text-[#DCDFE5] opacity-50 font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem] hover:bg-[#272A30] hover:text-[#D1AC70] transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+        Settings
+      </a>
+</nav>
+<div class="mt-auto flex flex-col gap-4">
+<button class="bg-primary-container text-on-primary py-4 px-6 rounded-xl font-semibold flex items-center justify-center gap-2 transition-transform hover:scale-95 active:scale-90">
+<span class="material-symbols-outlined">add</span>
+        New Journal Entry
+      </button>
+<div class="flex flex-col gap-2 pt-6 border-t border-outline-variant/15">
+<a class="flex items-center gap-4 text-[#DCDFE5] opacity-50 text-[0.75rem] uppercase tracking-widest hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined">help_outline</span> Help
+        </a>
+<a class="flex items-center gap-4 text-[#DCDFE5] opacity-50 text-[0.75rem] uppercase tracking-widest hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined">lock</span> Privacy
+        </a>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-grow flex flex-col min-w-0">
+<!-- TopNavBar Anchor -->
+<header class="w-full top-0 sticky bg-[#101319] dark:bg-[#0B0E14] bg-[#191C22] z-50 flex justify-between items-center px-12 py-6 w-full max-w-screen-2xl mx-auto">
+<div class="text-2xl font-semibold tracking-tighter text-[#D1AC70] font-['Plus_Jakarta_Sans']">The Sanctuary</div>
+<nav class="hidden md:flex items-center gap-10">
+<a class="text-[#DCDFE5] opacity-70 font-['Plus_Jakarta_Sans'] font-light tracking-wide hover:text-[#D1AC70] transition-colors duration-300" href="#">Meditations</a>
+<a class="text-[#DCDFE5] opacity-70 font-['Plus_Jakarta_Sans'] font-light tracking-wide hover:text-[#D1AC70] transition-colors duration-300" href="#">Scriptures</a>
+<a class="text-[#D1AC70] border-b-2 border-[#D1AC70] pb-1 font-['Plus_Jakarta_Sans'] font-light tracking-wide" href="#">Reflections</a>
+</nav>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined text-[#DCDFE5] opacity-70 group-hover:text-[#D1AC70] transition-colors">account_circle</span>
+</div>
+</div>
+</header>
+<!-- Group Detail Content -->
+<div class="p-12 space-y-12 max-w-7xl mx-auto w-full">
+<!-- Hero / Group Identity -->
+<section class="relative h-[300px] rounded-xl overflow-hidden flex items-end p-12 bg-surface-container-low shadow-xl">
+<img class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay" data-alt="serene morning sunlight streaming through tall cathedral windows onto ancient wooden pews and stone floor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxXXUhwtDHSylRLagRrb_SYJ5tfFib2mlsytLYYG5odkXUFSYEEvRFxMEzRKZwIVOrqYGXYp87yzWjiQq6-dKoqxBHW7qPpHcg4nD792ebPZZ2sU6sGkYfainGHAFXkj1hsf3Q1p8E7-wHpKsKELyQWGx7-UG5KHBfi0bA_USk9uPTx0A6d3kbb7KHwuS5rF-IfpN5bHfy-8aLe6HQAkK8rX9ObUgUnWaQnHZEVnGyA9foCpIttFaeOA6bsvYISmCwu52fssLYqcsh"/>
+<div class="relative z-10 space-y-4">
+<span class="bg-[#D1AC70]/20 text-[#D1AC70] px-4 py-1 rounded-full text-xs font-semibold tracking-widest uppercase">Active Fellowship</span>
+<h2 class="text-5xl font-semibold text-secondary leading-tight tracking-tight">The Berean Circle</h2>
+<p class="text-secondary opacity-60 text-lg max-w-2xl font-light">Dedicated to deep contextual study of the Gospels. Finding stillness through shared inquiry and communal prayer.</p>
+</div>
+</section>
+<!-- Bento Grid Content -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Announcements (Tall Column) -->
+<section class="col-span-12 lg:col-span-4 space-y-6">
+<div class="flex justify-between items-center px-2">
+<h3 class="text-on-surface-variant font-semibold tracking-widest text-sm uppercase">Announcements</h3>
+<span class="material-symbols-outlined text-[#D1AC70] text-xl">campaign</span>
+</div>
+<div class="space-y-4">
+<!-- Announcement Card -->
+<div class="bg-surface-container-low p-6 rounded-xl hover:bg-surface-container-high transition-all duration-300 group">
+<span class="text-[0.65rem] text-[#D1AC70] font-bold tracking-[0.2em] uppercase">Pinned</span>
+<h4 class="text-secondary font-medium mt-2 group-hover:text-primary transition-colors">Saturday Sunrise Prayer</h4>
+<p class="text-secondary opacity-50 text-sm mt-3 leading-relaxed">Meeting at the East Shore pier this weekend. Bring your scriptures and a thermos of peace.</p>
+<div class="mt-4 flex items-center gap-2 text-[0.7rem] text-[#D1AC70] opacity-70">
+<span class="material-symbols-outlined text-sm">schedule</span> 6:00 AM • June 12
+              </div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl hover:bg-surface-container-high transition-all duration-300">
+<h4 class="text-secondary font-medium">New Reflection Guide</h4>
+<p class="text-secondary opacity-50 text-sm mt-3 leading-relaxed">Curator has uploaded the 'Parables of Grace' study module. Available in the Library tab.</p>
+<div class="mt-4 flex items-center gap-2 text-[0.7rem] text-[#D1AC70] opacity-70">
+<span class="material-symbols-outlined text-sm">description</span> 2h ago
+              </div>
+</div>
+</div>
+</section>
+<!-- Main Content Area: Notes & Study Space -->
+<section class="col-span-12 lg:col-span-8 space-y-6">
+<div class="flex justify-between items-center px-2">
+<h3 class="text-on-surface-variant font-semibold tracking-widest text-sm uppercase">Community Notes</h3>
+<div class="flex gap-4">
+<button class="text-secondary opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2 text-xs">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filter
+              </button>
+<button class="text-[#D1AC70] font-semibold text-xs tracking-widest uppercase">View All</button>
+</div>
+</div>
+<!-- Asymmetric Shared Study Board -->
+<div class="grid grid-cols-2 gap-6">
+<!-- Major Note Card -->
+<div class="col-span-2 bg-surface-container-low p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-12 -mt-12 transition-transform group-hover:scale-150 duration-700"></div>
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center border border-outline-variant/10">
+<span class="material-symbols-outlined text-primary text-lg">edit_note</span>
+</div>
+<div>
+<div class="text-secondary text-sm font-medium">Elena S.</div>
+<div class="text-secondary opacity-40 text-[0.7rem]">Synthesizing John 1:1-5</div>
+</div>
+</div>
+<blockquote class="text-xl italic text-secondary leading-relaxed font-light mb-6 border-l-2 border-primary/30 pl-6">
+                "The light shines in the darkness, and the darkness has not overcome it." Thinking about how stillness allows that inner light to be recognized...
+              </blockquote>
+<div class="flex gap-3">
+<span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-full text-[0.7rem] font-medium tracking-wider">Logos</span>
+<span class="bg-secondary-container/40 text-on-secondary-container px-3 py-1 rounded-full text-[0.7rem] font-medium tracking-wider">Creation</span>
+</div>
+</div>
+<!-- Small Note Card -->
+<div class="bg-surface-container-low p-6 rounded-xl border border-transparent hover:border-[#D1AC70]/20 transition-all">
+<div class="flex items-center gap-3 mb-4">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-sm">format_quote</span>
+</div>
+<div class="text-secondary text-xs font-medium">Thomas K.</div>
+</div>
+<p class="text-secondary opacity-60 text-sm leading-relaxed">Cross-referencing this with the 'Bread of Life' discourse. Any thoughts on the overlap?</p>
+<div class="mt-4 pt-4 border-t border-outline-variant/10 flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border border-surface-container-low flex items-center justify-center text-[10px]">MK</div>
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border border-surface-container-low flex items-center justify-center text-[10px]">JL</div>
+</div>
+<span class="material-symbols-outlined text-secondary opacity-30 text-lg">chat_bubble</span>
+</div>
+</div>
+<!-- Image-based Shared Note -->
+<div class="bg-surface-container-low p-0 rounded-xl overflow-hidden relative group">
+<img class="w-full h-full object-cover absolute inset-0 opacity-20 grayscale group-hover:grayscale-0 group-hover:opacity-40 transition-all duration-700" data-alt="macro photo of hand-written greek manuscript on aged vellum paper with soft golden bokeh" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_hDWsX5WMqDbGrK1ByqsfALaA5tHxExRezaiCZ1ae9lFr7Vx91LS6ENvZJyUENfayxfnA-x7fuJKUPaug-BQi5TldAdZMoe8g6vCVV-W4P8erlFT5si1Q2nGeRf6qpf3bGVyTIDWAxsslIXf3OcXf5KHLgHlLLJpcH5gJk2GnDAEzpWNmrFhhpy5pnIwgBLXf0iaRkXxDniqy5PtWkMChKXyumbasce9C83JlF8wbWl5dxFH6AcvJ812KsCdJ3E0HlDxkTWOjVLZn"/>
+<div class="relative z-10 p-6 flex flex-col h-full justify-between">
+<div>
+<div class="text-primary font-bold text-[0.65rem] tracking-[0.2em] uppercase mb-1">Visual Study</div>
+<h4 class="text-secondary font-medium">Ancient Manuscript Fragments</h4>
+</div>
+<div class="mt-8 flex items-center gap-3 bg-black/40 backdrop-blur-md p-2 rounded-lg w-fit">
+<span class="material-symbols-outlined text-primary text-sm">visibility</span>
+<span class="text-secondary text-[0.7rem]">14 active members viewing</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Member Ribbon -->
+<section class="bg-surface-container-low py-8 px-12 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="space-y-1">
+<p class="text-on-surface-variant font-semibold tracking-widest text-[0.65rem] uppercase">Members</p>
+<div class="flex -space-x-3">
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-low bg-surface-container-high flex items-center justify-center text-xs text-[#D1AC70]">A</div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-low bg-surface-container-high flex items-center justify-center text-xs text-[#D1AC70]">B</div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-low bg-surface-container-high flex items-center justify-center text-xs text-[#D1AC70]">C</div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-low bg-surface-container-high flex items-center justify-center text-xs text-[#D1AC70]">D</div>
+<div class="w-10 h-10 rounded-full border-2 border-surface-container-low bg-[#272A30] flex items-center justify-center text-[10px] text-secondary opacity-50">+42</div>
+</div>
+</div>
+<div class="h-10 w-px bg-outline-variant/20"></div>
+<div class="space-y-1">
+<p class="text-on-surface-variant font-semibold tracking-widest text-[0.65rem] uppercase">Study Pace</p>
+<p class="text-secondary text-sm font-medium">Chapter 4 • Weekly Synch</p>
+</div>
+</div>
+<button class="border border-outline-variant/30 text-secondary px-8 py-2 rounded-full text-xs font-medium tracking-widest uppercase hover:bg-surface-container-high transition-colors">
+          Manage Group
+        </button>
+</section>
+</div>
+<!-- Footer Anchor -->
+<footer class="w-full py-12 bg-[#0B0E14] border-t border-[#4E463A]/15 flex flex-col items-center justify-center space-y-4 px-8 w-full">
+<div class="flex items-center gap-8 mb-4">
+<a class="text-[#DCDFE5] opacity-40 font-['Plus_Jakarta_Sans'] text-sm tracking-widest hover:opacity-100 transition-opacity" href="#">Terms of Peace</a>
+<a class="text-[#DCDFE5] opacity-40 font-['Plus_Jakarta_Sans'] text-sm tracking-widest hover:opacity-100 transition-opacity" href="#">Privacy Policy</a>
+<a class="text-[#DCDFE5] opacity-40 font-['Plus_Jakarta_Sans'] text-sm tracking-widest hover:opacity-100 transition-opacity" href="#">Contact Curator</a>
+</div>
+<p class="text-[#DCDFE5] opacity-40 font-['Plus_Jakarta_Sans'] text-[0.65rem] tracking-[0.2em] uppercase">© 2024 The Digital Sanctuary. All rights reserved.</p>
+</footer>
+</main>
+<!-- Contextual FAB - Restricted to Study Actions -->
+<button class="fixed bottom-12 right-12 w-16 h-16 bg-primary-container text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform z-[100]">
+<span class="material-symbols-outlined text-3xl">add_comment</span>
+</button>
+</body></html>

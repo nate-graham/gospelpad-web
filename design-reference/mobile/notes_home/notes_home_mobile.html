@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GospelPad - Your Notes</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#59400d",
+                        "surface-container-highest": "#32353b",
+                        "secondary-fixed-dim": "#c3c7cc",
+                        "tertiary-fixed": "#e3e2e2",
+                        "background": "#101319",
+                        "primary-container": "#d1ac70",
+                        "outline": "#9a8f81",
+                        "surface": "#101319",
+                        "secondary-fixed": "#e0e3e9",
+                        "secondary": "#c3c7cc",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#32353b",
+                        "on-primary": "#422c00",
+                        "inverse-surface": "#e1e2ea",
+                        "on-primary-fixed-variant": "#5c4210",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#434444",
+                        "surface-container-lowest": "#0b0e14",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#2d3037",
+                        "primary-fixed-dim": "#e7c183",
+                        "on-secondary-fixed": "#181c20",
+                        "secondary-container": "#43474c",
+                        "tertiary-container": "#b2b1b1",
+                        "outline-variant": "#4e463a",
+                        "on-surface": "#e1e2ea",
+                        "surface-container-high": "#272a30",
+                        "on-background": "#e1e2ea",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "primary": "#eec789",
+                        "surface-dim": "#101319",
+                        "on-tertiary": "#303031",
+                        "surface-container-low": "#191c22",
+                        "primary-fixed": "#ffdeab",
+                        "on-surface-variant": "#d1c5b5",
+                        "on-secondary-container": "#b2b5bb",
+                        "surface-bright": "#363940",
+                        "inverse-primary": "#775926",
+                        "error-container": "#93000a",
+                        "surface-container": "#1d2026",
+                        "on-secondary": "#2d3135",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-primary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#43474c",
+                        "surface-tint": "#e7c183",
+                        "tertiary": "#cecccc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Poppins", "Plus Jakarta Sans"],
+                        "body": ["Poppins", "Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; }
+        .glass-panel {
+            background: rgba(25, 28, 34, 0.6);
+            backdrop-filter: blur(24px);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen pb-32 selection:bg-primary-container selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="bg-[#101319] w-full top-0 sticky z-40 transition-opacity">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<button class="text-[#DCDFE5] hover:opacity-80 transition-opacity active:scale-95 duration-300">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase font-['Plus_Jakarta_Sans']">GospelPad</h1>
+<div class="w-6"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="px-6 pt-8 max-w-lg mx-auto">
+<!-- Hero Header -->
+<section class="mb-12">
+<h2 class="text-[3.5rem] font-semibold leading-tight tracking-tight text-secondary mb-8">Your notes</h2>
+<div class="grid grid-cols-2 gap-4">
+<button class="flex flex-col items-start justify-between p-5 bg-primary-container text-on-primary rounded-xl h-32 hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-3xl">add_circle</span>
+<span class="text-sm font-semibold tracking-wider uppercase">New note</span>
+</button>
+<button class="flex flex-col items-start justify-between p-5 bg-surface-container-low border border-outline-variant/15 text-primary rounded-xl h-32 hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-3xl">mic</span>
+<span class="text-sm font-semibold tracking-wider uppercase">Dictate note</span>
+</button>
+</div>
+</section>
+<!-- Collapsible Sections (Visual only) -->
+<section class="space-y-4 mb-12">
+<div class="flex items-center justify-between py-4 border-b border-outline-variant/10">
+<h3 class="text-sm font-semibold tracking-[0.1em] uppercase text-on-surface-variant">Overview</h3>
+<span class="material-symbols-outlined text-on-surface-variant">expand_more</span>
+</div>
+<div class="flex items-center justify-between py-4 border-b border-outline-variant/10 opacity-50">
+<h3 class="text-sm font-semibold tracking-[0.1em] uppercase text-on-surface-variant">Discovery</h3>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</div>
+<div class="flex items-center justify-between py-4 border-b border-outline-variant/10 opacity-50">
+<h3 class="text-sm font-semibold tracking-[0.1em] uppercase text-on-surface-variant">Scripture search</h3>
+<span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+</div>
+</section>
+<!-- Personal Notes List (Breathing) -->
+<section class="space-y-8">
+<div class="flex justify-between items-center mb-6">
+<span class="text-[0.75rem] font-medium tracking-[0.1em] uppercase text-primary">Recent reflections</span>
+<span class="text-[0.75rem] font-medium tracking-[0.1em] uppercase text-on-surface-variant/60">Filter</span>
+</div>
+<!-- Note Card 1 -->
+<div class="group">
+<div class="p-8 bg-surface-container-low rounded-[1.5rem] hover:bg-surface-container-high transition-all duration-500 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-secondary-container/40 text-[10px] font-medium tracking-widest uppercase rounded-full text-secondary">Theology</span>
+<span class="px-3 py-1 bg-secondary-container/40 text-[10px] font-medium tracking-widest uppercase rounded-full text-secondary">Grace</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant/60">2h ago</span>
+</div>
+<h4 class="text-xl font-medium text-secondary mb-4 leading-relaxed">The quietude of morning prayer: finding depth in silence.</h4>
+<p class="text-on-surface-variant/80 leading-relaxed text-[0.9375rem] line-clamp-3 mb-6">
+                        In the stillness before the city awakens, there is a specific frequency of peace. Reflection on Psalm 46:10. How silence acts as a vessel for...
+                    </p>
+<div class="flex items-center text-primary text-xs font-semibold tracking-widest uppercase gap-2">
+<span>Continue reading</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Note Card 2 -->
+<div class="group">
+<div class="p-8 bg-surface-container-low rounded-[1.5rem] hover:bg-surface-container-high transition-all duration-500 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-secondary-container/40 text-[10px] font-medium tracking-widest uppercase rounded-full text-secondary">Scripture</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant/60">Yesterday</span>
+</div>
+<h4 class="text-xl font-medium text-secondary mb-4 leading-relaxed">Observations on the Parable of the Sower.</h4>
+<p class="text-on-surface-variant/80 leading-relaxed text-[0.9375rem] line-clamp-3 mb-6">
+                        The distinction between the soil types is not just about receptivity, but about the environment we cultivate around the Word...
+                    </p>
+<div class="flex items-center text-primary text-xs font-semibold tracking-widest uppercase gap-2">
+<span>Continue reading</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Note Card 3 (Image Focused) -->
+<div class="group">
+<div class="relative overflow-hidden rounded-[1.5rem] bg-surface-container-low min-h-[400px] flex flex-col justify-end p-8">
+<img alt="Sanctuary background" class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-luminosity transition-transform duration-700 group-hover:scale-105" data-alt="Moody dark interior of a gothic cathedral with soft sunlight beams hitting stone floors through stained glass" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhTpsgS72h4avU4zVpaZyOFXtOJDDiCXBtyjf2vl6zY_CrmUg6lvFvQ8JLBq0Nn5_D8UqUJkDvXPR6oCorPqtc_xXV8ZUaWNCQcTYq_H0Q3pflCH0jzj7zjSf4sUbYT5ENLC6HgFlM7J4Qyf-G8t0Gtl3W7rz6ggPbN4SX2DzsHiRVvx-KhhHxIZ8YaOD8CZhZ7j-Id554MlFDCvEIYCLXTnDw5C8SXOw-UZp5jWNxHALH9e42cDGvpGnj0w0twlWunsuf1tJt9ZIn"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/60 to-transparent"></div>
+<div class="relative z-10">
+<div class="flex gap-2 mb-4">
+<span class="px-3 py-1 bg-primary-container/20 backdrop-blur-md border border-primary-container/20 text-[10px] font-medium tracking-widest uppercase rounded-full text-primary">Meditation</span>
+</div>
+<h4 class="text-2xl font-medium text-secondary mb-2 leading-tight">Architecture of the Soul</h4>
+<p class="text-on-surface-variant/80 text-sm mb-6">Visual reflections on sacred spaces and their impact on spiritual focus.</p>
+<div class="flex items-center text-primary text-xs font-semibold tracking-widest uppercase gap-2">
+<span>Open gallery</span>
+<span class="material-symbols-outlined text-sm">image</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Note Card 4 -->
+<div class="group">
+<div class="p-8 bg-surface-container-low rounded-[1.5rem] hover:bg-surface-container-high transition-all duration-500 shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-secondary-container/40 text-[10px] font-medium tracking-widest uppercase rounded-full text-secondary">Community</span>
+</div>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant/60">Oct 12</span>
+</div>
+<h4 class="text-xl font-medium text-secondary mb-4 leading-relaxed">Wednesday Study Group Notes</h4>
+<p class="text-on-surface-variant/80 leading-relaxed text-[0.9375rem] line-clamp-3 mb-6">
+                        Discussion points on the sermon from Sunday. Key takeaway: "Love is a choice, not just a feeling." Group agreed to focus on...
+                    </p>
+<div class="flex items-center text-primary text-xs font-semibold tracking-widest uppercase gap-2">
+<span>Continue reading</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 rounded-t-[1.5rem] bg-[#101319]/60 backdrop-blur-xl shadow-[0_-8px_40px_rgba(0,0,0,0.4)] flex justify-around items-center px-4 pb-6 pt-3">
+<!-- Notes (Active) -->
+<a class="flex flex-col items-center justify-center text-[#D1AC70] space-y-1 bg-[#D1AC70]/10 rounded-xl px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">description</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Notes</span>
+</a>
+<!-- Groups -->
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Groups</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Profile</span>
+</a>
+<!-- Settings -->
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all ease-out duration-500" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase">Settings</span>
+</a>
+</nav>
+</body></html>

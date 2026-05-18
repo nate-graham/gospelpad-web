@@ -3,13 +3,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PlanPaywallDialog } from '@/components/billing/plan-paywall-dialog';
 import { createNote, NOTE_TYPES, type NoteInput } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
 import { formatTranscriptText, uploadRecordingBlob, transcribeRecording, type UploadedRecording } from '@/lib/transcription';
 import { getNoteTypePlaceholders, supportsSpeakerField } from '@/components/notes/note-utils';
 import { InfoHint } from '@/components/feedback/info-hint';
-import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
 
 type DictationDraft = Pick<NoteInput, 'title' | 'speaker' | 'type' | 'isLucidDream' | 'dreamRole' | 'prayerStatus'> & {
   transcript: string;
@@ -118,8 +116,6 @@ export function DictationCaptureView() {
   const [liveListening, setLiveListening] = useState(false);
   const [liveInterim, setLiveInterim] = useState('');
   const [liveError, setLiveError] = useState<string | null>(null);
-  const [entitlements, setEntitlements] = useState<EntitlementSummary | null>(null);
-  const [paywallOpen, setPaywallOpen] = useState(false);
 
   useEffect(() => {
     if (!recording) return undefined;
@@ -147,27 +143,6 @@ export function DictationCaptureView() {
     };
   }, [audioUrl]);
 
-  useEffect(() => {
-    let active = true;
-
-    const loadEntitlements = async () => {
-      try {
-        const next = await getMyEntitlements();
-        if (!active) return;
-        setEntitlements(next);
-      } catch {
-        if (!active) return;
-        setEntitlements(null);
-      }
-    };
-
-    void loadEntitlements();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
   const placeholders = useMemo(() => getNoteTypePlaceholders(draft.type), [draft.type]);
   const showSpeakerField = supportsSpeakerField(draft.type);
   const isDream = draft.type === 'Dream';
@@ -175,16 +150,9 @@ export function DictationCaptureView() {
   const canRecord = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
   const canLiveDictate =
     typeof window !== 'undefined' && (typeof window.SpeechRecognition !== 'undefined' || typeof window.webkitSpeechRecognition !== 'undefined');
-  const transcriptionUnlocked = Boolean(entitlements?.transcriptionEnabled);
-  const transcriptionPaywallMessage = 'Dictation and transcription are available on Premium, Team, and Ministry.';
 
   const updateDraft = <K extends keyof DictationDraft>(key: K, value: DictationDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
-  };
-
-  const openTranscriptionPaywall = (message = transcriptionPaywallMessage) => {
-    setError(message);
-    setPaywallOpen(true);
   };
 
   const resetAudio = () => {
@@ -230,10 +198,6 @@ export function DictationCaptureView() {
   };
 
   const startRecording = async () => {
-    if (!transcriptionUnlocked) {
-      openTranscriptionPaywall();
-      return;
-    }
     try {
       setPermissionError(null);
       setError(null);
@@ -280,10 +244,6 @@ export function DictationCaptureView() {
   };
 
   const startLiveDictation = () => {
-    if (!transcriptionUnlocked) {
-      openTranscriptionPaywall();
-      return;
-    }
     const SpeechRecognitionCtor = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
       setLiveError('Live dictation is not supported in this browser.');
@@ -396,11 +356,6 @@ export function DictationCaptureView() {
 
   const transcribeAudio = async () => {
     if (!audioBlob) return;
-    if (!transcriptionUnlocked) {
-      openTranscriptionPaywall();
-      return;
-    }
-
     try {
       setTranscribing(true);
       setError(null);
@@ -416,9 +371,6 @@ export function DictationCaptureView() {
     } catch (transcriptionError) {
       const message = transcriptionError instanceof Error ? transcriptionError.message : 'Failed to transcribe audio.';
       setError(message);
-      if (message.includes('available on Premium')) {
-        setPaywallOpen(true);
-      }
     } finally {
       setTranscribing(false);
     }
@@ -426,10 +378,6 @@ export function DictationCaptureView() {
 
   const createNoteFromTranscript = async () => {
     const body = draft.transcript.trim();
-    if (!transcriptionUnlocked) {
-      openTranscriptionPaywall();
-      return;
-    }
     if (!body) {
       setError('Transcription text is required before saving.');
       return;
@@ -487,13 +435,16 @@ export function DictationCaptureView() {
   };
 
   return (
-    <div className="page-section">
-      <header className="page-header">
+    <div className="page-container page-section">
+      <header className="hero-surface">
         <span className="eyebrow">Dictation mode</span>
         <h1>Capture a note by voice</h1>
+        <p className="page-description" style={{ margin: 0 }}>
+          Move between live dictation, recorded audio, and a final written note without leaving the sanctuary flow.
+        </p>
       </header>
 
-      <details className="panel" style={{ padding: '0.9rem 1rem' }}>
+      <details className="detail-toggle" style={{ background: 'transparent', padding: 0 }}>
         <summary style={detailsSummaryStyle}>
           <span>Dictation details</span>
           <span style={detailsMetaStyle}>
@@ -534,25 +485,14 @@ export function DictationCaptureView() {
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
       {liveError ? <section className="error-state status-message" role="alert">{liveError}</section> : null}
       {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
-      {!transcriptionUnlocked ? (
-        <section className="empty-state status-message" role="status">
-          <strong>Premium feature</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            Dictation and transcription are available on Premium, Team, and Ministry.
-          </span>
-          <div className="cta-row">
-            <button className="button button-secondary" onClick={() => setPaywallOpen(true)} type="button">
-              View plans
-            </button>
-          </div>
-        </section>
-      ) : null}
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div className="page-header" style={{ gap: '0.35rem' }}>
+      <div className="dictation-grid">
+      <aside className="dictation-rail">
+      <section className="inline-support-stack">
+        <div className="support-block" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Live dictation</span>
           <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <strong style={{ fontSize: '1.1rem' }}>{liveListening ? 'Listening now' : 'Personal dictation'}</strong>
+            <strong className="support-block-title">{liveListening ? 'Listening now' : 'Personal dictation'}</strong>
             <InfoHint
               label="About live dictation"
               text="Use this when you are speaking close to your phone and want text to appear while you talk. If the voice is further away, use record and transcribe instead for more reliable results. This mode does not save an audio clip for playback later."
@@ -579,17 +519,17 @@ export function DictationCaptureView() {
         </div>
 
         {liveInterim ? (
-          <div className="status-card" style={{ padding: '1rem' }}>
+          <div className="support-tray">
             <span className="eyebrow">Listening preview</span>
             <strong style={{ fontSize: '1rem', lineHeight: 1.6 }}>{liveInterim}</strong>
           </div>
         ) : null}
       </section>
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div className="page-header" style={{ gap: '0.35rem' }}>
+      <section className="inline-support-stack">
+        <div className="support-block" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Audio capture</span>
-          <strong style={{ fontSize: '1.1rem' }}>{recording ? `Recording ${formatSeconds(recordSeconds)}` : audioBlob ? 'Audio ready' : 'Start with audio'}</strong>
+          <strong className="support-block-title">{recording ? `Recording ${formatSeconds(recordSeconds)}` : audioBlob ? 'Audio ready' : 'Start with audio'}</strong>
         </div>
 
         <div className="cta-row">
@@ -605,21 +545,15 @@ export function DictationCaptureView() {
             )
           ) : null}
 
-          {transcriptionUnlocked ? (
-            <label className="button button-secondary" style={{ position: 'relative', overflow: 'hidden' }}>
-              Upload audio
-              <input
-                accept="audio/*"
-                onChange={onAudioFileSelected}
-                style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-                type="file"
-              />
-            </label>
-          ) : (
-            <button className="button button-secondary" onClick={() => setPaywallOpen(true)} type="button">
-              Upload audio
-            </button>
-          )}
+          <label className="button button-secondary" style={{ position: 'relative', overflow: 'hidden' }}>
+            Upload audio
+            <input
+              accept="audio/*"
+              onChange={onAudioFileSelected}
+              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
+              type="file"
+            />
+          </label>
 
           {audioBlob ? (
             <button className="button button-ghost" type="button" onClick={resetAudio}>
@@ -645,12 +579,14 @@ export function DictationCaptureView() {
           </button>
         </div>
       </section>
+      </aside>
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-        <div className="page-header" style={{ gap: '0.35rem' }}>
+      <div className="dictation-main">
+      <section className="reading-surface" style={{ background: 'transparent', padding: 0 }}>
+        <div className="support-block" style={{ gap: '0.35rem' }}>
           <span className="eyebrow">Note setup</span>
           <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <strong style={{ fontSize: '1.1rem' }}>Review before saving</strong>
+            <strong className="support-block-title">Review before saving</strong>
             <InfoHint
               label="About note setup"
               text="Adjust the transcript and note type here, then continue into the standard editor after save."
@@ -767,13 +703,8 @@ export function DictationCaptureView() {
           </Link>
         </div>
       </section>
-
-      <PlanPaywallDialog
-        message={transcriptionPaywallMessage}
-        onClose={() => setPaywallOpen(false)}
-        open={paywallOpen}
-        title="Upgrade for dictation and transcription"
-      />
+      </div>
+      </div>
     </div>
   );
 }
@@ -784,7 +715,7 @@ const detailsSummaryStyle: React.CSSProperties = {
   color: 'var(--text)',
   listStyle: 'none',
   display: 'grid',
-  gap: '0.2rem',
+  gap: '0.28rem',
 };
 
 const detailsMetaStyle: React.CSSProperties = {
@@ -803,7 +734,7 @@ function formatSeconds(value: number) {
 
 const fieldStyle: React.CSSProperties = {
   display: 'grid',
-  gap: '0.45rem',
+  gap: '0.5rem',
 };
 
 const labelTextStyle: React.CSSProperties = {
@@ -811,10 +742,9 @@ const labelTextStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
-  minHeight: 48,
-  borderRadius: 14,
-  border: '1px solid var(--line)',
-  padding: '0.85rem 1rem',
+  minHeight: 54,
+  borderRadius: 18,
+  padding: '0.95rem 1.05rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',
 };
@@ -822,7 +752,6 @@ const inputStyle: React.CSSProperties = {
 const textareaStyle: React.CSSProperties = {
   minHeight: 240,
   borderRadius: 18,
-  border: '1px solid var(--line)',
   padding: '1rem',
   background: 'var(--field-bg)',
   color: 'var(--text)',

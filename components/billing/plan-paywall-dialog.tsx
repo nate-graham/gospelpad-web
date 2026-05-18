@@ -49,21 +49,21 @@ export function PlanPaywallDialog({
 const overlayStyle: React.CSSProperties = {
   position: 'fixed',
   inset: 0,
-  background: 'rgba(26, 29, 35, 0.56)',
+  background: 'rgba(11, 14, 20, 0.74)',
   display: 'grid',
   placeItems: 'center',
-  padding: '0.2rem',
+  padding: '0.5rem',
   zIndex: 60,
 };
 
 const dialogStyle: React.CSSProperties = {
-  width: 'min(100%, 960px)',
-  padding: '1.5rem',
+  width: 'min(100%, 1040px)',
+  padding: '1.8rem',
   display: 'grid',
-  gap: '1rem',
-  background: 'var(--bg-strong)',
+  gap: '1.1rem',
+  background: 'var(--bg-soft)',
   border: '1px solid #D1AC70',
-  borderRadius: '24px',
-  boxShadow: '0 24px 56px rgba(26, 29, 35, 0.22)',
+  borderRadius: '28px',
+  boxShadow: '0 32px 72px rgba(0, 0, 0, 0.45)',
   backdropFilter: 'none',
 };

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary-container": "#59400d",
+                        "surface-container-highest": "#32353b",
+                        "secondary-fixed-dim": "#c3c7cc",
+                        "tertiary-fixed": "#e3e2e2",
+                        "background": "#101319",
+                        "primary-container": "#d1ac70",
+                        "outline": "#9a8f81",
+                        "surface": "#101319",
+                        "secondary-fixed": "#e0e3e9",
+                        "secondary": "#c3c7cc",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#32353b",
+                        "on-primary": "#422c00",
+                        "inverse-surface": "#e1e2ea",
+                        "on-primary-fixed-variant": "#5c4210",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#434444",
+                        "surface-container-lowest": "#0b0e14",
+                        "on-error": "#690005",
+                        "inverse-on-surface": "#2d3037",
+                        "primary-fixed-dim": "#e7c183",
+                        "on-secondary-fixed": "#181c20",
+                        "secondary-container": "#43474c",
+                        "tertiary-container": "#b2b1b1",
+                        "outline-variant": "#4e463a",
+                        "on-surface": "#e1e2ea",
+                        "surface-container-high": "#272a30",
+                        "on-background": "#e1e2ea",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "primary": "#eec789",
+                        "surface-dim": "#101319",
+                        "on-tertiary": "#303031",
+                        "surface-container-low": "#191c22",
+                        "primary-fixed": "#ffdeab",
+                        "on-surface-variant": "#d1c5b5",
+                        "on-secondary-container": "#b2b5bb",
+                        "surface-bright": "#363940",
+                        "inverse-primary": "#775926",
+                        "error-container": "#93000a",
+                        "surface-container": "#1d2026",
+                        "on-secondary": "#2d3135",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-primary-fixed": "#281900",
+                        "on-secondary-fixed-variant": "#43474c",
+                        "surface-tint": "#e7c183",
+                        "tertiary": "#cecccc"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Poppins", "Plus Jakarta Sans", "sans-serif"],
+                        "body": ["Poppins", "Plus Jakarta Sans", "sans-serif"],
+                        "label": ["Plus Jakarta Sans", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #0b0e14;
+            color: #dcdfe5;
+            font-family: 'Poppins', sans-serif;
+        }
+        .glass-effect {
+            backdrop-filter: blur(24px);
+            background-color: rgba(25, 28, 34, 0.6);
+        }
+        .reverent-shadow {
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen selection:bg-primary-container selection:text-on-primary">
+<!-- TopAppBar -->
+<nav class="w-full top-0 sticky z-40 bg-[#101319] flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="hover:opacity-80 transition-opacity scale-95 duration-300 text-[#D1AC70]">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<span class="font-['Plus_Jakarta_Sans'] tracking-wide text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase">GospelPad</span>
+</div>
+<div class="flex gap-4">
+<button class="hover:opacity-80 transition-opacity text-[#DCDFE5]">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+</button>
+<button class="hover:opacity-80 transition-opacity text-[#DCDFE5]">
+<span class="material-symbols-outlined" data-icon="edit">edit</span>
+</button>
+</div>
+</nav>
+<main class="max-w-2xl mx-auto px-6 pt-12 pb-32">
+<!-- Editorial Header -->
+<header class="mb-12">
+<div class="flex items-center gap-3 mb-6">
+<span class="px-3 py-1 rounded-full bg-secondary-container/40 text-[10px] font-medium tracking-[0.1em] uppercase text-primary">Theology</span>
+<span class="text-on-surface-variant/50 text-[10px] font-medium tracking-[0.1em] uppercase">Oct 24, 2023</span>
+</div>
+<h1 class="text-[3.5rem] leading-[1.1] font-semibold tracking-[-0.02em] text-on-surface mb-8">The Architecture of Stillness.</h1>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="portrait of a thoughtful older man with grey beard in soft natural library lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAL2eveqwbhOfufTPQvz6xsJ_PGO85g9JNhO-ZxV4nBFq-UI5vZbmwPPvuRwXXfqUjWnwcH7wGoKp1BM2BSkKNlnUpDQlXemo9oscDc2OJ0pAXudImgn6guKnTFcgXdRzYOI04V6RB8EIQ6gsoItO24U58l9fhnqbQalqYtwDAnXNh0CpUYz3O6F8yDGM3LChHtMvGmGWIPVNLLa7PAhid2I-RGA58mCyUJ-Ny_ZR9geYu61TqtDgl_pSt1eAxxAEFbeP6tlE5n9M8T"/>
+</div>
+<div>
+<p class="text-label-md font-medium text-secondary">Elias Thorne</p>
+<p class="text-[0.7rem] text-on-surface-variant/60 uppercase tracking-widest">Lead Curator</p>
+</div>
+</div>
+</header>
+<!-- Main Body Content (Reader First) -->
+<article class="space-y-10">
+<p class="text-[1.125rem] leading-[1.8] font-normal text-on-surface/90 italic border-l-2 border-primary/30 pl-8 py-2">
+                "Be still, and know that I am God; I will be exalted among the nations, I will be exalted in the earth."
+            </p>
+<p class="text-[1.125rem] leading-[1.8] font-normal text-on-surface/80">
+                True stillness is not the absence of sound, but the presence of focus. In our digital age, the sanctuary is no longer just a physical location—it must be a mental architecture we build within ourselves. When we look at the historical context of liturgical silence, we find it wasn't a void, but a vessel.
+            </p>
+<!-- Detected References (Reflection Chips) -->
+<section class="py-8 space-y-4">
+<h3 class="text-[0.75rem] font-semibold tracking-[0.15em] uppercase text-on-surface-variant/40">References</h3>
+<div class="flex flex-wrap gap-3">
+<div class="bg-secondary-container/30 border border-outline-variant/10 px-4 py-2 rounded-2xl flex items-center gap-2 hover:bg-secondary-container/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="menu_book">menu_book</span>
+<span class="text-sm font-medium text-secondary">Psalm 46:10</span>
+</div>
+<div class="bg-secondary-container/30 border border-outline-variant/10 px-4 py-2 rounded-2xl flex items-center gap-2 hover:bg-secondary-container/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="auto_stories">auto_stories</span>
+<span class="text-sm font-medium text-secondary">Habakkuk 2:20</span>
+</div>
+<div class="bg-secondary-container/30 border border-outline-variant/10 px-4 py-2 rounded-2xl flex items-center gap-2 hover:bg-secondary-container/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="explore">explore</span>
+<span class="text-sm font-medium text-secondary">Liturgical History</span>
+</div>
+</div>
+</section>
+<p class="text-[1.125rem] leading-[1.8] font-normal text-on-surface/80">
+                The silence of the temple was intentional—designed to elevate the weight of the spoken word. If everything is loud, nothing is sacred. We must curate our attention with the same reverence a craftsman uses for fine gold.
+            </p>
+<!-- Thoughtful Margin Dialogue (Comments) -->
+<section class="mt-16 pt-16 border-t border-outline-variant/10">
+<h3 class="text-[0.75rem] font-semibold tracking-[0.15em] uppercase text-on-surface-variant/40 mb-10">Margin Dialogue</h3>
+<div class="space-y-12">
+<!-- Comment Item 1 -->
+<div class="flex gap-6 items-start group">
+<div class="flex-shrink-0 mt-1">
+<div class="w-8 h-8 rounded-full overflow-hidden grayscale group-hover:grayscale-0 transition-all">
+<img class="w-full h-full object-cover" data-alt="portrait of a woman with short dark hair in artistic soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALSYwQABAM5U-BvkNCfz8HxtID9veykLhplQ-VbhB6xkxlAjsM98eqvVtkbiK6jBn9B7R6I33AeAYwN-EulEmfBAoLiQQCOtMplyJ6TnNSESadUNcxvY1yp0WVf7KoBjo7K-C3kju8Ffw5Q4ZfIRvzpiwL2XpjV_DjNTVPPiqNNFSUbBBiSA7LH52gYqRKFfHo2OxS7GiNd342Hr3toBapC3GVdFA61Vt3GLAI8iIPM3zp4pCusGmc1RgLDjP5bwTLqrckQoF7yp5M"/>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<span class="text-xs font-semibold text-secondary">Sarah Jenkins</span>
+<span class="text-[10px] text-on-surface-variant/40">2h ago</span>
+</div>
+<p class="text-sm leading-relaxed text-on-surface-variant italic">"The idea of silence as a vessel really resonates. It changes how I view my morning commute."</p>
+<button class="text-[10px] font-bold text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Reply</button>
+</div>
+</div>
+<!-- Comment Item 2 -->
+<div class="flex gap-6 items-start group">
+<div class="flex-shrink-0 mt-1">
+<div class="w-8 h-8 rounded-full overflow-hidden grayscale group-hover:grayscale-0 transition-all">
+<img class="w-full h-full object-cover" data-alt="portrait of a man in his late 20s with glasses and neutral expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCewKLHyk-mhYt2mQ8OLqyoJkt-JVw2PwpfywXlr7TyTejjMR2prc9CUORtnlEaDigL0RPMIg4_YXmSerNgFG8e7KKZ1LtB8rGLH9ahyCBi1TabXFXMbVCRu9lB0N-Xe6gvOsHolViwgQuxMinbFEPW6zut430_JYUgAedZ-V_R7-SBwB_Mht3_lL2ZufjsMIN2s7hzQzHw6ZdbQybnPA0DcYwbbYTf8WhnErvwPK5SIWbkdchfYPb-mPL_U1cc3Wa78mXed7amNyi9"/>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<span class="text-xs font-semibold text-secondary">Marcus Vane</span>
+<span class="text-[10px] text-on-surface-variant/40">5h ago</span>
+</div>
+<p class="text-sm leading-relaxed text-on-surface-variant italic">"Does this stillness require complete isolation, or can it be found in community?"</p>
+<button class="text-[10px] font-bold text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Reply</button>
+</div>
+</div>
+</div>
+<!-- Comment Input -->
+<div class="mt-12">
+<div class="bg-surface-container-low rounded-2xl p-4 flex items-center gap-4 border-b-2 border-transparent focus-within:border-primary transition-all">
+<span class="material-symbols-outlined text-on-surface-variant/50" data-icon="add_comment">add_comment</span>
+<input class="bg-transparent border-none outline-none text-sm w-full placeholder:text-on-surface-variant/30 italic" placeholder="Add a reflection..." type="text"/>
+</div>
+</div>
+</section>
+</article>
+</main>
+<!-- BottomNavBar (Suppressed for focused reading if it were task-focused, but here showing global context) -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#101319]/60 backdrop-blur-xl shadow-[0_-8px_40px_rgba(0,0,0,0.4)] rounded-t-[1.5rem]">
+<a class="flex flex-col items-center justify-center text-[#D1AC70] space-y-1 bg-[#D1AC70]/10 rounded-xl px-4 py-2 font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="description" style="font-variation-settings: 'FILL' 1;">description</span>
+<span>Notes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span>Groups</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span>Profile</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCDFE5]/60 space-y-1 px-4 py-2 hover:text-[#D1AC70] transition-all font-['Plus_Jakarta_Sans'] text-[10px] font-medium tracking-[0.1em] uppercase" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</body></html>

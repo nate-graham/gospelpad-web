@@ -27,8 +27,8 @@ export function GroupInvitePanel({
   };
 
   return (
-    <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-      <div className="page-header" style={{ gap: '0.35rem' }}>
+    <section className="panel note-section-panel">
+      <div className="page-header note-hero-block" style={{ gap: '0.35rem' }}>
         <span className="eyebrow">Invite</span>
         <strong style={{ fontSize: '1.1rem' }}>
           {canInvite ? 'Share this group safely' : 'Invite sharing is limited'}

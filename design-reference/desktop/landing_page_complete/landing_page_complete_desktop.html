@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline": "#9a8f81",
+                        "on-secondary-container": "#b2b5bb",
+                        "on-primary-container": "#59400d",
+                        "on-primary-fixed-variant": "#5c4210",
+                        "on-error-container": "#ffdad6",
+                        "secondary": "#c3c7cc",
+                        "primary-container": "#d1ac70",
+                        "on-primary-fixed": "#281900",
+                        "surface-variant": "#32353b",
+                        "on-secondary-fixed": "#181c20",
+                        "surface-bright": "#363940",
+                        "primary": "#eec789",
+                        "on-tertiary": "#303031",
+                        "surface-container-lowest": "#0b0e14",
+                        "error": "#ffb4ab",
+                        "surface-dim": "#101319",
+                        "surface-container-high": "#272a30",
+                        "on-error": "#690005",
+                        "background": "#101319",
+                        "surface-container-highest": "#32353b",
+                        "inverse-surface": "#e1e2ea",
+                        "primary-fixed": "#ffdeab",
+                        "on-surface-variant": "#d1c5b5",
+                        "tertiary-fixed-dim": "#c7c6c6",
+                        "secondary-container": "#43474c",
+                        "on-background": "#e1e2ea",
+                        "tertiary-fixed": "#e3e2e2",
+                        "on-secondary": "#2d3135",
+                        "tertiary": "#cecccc",
+                        "inverse-primary": "#775926",
+                        "on-surface": "#e1e2ea",
+                        "on-primary": "#422c00",
+                        "secondary-fixed-dim": "#c3c7cc",
+                        "surface-container-low": "#191c22",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "on-secondary-fixed-variant": "#43474c",
+                        "secondary-fixed": "#e0e3e9",
+                        "surface-tint": "#e7c183",
+                        "on-tertiary-fixed-variant": "#464747",
+                        "error-container": "#93000a",
+                        "surface": "#101319",
+                        "on-tertiary-container": "#434444",
+                        "primary-fixed-dim": "#e7c183",
+                        "outline-variant": "#4e463a",
+                        "inverse-on-surface": "#2d3037",
+                        "tertiary-container": "#b2b1b1",
+                        "surface-container": "#1d2026"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Poppins", "Plus Jakarta Sans"],
+                        "body": ["Plus Jakarta Sans"],
+                        "label": ["Plus Jakarta Sans"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        h1, h2, h3 { font-family: 'Poppins', sans-serif; }
+        .glass-effect { background: rgba(16, 19, 25, 0.6); backdrop-filter: blur(24px); }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#101319]/60 backdrop-blur-3xl">
+<div class="flex justify-between items-center px-12 py-6 max-w-screen-2xl mx-auto">
+<div class="text-xl font-semibold tracking-tighter text-[#D1AC70]">GospelPad</div>
+<div class="hidden md:flex items-center gap-10">
+<a class="font-['Plus_Jakarta_Sans'] tracking-widest uppercase text-[0.75rem] font-medium text-[#D1AC70] border-b border-[#D1AC70]/30 pb-1 cursor-pointer active:scale-95 transition-all duration-500" href="#">Sanctuary</a>
+<a class="font-['Plus_Jakarta_Sans'] tracking-widest uppercase text-[0.75rem] font-medium text-[#DCDFE5]/70 pb-1 hover:text-[#D1AC70] transition-all duration-500 cursor-pointer active:scale-95" href="#">Daily Bread</a>
+<a class="font-['Plus_Jakarta_Sans'] tracking-widest uppercase text-[0.75rem] font-medium text-[#DCDFE5]/70 pb-1 hover:text-[#D1AC70] transition-all duration-500 cursor-pointer active:scale-95" href="#">Community</a>
+<a class="font-['Plus_Jakarta_Sans'] tracking-widest uppercase text-[0.75rem] font-medium text-[#DCDFE5]/70 pb-1 hover:text-[#D1AC70] transition-all duration-500 cursor-pointer active:scale-95" href="#">Reflection</a>
+</div>
+<button class="bg-primary-container text-on-primary px-8 py-3 rounded-xl font-bold tracking-wide hover:brightness-110 transition-all cursor-pointer active:scale-95">
+                Enter Sanctuary
+            </button>
+</div>
+</nav>
+<!-- Hero Section -->
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-20" data-alt="cinematic interior view of a majestic gothic cathedral with dramatic light shafts piercing through high windows and atmospheric dust motes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYrR2fmjSya8GEWnhmcSHOKhac0YUXlL4M3QelwAHARzV9FLlCoXrWjMl2FVIpt6CJVWPylPSoU2IXvaZJklVdxOqMt1isYyFfbrGjxNe7mrNjOfCtwSTzpInIHL_tyDiFupg7IxfolwwMfTdbiijg44HdMGXDY41RJZEhaTXn15qz-IawA5EuvWzAzw4DPX-tOzh0fqwNUinEf1yRBWZVPqwC5SaW733yRA5htq3GEhG80XCeKGy6zgR6d3pFp2pCQo9xHcCh0868"/>
+<div class="absolute inset-0 bg-gradient-to-b from-surface-container-lowest/0 via-surface-container-lowest/80 to-surface-container-lowest"></div>
+</div>
+<div class="relative z-10 text-center max-w-5xl px-6">
+<span class="inline-block text-[#D1AC70] font-label tracking-[0.3em] uppercase text-xs mb-6">Experience Digital Stillness</span>
+<h1 class="text-6xl md:text-8xl font-semibold text-on-surface leading-[1.1] tracking-tight mb-10">
+                Your Presence <br/> <span class="text-primary italic font-light">is the Prayer</span>
+</h1>
+<div class="flex flex-col md:flex-row items-center justify-center gap-6">
+<button class="bg-primary-container text-on-primary px-10 py-5 rounded-full text-lg font-semibold hover:shadow-[0_0_40px_rgba(209,172,112,0.2)] transition-all active:scale-95">
+                    Begin Journey
+                </button>
+<button class="text-on-surface-variant flex items-center gap-3 hover:text-primary transition-colors py-5 px-10">
+<span class="material-symbols-outlined" data-icon="play_circle">play_circle</span>
+                    The Sanctuary Story
+                </button>
+</div>
+</div>
+</section>
+<!-- Daily Bread Section -->
+<section class="py-32 px-12 max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row gap-20 items-end mb-20">
+<div class="flex-1">
+<span class="text-[#D1AC70] font-label tracking-[0.2em] uppercase text-xs mb-4 block">Daily Bread</span>
+<h2 class="text-4xl md:text-5xl font-medium text-on-surface">Nourishment for the soul.</h2>
+</div>
+<div class="flex-none">
+<a class="text-on-surface-variant hover:text-primary transition-colors flex items-center gap-2 border-b border-outline-variant/30 pb-2" href="#">
+                    View Archive 
+                    <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+<div class="lg:col-span-7 bg-surface-container-low p-16 rounded-xl flex flex-col justify-center relative overflow-hidden">
+<div class="absolute top-10 right-10 opacity-5">
+<span class="material-symbols-outlined text-9xl" data-icon="format_quote">format_quote</span>
+</div>
+<p class="text-3xl md:text-4xl font-light italic leading-relaxed text-secondary mb-10">
+                    "Therefore do not worry about tomorrow, for tomorrow will worry about itself. Each day has enough trouble of its own."
+                </p>
+<div class="flex items-center gap-6">
+<div class="h-px w-12 bg-[#D1AC70]/40"></div>
+<span class="font-label tracking-widest text-[#D1AC70] uppercase text-sm">Matthew 6:34</span>
+</div>
+</div>
+<div class="lg:col-span-5 bg-surface-container-high rounded-xl relative group overflow-hidden">
+<img class="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-1000" data-alt="macro shot of freshly baked rustic bread on a dark linen surface with dramatic moody low-key lighting and warm tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYM_9GgWApR6yn-SSxpPCBq-VSqmSdGzrFeEllCudd8XUwJTszCsyCft0nZuZ57yxa4wEMpM6IQThjpvDc-MbIx3cB5_tGyjdytq4NndB51YoTT-ABIs2VZHb1Ua6coQY3zonBnTR6pCOcIxgDKj2uESNxvSbzhdVXeol5vqBsD_1w9MMjtUUx2HbuskQEqjP5PYHNSDSSHAW6vqSD40XBdIY1pxOdCTam6upmKiZNLbW_fr2p4EAEKezhHn6a7bsnA0GkZgGxPom0"/>
+<div class="relative z-10 p-12 h-full flex flex-col justify-end">
+<h3 class="text-2xl font-medium mb-2">Morning Reflection</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">A 5-minute deep dive into the essence of surrender and peace for the day ahead.</p>
+<button class="w-fit flex items-center justify-center w-12 h-12 rounded-full bg-primary-container text-on-primary">
+<span class="material-symbols-outlined" data-icon="headphones">headphones</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Silent Sanctuary Section (Bento) -->
+<section class="py-32 bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-12">
+<div class="text-center mb-24">
+<span class="text-[#D1AC70] font-label tracking-[0.2em] uppercase text-xs mb-4 block">Silent Sanctuary</span>
+<h2 class="text-5xl font-medium">Spaces for intentional stillness.</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 grid-rows-2 gap-8 h-[700px]">
+<!-- Large Card -->
+<div class="md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-xl bg-surface-container-lowest">
+<img class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-1000" data-alt="minimalist architectural space with a single bench and a circular opening in the ceiling letting in a pure beam of daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1jRJ_wr0udeJFVpbCshAGiV5AyBLdhmj3NuNC3UphDxo9eN77925XYjwKDRJBmkOySMSVZ78vEt30kftzMpeB886OU8D6P6-mik0lJ7zMAcPevONrN2QZZa66J5soRJSCZkGQDt5Hj-wqRDMXXyb5L41xkXgwXPuQl0tOi5m1nGH_tPG4FNwyJsPghS3YLZCu0ytL4yi-KDWyVfiWSIIzEPGWMQHiSwLY16Ig-sZgWrPzeO4RaCxGlvYdUSp_AjCR2MBS-q1--qa6"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent opacity-80"></div>
+<div class="relative z-10 p-16 h-full flex flex-col justify-end items-start">
+<div class="bg-secondary-container/40 backdrop-blur-md px-4 py-1.5 rounded-full mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-xs text-primary" data-icon="sparkles" data-weight="fill" style="font-variation-settings: 'FILL' 1;">colors_spark</span>
+<span class="text-xs uppercase tracking-widest font-medium">Daily Ritual</span>
+</div>
+<h3 class="text-4xl font-semibold mb-4">Morning Meditation</h3>
+<p class="text-on-surface-variant text-lg max-w-md mb-8">Align your spirit with the morning light through guided breathwork and scripture visualization.</p>
+<button class="bg-on-surface text-surface-container-lowest px-8 py-3 rounded-full font-bold hover:bg-primary transition-colors">Start Session</button>
+</div>
+</div>
+<!-- Small Card 1 -->
+<div class="relative group overflow-hidden rounded-xl bg-surface-container-high p-10 flex flex-col justify-between">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary text-4xl mb-6 block" data-icon="air">air</span>
+<h3 class="text-2xl font-medium mb-3">Deep Breath</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">A rhythmic experience designed to anchor your consciousness in the present moment.</p>
+</div>
+<div class="relative z-10 flex justify-between items-center">
+<span class="text-xs font-label uppercase tracking-widest opacity-50">12 Minutes</span>
+<span class="material-symbols-outlined group-hover:translate-x-2 transition-transform cursor-pointer" data-icon="arrow_right_alt">arrow_right_alt</span>
+</div>
+<div class="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 blur-[80px] rounded-full"></div>
+</div>
+<!-- Small Card 2 -->
+<div class="relative group overflow-hidden rounded-xl bg-surface-container-high p-10 flex flex-col justify-between">
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary text-4xl mb-6 block" data-icon="bedtime">bedtime</span>
+<h3 class="text-2xl font-medium mb-3">Night Prayer</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">Release the day's burdens and enter restful surrender through calming liturgies.</p>
+</div>
+<div class="relative z-10 flex justify-between items-center">
+<span class="text-xs font-label uppercase tracking-widest opacity-50">20 Minutes</span>
+<span class="material-symbols-outlined group-hover:translate-x-2 transition-transform cursor-pointer" data-icon="arrow_right_alt">arrow_right_alt</span>
+</div>
+<div class="absolute top-0 left-0 w-32 h-32 bg-secondary/5 blur-[80px] rounded-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Community Section -->
+<section class="py-40 px-12">
+<div class="max-w-4xl mx-auto text-center">
+<div class="inline-flex items-center gap-[-8px] mb-8">
+<img class="w-12 h-12 rounded-full border-2 border-surface-container-lowest object-cover" data-alt="portrait of a smiling man with professional lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPiJAQ2dtiHJL2Ug8Z1cMeL4SSpKcTwXAEI-v6nDEKb5hAP2qXdz8pjMJsVNmhARMwtIszbtNvRelTPVk-nBGsV4dfE17UQwcmRuoNItJ0mrkI3qLkOJCkM5SesKZDfQUrSSc0fnNQFJKypYNSAy1r4Fft12fOjA2xv4Q3l9BB69priQJxe905OQvpHDikBgPsi7Q5gUCJwjzRaMTW4gRjnApKRPICRlK0TuRCU7jNIGPOFIUa3qj-UYDBY1Kq8Q7QpGmPHGgsH5Q5"/>
+<img class="w-12 h-12 rounded-full border-2 border-surface-container-lowest -ml-3 object-cover" data-alt="portrait of a woman with warm soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJdY4REE_-eK7q4cn8D2ugPD1ZJKq2QVDwW3mr545p3HHq6J9HXaEp9jfRhvQxZ_TfeW0kJVQAKBvF5BpwOS8i1WLc1l8TllH46k69lJMmh_0l-2qtfqxYHzD0k8R2hxTVb9u6XMz9bcE-dHj2sVJgsErvSdfuM7V64NxmNiKv8hnD0DYIiwgbjebMyYDLqXKNcqTrWz0Nrkb9YEmyLMzRLge1BfD_hJMHLnV6dLBdhq4gb_mbdH1YvAXx5AhDIixwbcnAs04HYHBI"/>
+<img class="w-12 h-12 rounded-full border-2 border-surface-container-lowest -ml-3 object-cover" data-alt="portrait of a man in casual attire with natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIw34LVV0K4HiHKsvPIPyQ-gZcWsW87eSHHJJ9iKhgZYbUt-HPxSKe0jiYHXECZmTP34WfHWTLsa8lndWO2bsgy_QlYpahWm3aM69gUqhPOyVTOTc99Ia5BSkKmfjOxNOnORTUZYeX4Gz3xMcOvuuROmlMMjWQhU_iSZrN3cEeXDi50ZbN199CouS2oCfcP1bt96io05JmC1eW08YR0x2WN8Q61i_4C2LFUKRpO9HqajCloHqK20ujOpAU7gfQ2B4gfdtaEwfXAssN"/>
+<div class="w-12 h-12 rounded-full border-2 border-surface-container-lowest -ml-3 bg-surface-container-high flex items-center justify-center text-[10px] font-bold text-primary">+12k</div>
+</div>
+<h2 class="text-4xl md:text-5xl font-medium mb-8">Join 12,482 others in prayer today</h2>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-12 max-w-2xl mx-auto">
+                Shared faith is strengthened faith. Connect with a global community dedicated to intentional living and collective reflection.
+            </p>
+<button class="bg-[#D1AC70] text-[#422C00] px-12 py-5 rounded-xl font-bold text-lg hover:shadow-[0_20px_50px_rgba(209,172,112,0.15)] transition-all">
+                Enter The Community
+            </button>
+</div>
+</section>
+<!-- Footer -->
+<footer class="w-full border-t border-[#4E463A]/15 bg-[#0B0E14]">
+<div class="flex flex-col md:flex-row justify-between items-center px-12 py-16 w-full max-w-screen-2xl mx-auto">
+<div class="flex flex-col items-center md:items-start gap-4 mb-8 md:mb-0">
+<div class="text-lg font-bold text-[#D1AC70]">GospelPad</div>
+<div class="font-['Plus_Jakarta_Sans'] text-[#DCDFE5]/50 text-sm tracking-wide">© 2024 GospelPad. The Digital Sanctuary.</div>
+</div>
+<div class="flex gap-10">
+<a class="font-['Plus_Jakarta_Sans'] text-[#DCDFE5]/50 text-sm tracking-wide hover:text-[#D1AC70] transition-colors" href="#">Privacy Policy</a>
+<a class="font-['Plus_Jakarta_Sans'] text-[#DCDFE5]/50 text-sm tracking-wide hover:text-[#D1AC70] transition-colors" href="#">Terms of Grace</a>
+<a class="font-['Plus_Jakarta_Sans'] text-[#DCDFE5]/50 text-sm tracking-wide hover:text-[#D1AC70] transition-colors" href="#">Contact Curator</a>
+</div>
+</div>
+</footer>
+</body></html>

@@ -23,20 +23,20 @@ export function AuthFrame({
       <section
         className="panel"
         style={{
-          width: 'min(100%, 480px)',
-          padding: '1.5rem',
+          width: 'min(100%, 540px)',
+          padding: '2rem',
           display: 'grid',
-          gap: '1rem',
+          gap: '1.2rem',
+          background: 'var(--bg-soft)',
         }}
       >
         <span className="eyebrow">{eyebrow}</span>
-        <div style={{ display: 'grid', gap: '0.5rem' }}>
-          <h1 style={{ margin: 0, fontSize: 'clamp(2rem, 5vw, 3rem)', lineHeight: 1 }}>{title}</h1>
-          <p style={{ margin: 0, color: 'var(--muted)', lineHeight: 1.6 }}>{description}</p>
+        <div style={{ display: 'grid', gap: '0.7rem' }}>
+          <h1 style={{ margin: 0, fontSize: 'clamp(2.4rem, 5vw, 4rem)', lineHeight: 0.95, letterSpacing: '-0.04em', fontWeight: 600 }}>{title}</h1>
+          <p style={{ margin: 0, color: 'var(--muted)', lineHeight: 1.8 }}>{description}</p>
         </div>
         {children}
       </section>
     </main>
   );
 }
-

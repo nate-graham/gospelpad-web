@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Scripture Preview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#59400d",
+                    "surface-container-highest": "#32353b",
+                    "secondary-fixed-dim": "#c3c7cc",
+                    "tertiary-fixed": "#e3e2e2",
+                    "background": "#101319",
+                    "primary-container": "#d1ac70",
+                    "outline": "#9a8f81",
+                    "surface": "#101319",
+                    "secondary-fixed": "#e0e3e9",
+                    "secondary": "#c3c7cc",
+                    "on-error-container": "#ffdad6",
+                    "surface-variant": "#32353b",
+                    "on-primary": "#422c00",
+                    "inverse-surface": "#e1e2ea",
+                    "on-primary-fixed-variant": "#5c4210",
+                    "error": "#ffb4ab",
+                    "on-tertiary-container": "#434444",
+                    "surface-container-lowest": "#0b0e14",
+                    "on-error": "#690005",
+                    "inverse-on-surface": "#2d3037",
+                    "primary-fixed-dim": "#e7c183",
+                    "on-secondary-fixed": "#181c20",
+                    "secondary-container": "#43474c",
+                    "tertiary-container": "#b2b1b1",
+                    "outline-variant": "#4e463a",
+                    "on-surface": "#e1e2ea",
+                    "surface-container-high": "#272a30",
+                    "on-background": "#e1e2ea",
+                    "tertiary-fixed-dim": "#c7c6c6",
+                    "primary": "#eec789",
+                    "surface-dim": "#101319",
+                    "on-tertiary": "#303031",
+                    "surface-container-low": "#191c22",
+                    "primary-fixed": "#ffdeab",
+                    "on-surface-variant": "#d1c5b5",
+                    "on-secondary-container": "#b2b5bb",
+                    "surface-bright": "#363940",
+                    "inverse-primary": "#775926",
+                    "error-container": "#93000a",
+                    "surface-container": "#1d2026",
+                    "on-secondary": "#2d3135",
+                    "on-tertiary-fixed-variant": "#464747",
+                    "on-tertiary-fixed": "#1b1c1c",
+                    "on-primary-fixed": "#281900",
+                    "on-secondary-fixed-variant": "#43474c",
+                    "surface-tint": "#e7c183",
+                    "tertiary": "#cecccc"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "headline": ["Poppins", "sans-serif"],
+                    "body": ["Poppins", "sans-serif"],
+                    "label": ["Poppins", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; background-color: #0b0e14; }
+        .glass-panel {
+            background: rgba(25, 28, 34, 0.6);
+            backdrop-filter: blur(24px);
+        }
+        .scripture-gradient {
+            background: linear-gradient(180deg, rgba(16, 19, 25, 0) 0%, #101319 100%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface antialiased">
+<!-- Top Navigation Anchor (Manual Suppression Logic: This is a task-focused sub-page, but we maintain the TopAppBar branding for identity) -->
+<header class="w-full top-0 sticky bg-[#101319] z-50">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#DCDFE5] hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined">close</span>
+</button>
+<h1 class="text-lg font-semibold tracking-[0.2em] text-[#D1AC70] uppercase font-['Plus_Jakarta_Sans']">GospelPad</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-surface-container-high px-3 py-1.5 rounded-full">
+<span class="text-[10px] font-medium tracking-[0.1em] uppercase text-on-surface-variant mr-2">Version</span>
+<span class="text-xs font-semibold text-primary uppercase">KJV</span>
+<span class="material-symbols-outlined text-sm ml-1 text-primary">expand_more</span>
+</div>
+</div>
+</div>
+</header>
+<main class="min-h-screen px-6 pt-4 pb-32">
+<!-- Asymmetric Header Layout -->
+<section class="mb-12">
+<div class="flex flex-col gap-1">
+<span class="text-[0.75rem] font-500 tracking-[0.1em] text-primary uppercase opacity-80">New Testament</span>
+<h2 class="text-[2.5rem] font-600 leading-tight tracking-tight text-on-surface">John 14:1-6</h2>
+</div>
+<div class="mt-4 flex items-center gap-2">
+<span class="px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold tracking-wider uppercase">Comfort</span>
+<span class="px-3 py-1 rounded-full bg-secondary-container/40 text-secondary text-[10px] font-semibold tracking-wider uppercase">Promises</span>
+</div>
+</section>
+<!-- Scripture Content Vessel -->
+<article class="relative">
+<div class="flex flex-col gap-10">
+<!-- Verse 1 -->
+<div class="flex gap-6 group">
+<span class="text-primary/40 font-semibold text-sm pt-1.5">1</span>
+<p class="text-lg leading-[1.8] font-light text-on-surface/90 italic">
+                        Let not your heart be troubled: ye believe in God, believe also in me.
+                    </p>
+</div>
+<!-- Verse 2 -->
+<div class="flex gap-6 group">
+<span class="text-primary/40 font-semibold text-sm pt-1.5">2</span>
+<p class="text-lg leading-[1.8] font-light text-on-surface/90">
+                        In my Father's house are many mansions: if it were not so, I would have told you. I go to prepare a place for you.
+                    </p>
+</div>
+<!-- Verse 3 -->
+<div class="flex gap-6 group">
+<span class="text-primary/40 font-semibold text-sm pt-1.5">3</span>
+<p class="text-lg leading-[1.8] font-light text-on-surface/90">
+                        And if I go and prepare a place for you, I will come again, and receive you unto myself; that where I am, there ye may be also.
+                    </p>
+</div>
+<!-- Bento Style Insight Card -->
+<div class="mt-4 p-6 rounded-xl bg-surface-container-low border-l-2 border-primary/30">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary text-sm">auto_stories</span>
+<span class="text-[10px] font-bold tracking-[0.1em] uppercase text-primary">Translator's Note</span>
+</div>
+<p class="text-sm leading-relaxed text-on-surface-variant">
+                        The Greek word for "mansions" (μονή) refers to a permanent dwelling place or an abode. It signifies a place of rest and belonging in the presence of the Father.
+                    </p>
+</div>
+<!-- Verse 4-6 -->
+<div class="flex gap-6 group">
+<span class="text-primary/40 font-semibold text-sm pt-1.5">4</span>
+<p class="text-lg leading-[1.8] font-light text-on-surface/90">
+                        And whither I go ye know, and the way ye know.
+                    </p>
+</div>
+<div class="flex gap-6 group">
+<span class="text-primary/40 font-semibold text-sm pt-1.5">5</span>
+<p class="text-lg leading-[1.8] font-light text-on-surface/90">
+                        Thomas saith unto him, Lord, we know not whither thou goest; and how can we know the way?
+                    </p>
+</div>
+<div class="flex gap-6 group">
+<span class="text-primary/40 font-semibold text-sm pt-1.5">6</span>
+<p class="text-lg leading-[1.8] font-light text-on-surface/90">
+                        Jesus saith unto him, <span class="text-on-surface font-medium underline decoration-primary/30 underline-offset-4">I am the way, the truth, and the life</span>: no man cometh unto the Father, but by me.
+                    </p>
+</div>
+</div>
+<!-- Subtle Texture/Image Decoration -->
+<div class="mt-16 w-full h-48 rounded-2xl overflow-hidden relative">
+<img class="w-full h-full object-cover opacity-40 mix-blend-luminosity" data-alt="atmospheric photo of sunlight streaming through a high gothic cathedral window onto dark stone floor with soft dust motes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAz7SpSxEtDQTyyA03uC8AxS3jWcO__AmKApZLril-v9buv3_GM-VHk_xb4Ta4nljBIRLx_R_GbKv80A_l1s0ryuFda2W8Enz6lh0bfMAZ_wPLWRYR77VIFMoJ6ReA3wS4gyFO02rBvFX0JNm8mLptGdeZydi2MyGlPj9FxV7DvX77KLnzBolxPmHUZ_dKjmsJDEzKbDz99CchqbpPO4wOei5L55gM2TzSoEjYi5Mqf0gbtsz6m5f95qNZIv1Zlre7qEXsnSLga2EcP"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background to-transparent"></div>
+</div>
+</article>
+</main>
+<!-- Contextual Action Bar (Fixed Bottom) -->
+<div class="fixed bottom-0 left-0 w-full z-50 p-6 pointer-events-none">
+<div class="max-w-md mx-auto pointer-events-auto">
+<div class="glass-panel rounded-[1.5rem] p-2 flex items-center justify-between shadow-[0_-8px_40px_rgba(0,0,0,0.4)]">
+<div class="flex -space-x-2 ml-4">
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-xs text-on-surface-variant">share</span>
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-xs text-on-surface-variant">bookmark</span>
+</div>
+</div>
+<button class="bg-primary-container text-on-primary px-8 py-4 rounded-xl font-semibold flex items-center gap-2 hover:opacity-90 transition-all active:scale-95 duration-300">
+<span class="material-symbols-outlined">edit_note</span>
+<span class="text-sm tracking-wide">Insert into note</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

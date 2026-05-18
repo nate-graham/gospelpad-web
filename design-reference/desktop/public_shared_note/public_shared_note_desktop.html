@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Sanctuary | GospelPad Public Reflection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-container": "#43474c",
+                      "tertiary": "#cecccc",
+                      "surface-container-lowest": "#0b0e14",
+                      "primary-fixed-dim": "#e7c183",
+                      "primary": "#eec789",
+                      "on-tertiary-container": "#434444",
+                      "surface-tint": "#e7c183",
+                      "on-background": "#e1e2ea",
+                      "outline": "#9a8f81",
+                      "on-primary-container": "#59400d",
+                      "surface-container-high": "#272a30",
+                      "on-secondary-container": "#b2b5bb",
+                      "surface-container-highest": "#32353b",
+                      "on-error": "#690005",
+                      "secondary-fixed-dim": "#c3c7cc",
+                      "inverse-primary": "#775926",
+                      "on-tertiary-fixed-variant": "#464747",
+                      "on-secondary-fixed-variant": "#43474c",
+                      "surface-dim": "#101319",
+                      "tertiary-fixed-dim": "#c7c6c6",
+                      "on-secondary": "#2d3135",
+                      "error-container": "#93000a",
+                      "error": "#ffb4ab",
+                      "surface-bright": "#363940",
+                      "surface": "#101319",
+                      "surface-container-low": "#191c22",
+                      "on-tertiary": "#303031",
+                      "on-secondary-fixed": "#181c20",
+                      "on-primary-fixed": "#281900",
+                      "tertiary-container": "#b2b1b1",
+                      "on-tertiary-fixed": "#1b1c1c",
+                      "on-surface": "#e1e2ea",
+                      "secondary": "#c3c7cc",
+                      "secondary-fixed": "#e0e3e9",
+                      "inverse-on-surface": "#2d3037",
+                      "tertiary-fixed": "#e3e2e2",
+                      "surface-container": "#1d2026",
+                      "inverse-surface": "#e1e2ea",
+                      "primary-container": "#d1ac70",
+                      "on-error-container": "#ffdad6",
+                      "surface-variant": "#32353b",
+                      "outline-variant": "#4e463a",
+                      "on-primary-fixed-variant": "#5c4210",
+                      "on-primary": "#422c00",
+                      "primary-fixed": "#ffdeab",
+                      "on-surface-variant": "#d1c5b5",
+                      "background": "#101319"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "1rem",
+                      "xl": "1.5rem",
+                      "full": "9999px"
+              },
+              "fontFamily": {
+                      "headline": ["Poppins", "sans-serif"],
+                      "body": ["Poppins", "sans-serif"],
+                      "label": ["Poppins", "sans-serif"]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .reflection-gradient {
+            background: linear-gradient(180deg, rgba(16, 19, 25, 0) 0%, rgba(16, 19, 25, 1) 100%);
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary">
+<!-- Top Navigation Anchor -->
+<header class="w-full top-0 sticky z-50 bg-[#191C22]">
+<div class="flex justify-between items-center px-12 py-6 w-full max-w-screen-2xl mx-auto">
+<div class="text-2xl font-semibold tracking-tighter text-[#D1AC70]">The Sanctuary</div>
+<nav class="hidden md:flex items-center gap-10 font-['Plus_Jakarta_Sans'] font-light tracking-wide">
+<a class="text-[#DCDFE5] opacity-70 hover:text-[#D1AC70] transition-colors duration-300" href="#">Meditations</a>
+<a class="text-[#DCDFE5] opacity-70 hover:text-[#D1AC70] transition-colors duration-300" href="#">Scriptures</a>
+<a class="text-[#D1AC70] border-b-2 border-[#D1AC70] pb-1" href="#">Reflections</a>
+</nav>
+<div class="flex items-center gap-6">
+<button class="p-2 text-[#DCDFE5] hover:text-[#D1AC70] transition-all scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-screen-2xl mx-auto flex flex-col md:flex-row gap-0">
+<!-- Sidebar Navigation (Suppressed on focused read-only view per relevance check, but keeping structure for layout consistency) -->
+<aside class="hidden lg:flex flex-col h-[calc(100vh-88px)] w-72 left-0 sticky bg-[#191C22] shadow-[40px_0_60px_-15px_rgba(0,0,0,0.3)] p-8 gap-6">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of an elderly man with a kind expression and grey beard in soft natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOmOIil_HrZCmhXYW44fhgVptM-SirIRhLVS5VJNYfTGFTjcRW_oWlJm7QAgykxSp8SIbHldROoAtZ1EogcbX4EW745SN1s08h5tUvYR6Oejs3Cus09zQvheFPU2drYW0bzmjndpDji6iUOJcddE-ibgqcVLR8k9opp9svC3nDcJ-AFqphP4kJl4humc3N5H99eMp6lvJ7C23kqUhWCfy3Fh4oz3SX9_FuKLhiR5lY0ww37RWOo66VF-G2JPEJsHpZdyJRDC6yLljP"/>
+</div>
+<div>
+<p class="text-[#D1AC70] font-bold font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]">The Curator</p>
+<p class="text-[#DCDFE5] opacity-50 text-[0.65rem] uppercase tracking-widest">In Silent Reflection</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 text-[#D1AC70] font-bold border-r-2 border-[#D1AC70] bg-[#191C22] transition-all duration-500 ease-in-out font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="library_books">library_books</span> Library
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70] transition-all duration-500 ease-in-out font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span> My Notes
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#DCDFE5] opacity-50 hover:bg-[#272A30] hover:text-[#D1AC70] transition-all duration-500 ease-in-out font-['Plus_Jakarta_Sans'] uppercase tracking-[0.1em] text-[0.75rem]" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span> Groups
+                </a>
+</nav>
+<div class="mt-auto pt-8">
+<button class="w-full py-4 bg-primary-container text-on-primary font-semibold rounded-xl flex items-center justify-center gap-2 hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span> New Journal Entry
+                </button>
+</div>
+</aside>
+<!-- Content Canvas -->
+<div class="flex-1 px-8 md:px-24 py-16">
+<!-- Hero Header Section -->
+<section class="relative mb-20">
+<div class="max-w-4xl">
+<div class="flex items-center gap-4 mb-8">
+<span class="px-3 py-1 rounded-full bg-secondary-container/40 text-[#D1AC70] text-[0.7rem] font-medium tracking-[0.2em] uppercase">Shared Reflection</span>
+<span class="text-on-surface-variant/50 text-[0.7rem] tracking-widest uppercase">October 24, 2024</span>
+</div>
+<h1 class="text-[3.5rem] md:text-[4.5rem] leading-tight font-semibold tracking-tight text-on-surface mb-8">
+                        The Quietude of <span class="text-primary-container">Presence</span>
+</h1>
+<p class="text-xl text-on-surface-variant font-light leading-relaxed max-w-2xl">
+                        A deep dive into the biblical concept of "Selah"—the intentional pause—and how we cultivate a digital sanctuary in a world of constant noise.
+                    </p>
+</div>
+</section>
+<!-- Bento Layout for Content & References -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-20">
+<!-- Main Note Text -->
+<div class="lg:col-span-8 bg-surface-container-low rounded-xl p-10 md:p-16 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-8 opacity-10">
+<span class="material-symbols-outlined text-9xl" data-icon="format_quote">format_quote</span>
+</div>
+<article class="prose prose-invert prose-lg max-w-none text-on-surface-variant leading-[1.8] font-light">
+<p class="mb-8">
+                            In the rush of contemporary life, we often find ourselves measuring worth by our velocity. Yet, the scriptures suggest that our true strength is found in returning and rest. To build a <span class="text-[#D1AC70] font-medium">Digital Sanctuary</span> is not to abandon technology, but to baptize our usage of it in intentionality.
+                        </p>
+<div class="my-12 p-8 bg-surface-container-high rounded-lg border-l-4 border-primary-container italic font-medium text-lg">
+                            "He leads me beside still waters. He restores my soul." — Psalm 23:2-3
+                        </div>
+<p class="mb-8">
+                            This restoration isn't a passive event; it is a collaborative effort between the Creator and the created. When we engage with digital notes, we aren't just storing information—we are curating a legacy of whispers from the Divine. 
+                        </p>
+<p>
+                            Consider the architecture of your morning. Does it begin with the frantic scroll, or the silent surrender? The notes we keep are the anchors that prevent our spirits from drifting in the tide of notifications.
+                        </p>
+</article>
+<!-- Subtle Glassy Sign-up CTA -->
+<div class="mt-20 p-8 rounded-xl bg-surface-container-highest/60 backdrop-blur-xl border border-outline-variant/15 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-container text-4xl" data-icon="auto_awesome">auto_awesome</span>
+<div>
+<h4 class="text-lg font-semibold text-on-surface">Inspired by this reflection?</h4>
+<p class="text-sm text-on-surface-variant">Save this to your personal GospelPad library.</p>
+</div>
+</div>
+<button class="px-8 py-4 bg-primary-container text-on-primary font-bold rounded-xl shadow-xl hover:scale-105 transition-transform">
+                            Copy to my notes
+                        </button>
+</div>
+</div>
+<!-- Secondary Column: References & Curator Info -->
+<div class="lg:col-span-4 flex flex-col gap-8">
+<!-- References Card -->
+<div class="bg-surface-container-low rounded-xl p-8">
+<h3 class="text-[0.75rem] font-bold text-[#D1AC70] uppercase tracking-[0.15em] mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="book_5">book_5</span> Scripture References
+                        </h3>
+<ul class="space-y-6">
+<li class="group">
+<p class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors cursor-pointer">Psalm 46:10</p>
+<p class="text-xs text-on-surface-variant italic mt-1">"Be still, and know that I am God..."</p>
+</li>
+<li class="group">
+<p class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors cursor-pointer">Isaiah 30:15</p>
+<p class="text-xs text-on-surface-variant italic mt-1">"In quietness and trust is your strength..."</p>
+</li>
+<li class="group">
+<p class="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors cursor-pointer">Lamentations 3:25</p>
+<p class="text-xs text-on-surface-variant italic mt-1">"The Lord is good to those who wait..."</p>
+</li>
+</ul>
+</div>
+<!-- Reflection Chips -->
+<div class="bg-surface-container-low rounded-xl p-8">
+<h3 class="text-[0.75rem] font-bold text-[#D1AC70] uppercase tracking-[0.15em] mb-4">Themes</h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-4 py-2 rounded-full bg-secondary-container/40 text-on-surface text-xs font-medium border border-outline-variant/10">Silence</span>
+<span class="px-4 py-2 rounded-full bg-secondary-container/40 text-on-surface text-xs font-medium border border-outline-variant/10">Selah</span>
+<span class="px-4 py-2 rounded-full bg-secondary-container/40 text-on-surface text-xs font-medium border border-outline-variant/10">Digital Sabbath</span>
+<span class="px-4 py-2 rounded-full bg-secondary-container/40 text-on-surface text-xs font-medium border border-outline-variant/10">Psalm 23</span>
+</div>
+</div>
+<!-- Visual Atmosphere Card -->
+<div class="rounded-xl overflow-hidden aspect-[4/5] relative group">
+<img class="w-full h-full object-cover grayscale-[30%] group-hover:scale-110 transition-transform duration-1000" data-alt="minimalist landscape of a quiet lake at dawn with golden reflections on the still water surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3-Wg_s0CdiACe7Lbpds65TzfC06izUKFX1WYFCB_k_qqFcNBCvT4XLBVCCfaRsTaCPIQgxP6iBiXv_X5BmN3xrJgNr3rH-eiP5pmUonqBqF_KzVj3UXk-63yNlwRE37LT4ltbAGT67zKz7CnECpjdqpvaOfEdJITZ4J_xBK2yTEvvIr0uefPhB6DBYSrBk2t4-35QqXsLu7G6pj6Uke7uq1yTHU3yhd_NYqVLV4emmaOikTZAUflE6NwXw0qF4-EfFCDothI4n9an"/>
+<div class="absolute inset-0 reflection-gradient flex flex-col justify-end p-8">
+<span class="material-symbols-outlined text-primary-container text-3xl mb-2" data-icon="wb_sunny">wb_sunny</span>
+<p class="text-sm text-on-surface font-light">"The sunrise is a daily invitation to silence."</p>
+</div>
+</div>
+</div>
+</div>
+<!-- More from Curator (Glassmorphism Gallery) -->
+<section class="mt-24">
+<h2 class="text-[1rem] font-semibold tracking-widest text-[#D1AC70] uppercase mb-12 text-center">Further Meditations</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="group bg-[#272A30] rounded-xl overflow-hidden cursor-pointer">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="close up of a single drop of water creating ripples on a dark surface with sharp dramatic focus" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBS6NVYvzq5lkTrv6VSnK03F018blZQs6uTKjaWNysCVAwqxX_xm7dyYH2EBSDuBwji2WhSfm4lLJC1LNEXDgCUbo92EUbtnYONlR1Y75q_ULYKBDNqeBB5ZiQ6DkjRLV51h6i6IGMRusfI40ScoJ5StxVkJ8kttSzY6jHaDI1dKSLmqkAPxUQaeFwJ6tQ-Z5TbS4oXpQJnM-U3ahAMme0zeu6ESDM7uZYYeoaPF1e_y7UVxfhoGpLS_AEquZ6fTB_Npg-Rr_vIZjb9"/>
+</div>
+<div class="p-6">
+<p class="text-[0.6rem] uppercase tracking-[0.2em] text-[#D1AC70] mb-2">Reflections</p>
+<h3 class="text-lg font-medium text-on-surface">The Ripple of Grace</h3>
+</div>
+</div>
+<div class="group bg-[#272A30] rounded-xl overflow-hidden cursor-pointer">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="atmospheric shot of sunbeams filtering through dense forest canopy with soft dust motes in the air" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTU92wdSBeJkycMHMo2rlITMPOv7mEwRUTeB350Kb5nt07IbL_q8d_aBwtf18_Iktk4x7MDs1eYqtF26o8KKj3S-WjmxeM-QPKMUSThsX3V9De473fi_TeNTVAWIjcaFPDmqRdbN6F2ZFaSWRwKZV5-8EYZ3I3AAnnmvGY1bag4FC63IvGy4bWBur8oh-gfVpdUkuBH9kugcf_pYpdiiaq0VQDG1CbhRzNDUf3ZJcQ9-qlZ1gjmzn5TGR2hefz9iBqQWbQcOlwoTkN"/>
+</div>
+<div class="p-6">
+<p class="text-[0.6rem] uppercase tracking-[0.2em] text-[#D1AC70] mb-2">Meditations</p>
+<h3 class="text-lg font-medium text-on-surface">Hidden in the Thicket</h3>
+</div>
+</div>
+<div class="group bg-[#272A30] rounded-xl overflow-hidden cursor-pointer">
+<div class="h-48 overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="expansive view of starry night sky over dark mountain peaks in a deep indigo and charcoal palette" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9fxL8hKG8zQse1Xqv1Mk6m21KNdvlU2Vwc-b9_PVZMazzCdhz6HgTZjXMfJFip1ETGELVPcoEyUy3g5AgwCjF10JA-Mf5DnWykSBYTM3CFWL373LINKb4hyZDkAEI3E4JKhTSSTiv-0kAZCcU-TcRwOIyRu83fBetJZOt7lMEqA1QptT5zX3eSN7gJP5E3edgqltwzhoVmOs6EC2F5wBU8vq60XYpEY7OLWilvFbzGS9z08wsPHJhElc5TMEutdrDQpGdh01qnHWb"/>
+</div>
+<div class="p-6">
+<p class="text-[0.6rem] uppercase tracking-[0.2em] text-[#D1AC70] mb-2">Daily Verses</p>
+<h3 class="text-lg font-medium text-on-surface">Celestial Silence</h3>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 bg-[#0B0E14] border-t border-[#4E463A]/15 mt-20">
+<div class="flex flex-col items-center justify-center space-y-4 px-8 w-full font-['Plus_Jakarta_Sans'] text-sm tracking-widest">
+<div class="flex gap-8 text-[#DCDFE5] opacity-40">
+<a class="hover:text-[#D1AC70] hover:opacity-100 transition-all" href="#">Terms of Peace</a>
+<a class="hover:text-[#D1AC70] hover:opacity-100 transition-all" href="#">Privacy Policy</a>
+<a class="hover:text-[#D1AC70] hover:opacity-100 transition-all" href="#">Contact Curator</a>
+</div>
+<p class="text-[#DCDFE5] opacity-30">© 2024 The Digital Sanctuary. All rights reserved.</p>
+</div>
+</footer>
+</body></html>
