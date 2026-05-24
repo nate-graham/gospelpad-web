@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { getAdminEmailAllowlist, getSupabaseAdminClient, isAllowedAdminEmail } from '@/lib/admin';
+import { getAdminEmailAllowlist, getAdminEnvIssues, getSupabaseAdminClient, isAllowedAdminEmail } from '@/lib/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
 type SignupRecord = {
@@ -100,7 +100,54 @@ export default async function AdminSignupsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user?.email || !isAllowedAdminEmail(user.email)) {
+  if (!user?.email) {
+    redirect('/notes');
+  }
+
+  const allowlist = getAdminEmailAllowlist();
+  const adminEnvIssues = getAdminEnvIssues();
+
+  if (adminEnvIssues.length > 0) {
+    return (
+      <div className="page-section">
+        <header className="page-header">
+          <span className="eyebrow">Admin</span>
+          <h1>Sign-ups</h1>
+          <p className="page-description">
+            The admin dashboard cannot load until the required server configuration is set.
+          </p>
+        </header>
+
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+          <span className="eyebrow">Configuration</span>
+          <strong style={{ fontSize: '1.05rem' }}>Missing required environment variables</strong>
+          <span style={{ color: 'var(--muted)' }}>
+            Add these values to the deployed web environment, then reload this page.
+          </span>
+          <ul style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--text)', display: 'grid', gap: '0.35rem' }}>
+            {adminEnvIssues.map((issue) => (
+              <li key={issue}>
+                <code>{issue}</code>
+              </li>
+            ))}
+          </ul>
+          <Link className="button button-secondary" href="/settings">
+            Back to settings
+          </Link>
+        </section>
+
+        <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
+          <span className="eyebrow">Access</span>
+          <strong style={{ fontSize: '1.05rem' }}>Current admin allowlist</strong>
+          <span style={{ color: 'var(--muted)', overflowWrap: 'anywhere' }}>
+            {allowlist.length > 0 ? allowlist.join(', ') : 'No admin emails configured.'}
+          </span>
+        </section>
+      </div>
+    );
+  }
+
+  if (!isAllowedAdminEmail(user.email)) {
     redirect('/notes');
   }
 
@@ -151,7 +198,6 @@ export default async function AdminSignupsPage() {
   const last30Days = signups.filter((entry) => new Date(entry.createdAt) >= last30DaysBoundary).length;
   const dailySeries = buildDailySeries(signups);
   const maxDailyCount = Math.max(...dailySeries.map((entry) => entry.count), 1);
-  const allowlist = getAdminEmailAllowlist();
   const billingMetricsAvailable = !subscriptionsError && !planChangesError;
   const activeSubscriptions: ActiveSubscriptionRecord[] = (billingMetricsAvailable ? (subscriptions ?? []) : []).map((entry) => ({
     userId: entry.user_id,
