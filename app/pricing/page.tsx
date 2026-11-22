@@ -240,8 +240,8 @@ export default function PricingPage() {
         .sanctuary-pricing-title {
           margin: 0;
           font-size: clamp(2.6rem, 6vw, 5.2rem);
-          line-height: 0.94;
-          letter-spacing: -0.05em;
+          line-height: 1.04;
+          letter-spacing: -0.015em;
           max-width: 11ch;
         }
 
@@ -261,7 +261,7 @@ export default function PricingPage() {
           display: grid;
           gap: 0.35rem;
           padding: 0.8rem 0;
-          border-top: 1px solid rgba(255, 248, 235, 0.08);
+          border-top: 1px solid var(--line);
         }
 
         .sanctuary-pricing-story-line strong {
@@ -284,7 +284,12 @@ export default function PricingPage() {
           display: grid;
           gap: 1rem;
           padding: 1.2rem 0;
-          border-top: 1px solid rgba(255, 248, 235, 0.08);
+          border-top: 1px solid var(--line);
+        }
+
+        .sanctuary-plan :global(strong) {
+          font-family: var(--font-serif);
+          font-weight: 500;
         }
 
         .sanctuary-plan.is-featured {

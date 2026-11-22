@@ -24,6 +24,7 @@ import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 import type { ScriptureResult } from '@/lib/scripture';
+import { bereaHrefForReference, isBereaNote } from '@/lib/berea';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
   const router = useRouter();
@@ -485,6 +486,39 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
               </div>
             </div>
           </details>
+
+          {isBereaNote(note) ? (
+            <div className="inline-support-stack" style={{ padding: '1.1rem', borderRadius: 'var(--radius-lg)', background: 'var(--accent-soft)', border: '1px solid var(--accent-line)' }}>
+              <div className="support-block">
+                <span className="eyebrow" style={{ color: 'var(--accent-strong)' }}>Berea study</span>
+                <p className="support-block-copy">This note is an inductive study. Open it in Berea to keep working through observe, interpret and apply.</p>
+              </div>
+              <div className="cta-row">
+                <Link className="button button-lapis" href={`/berea/${note.id}`}>
+                  Open in Berea
+                </Link>
+              </div>
+            </div>
+          ) : detectedReferences.length > 0 ? (
+            <div className="inline-support-stack" style={{ padding: '1.1rem', borderRadius: 'var(--radius-lg)', background: 'var(--accent-soft)', border: '1px solid var(--accent-line)' }}>
+              <div className="support-block">
+                <span className="eyebrow" style={{ color: 'var(--accent-strong)' }}>Examine in Berea</span>
+                <p className="support-block-copy">Study a verse from this note: observe what it says, interpret what it means, apply it.</p>
+              </div>
+              <div className="note-reference-row">
+                {detectedReferences.slice(0, 6).map((reference) => (
+                  <Link
+                    className="verse-chip"
+                    href={bereaHrefForReference(reference, { id: note.id, title: note.title })}
+                    key={`berea-${reference}`}
+                  >
+                    <span className="pilcrow" aria-hidden="true">¶</span>
+                    {reference}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           {detectedReferences.length > 0 ? (
             <div className="inline-support-stack">

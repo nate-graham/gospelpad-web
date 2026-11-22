@@ -197,8 +197,9 @@ export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditab
             padding: '0 0 1.2rem',
             background: 'transparent',
             color: 'var(--text)',
-            lineHeight: 1.85,
-            fontSize: '1rem',
+            lineHeight: 1.8,
+            fontSize: '1.14rem',
+            fontFamily: 'var(--font-serif)',
             whiteSpace: 'pre-wrap',
             overflowWrap: 'anywhere',
           }}

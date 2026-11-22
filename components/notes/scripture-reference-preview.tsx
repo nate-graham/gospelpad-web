@@ -93,9 +93,9 @@ export function ScriptureReferencePreview({
       style={{
         padding: '2.4rem 2.2rem 2.6rem',
         borderRadius: '32px',
-        background: 'rgba(25, 28, 35, 0.2)',
+        background: 'var(--panel)',
         gap: '1.35rem',
-        boxShadow: '0 24px 60px rgba(0, 0, 0, 0.22)',
+        boxShadow: 'var(--shadow-card)',
       }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'start' }}>
@@ -123,10 +123,10 @@ export function ScriptureReferencePreview({
               width: '100%',
               minHeight: '44px',
               borderRadius: 999,
-              background: 'rgba(255, 248, 235, 0.04)',
+              background: 'var(--surface-1)',
               color: 'var(--text)',
               padding: '0.7rem 0.95rem',
-              border: '1px solid rgba(78, 70, 58, 0.16)',
+              border: '1px solid var(--line)',
             }}
           >
             {translationOptions.map((option) => (
@@ -162,7 +162,7 @@ export function ScriptureReferencePreview({
               lineHeight: 1.7,
               fontSize: '1.05rem',
               fontStyle: 'italic', // Matches PNG
-              color: 'rgba(220, 223, 229, 0.84)',
+              color: 'var(--ink-soft)',
             }}
           >
             {result.text}

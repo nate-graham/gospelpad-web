@@ -3,12 +3,12 @@ import { MarketingHero } from '@/components/marketing/marketing-hero';
 
 export default function LandingPage() {
   return (
-    <main className="landing-page" style={{ padding: '1.25rem', minHeight: '100vh', display: 'grid' }}>
+    <main>
       <MarketingHero
         actions={
           <>
             <Link className="button button-primary" href="/auth/sign-up">
-              Enter sanctuary
+              Begin writing →
             </Link>
             <Link className="button button-secondary" href="/auth/sign-in">
               Sign in

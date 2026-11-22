@@ -42,6 +42,7 @@ export async function updateSession(request: NextRequest) {
   const isProtectedPath =
     pathname.startsWith('/admin') ||
     pathname.startsWith('/notes') ||
+    pathname.startsWith('/berea') ||
     pathname.startsWith('/groups') ||
     pathname.startsWith('/profile') ||
     pathname.startsWith('/settings');

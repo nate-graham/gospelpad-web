@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { isBereaNote } from '@/lib/berea';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createNote, listNotes, listReceivedSharedNotes, NOTE_TYPES, softDeleteNotes, type NoteListQuery, type NoteRecord, type ReceivedSharedNoteSummary } from '@/lib/notes';
@@ -192,7 +193,7 @@ export function NotesListView() {
   };
 
   return (
-    <div className="page-container page-section notes-list-page" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="page-container page-section notes-list-page">
       <header 
         className="note-list-hero" 
         style={{ 
@@ -205,10 +206,10 @@ export function NotesListView() {
       >
         <div className="note-list-title" style={{ letterSpacing: '-0.02em' }}>
           <span className="eyebrow" style={{ color: 'var(--tertiary)', letterSpacing: '0.05em', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0', display: 'block', opacity: 0.7, textTransform: 'none' }}>{headerName}</span>
-          <h1 style={{ margin: 0, fontSize: '4.2rem', fontWeight: 500, letterSpacing: '-0.05em', color: 'var(--secondary)', lineHeight: 1 }}>Your notes</h1>
+          <h1 style={{ margin: 0, fontSize: 'clamp(2.4rem, 4.5vw, 3.6rem)', lineHeight: 1.05 }}>Your <em>notebook.</em></h1>
         </div>
         <div className="cta-row notes-list-actions" style={{ flexShrink: 0, gap: '1.25rem', alignItems: 'center' }}>
-          <button className="button button-secondary" onClick={toggleSelectionMode} type="button" style={{ borderRadius: '24px', padding: '0.4rem 1rem', background: 'transparent', border: '1px solid rgba(255,255,255,0.08)', fontSize: '0.8rem', opacity: 0.8 }}>
+          <button className="button button-secondary" onClick={toggleSelectionMode} type="button" style={{ borderRadius: '24px', padding: '0.4rem 1rem', background: 'transparent', border: '1px solid var(--line)', fontSize: '0.8rem', opacity: 0.8 }}>
             {selectionMode ? 'Cancel' : 'Select'}
           </button>
           {selectionMode ? (
@@ -221,11 +222,12 @@ export function NotesListView() {
               {deletingSelected ? 'Deleting…' : selectedNoteIds.length > 0 ? `Delete selected (${selectedNoteIds.length})` : 'Delete selected'}
             </button>
           ) : null}
-          <Link className="button" href="/notes/dictate" style={{ borderRadius: '24px', padding: '0.4rem 1.25rem', background: '#1A1D26', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--tertiary)', display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', fontWeight: 500 }}>
-            <span style={{ fontSize: '1rem', opacity: 0.6 }}>🎙</span> Dictate note
+          <Link className="button button-secondary" href="/notes/dictate" style={{ gap: '0.6rem' }}>
+            <svg width="12" height="15" viewBox="0 0 16 20" fill="none" aria-hidden="true"><rect x="4.5" y="1" width="7" height="12" rx="3.5" stroke="var(--vermilion)" strokeWidth="1.8" /><path d="M1.5 9.5a6.5 6.5 0 0013 0M8 16v3" stroke="var(--vermilion)" strokeWidth="1.8" strokeLinecap="round" /></svg>
+            Record or dictate
           </Link>
-          <Link className="button button-primary" href="/notes/new" style={{ borderRadius: '24px', padding: '0.4rem 1.4rem', background: '#D1AC70', color: '#101319', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.8rem', fontSize: '0.8rem' }}>
-            <span style={{ fontSize: '1.3rem', fontWeight: 300, marginTop: '-1px' }}>+</span> New note
+          <Link className="button button-primary" href="/notes/new" style={{ gap: '0.5rem' }}>
+            <span aria-hidden="true">+</span> New note
           </Link>
         </div>
       </header>
@@ -276,7 +278,7 @@ export function NotesListView() {
           <aside className="note-library-rail" style={{ display: 'grid', gap: '1rem' }}>
             <section style={panelCardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                <span className="eyebrow" style={{ color: '#D1AC70', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em' }}>OVERVIEW</span>
+                <span className="eyebrow" style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em' }}>OVERVIEW</span>
                 <span style={{ fontSize: '0.6rem', color: 'var(--tertiary)', transform: 'rotate(180deg)' }}>▼</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'baseline' }}>
@@ -285,9 +287,9 @@ export function NotesListView() {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2.2rem', alignItems: 'baseline' }}>
                 <span style={{ color: 'var(--tertiary)', fontSize: '0.9rem', opacity: 0.8 }}>Recent Activity</span>
-                <strong style={{ fontSize: '0.92rem', fontWeight: 500, color: '#D1AC70' }}>2 hours ago</strong>
+                <strong style={{ fontSize: '0.92rem', fontWeight: 500, color: 'var(--accent)' }}>2 hours ago</strong>
               </div>
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.5rem' }}>
+              <div style={{ borderTop: '1px solid var(--line)', paddingTop: '1.5rem' }}>
                 <p style={{ color: 'var(--tertiary)', fontStyle: 'italic', fontSize: '0.92rem', lineHeight: 1.9, margin: 0, opacity: 0.6 }}>
                   "The heart of the discerning acquires knowledge, for the ears of the wise seek it out."
                 </p>
@@ -414,7 +416,7 @@ export function NotesListView() {
               >
                 All Notes
                 {activeFilterCount === 0 && (
-                  <div style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: '20px', height: '2px', background: '#D1AC70' }} />
+                  <div style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: '20px', height: '2px', background: 'var(--accent)' }} />
                 )}
               </button>
               <button 
@@ -449,7 +451,7 @@ export function NotesListView() {
               >
                 Recent
                 {query.sort === 'updated-desc' && activeFilterCount > 0 && (
-                  <div style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: '20px', height: '2px', background: '#D1AC70' }} />
+                  <div style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: '20px', height: '2px', background: 'var(--accent)' }} />
                 )}
               </button>
               <button 
@@ -485,7 +487,7 @@ export function NotesListView() {
                       if (coarsePointer) {
                         return;
                       }
-                      router.push(`/notes/${note.id}`);
+                      router.push(isBereaNote(note) ? `/berea/${note.id}` : `/notes/${note.id}`);
                     }}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter' || event.key === ' ') {
@@ -494,7 +496,7 @@ export function NotesListView() {
                           toggleSelectedNote(note.id);
                           return;
                         }
-                        router.push(`/notes/${note.id}`);
+                        router.push(isBereaNote(note) ? `/berea/${note.id}` : `/notes/${note.id}`);
                       }
                     }}
                     role={coarsePointer && !selectionMode ? undefined : 'button'}
@@ -502,21 +504,21 @@ export function NotesListView() {
                     tabIndex={coarsePointer && !selectionMode ? -1 : 0}
                     style={{
                       cursor: selectionMode ? 'default' : 'pointer',
-                      outline: selectionMode && selectedNoteIds.includes(note.id) ? '2px solid #D1AC70' : undefined,
-                      background: '#1A1D26',
+                      outline: selectionMode && selectedNoteIds.includes(note.id) ? '2px solid var(--accent)' : undefined,
+                      background: 'var(--panel)',
                       borderRadius: '20px',
                       padding: '1.25rem',
                       display: 'flex',
                       flexDirection: 'column',
-                      minHeight: '240px',
-                      border: '1px solid rgba(255,255,255,0.03)',
+                      minHeight: '210px',
+                      border: '1px solid var(--line)',
                       boxShadow: 'none',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.1rem', alignItems: 'center' }}>
                       <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <span className="badge" style={{ background: 'rgba(255,255,255,0.08)', color: 'var(--secondary)', padding: '0.5rem 1rem', borderRadius: '14px', fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.08em' }}>
-                          {(note.type ?? 'Note').toUpperCase()}
+                        <span className="eyebrow" style={{ color: isBereaNote(note) ? 'var(--accent)' : 'var(--vermilion)' }}>
+                          {isBereaNote(note) ? 'Berea study' : note.type ?? 'Note'}
                         </span>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -526,29 +528,29 @@ export function NotesListView() {
                             onClick={(event) => event.stopPropagation()}
                             onChange={() => toggleSelectedNote(note.id)}
                             type="checkbox"
-                            style={{ width: '18px', height: '18px', accentColor: '#D1AC70' }}
+                            style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }}
                           />
                         )}
                         <button style={{ background: 'none', border: 'none', color: 'var(--tertiary)', fontSize: '1.2rem', cursor: 'pointer', padding: 0 }}>⋮</button>
                       </div>
                     </div>
-                    <h3 style={{ fontSize: '1.6rem', fontWeight: 500, lineHeight: 1.3, marginBottom: '0.4rem', color: 'var(--secondary)', letterSpacing: '-0.02em' }}>
+                    <h3 style={{ fontSize: '1.45rem', lineHeight: 1.25, margin: '0 0 0.5rem', color: 'var(--text)' }}>
                       {note.title?.trim() || 'Untitled'}
                     </h3>
-                    <p style={{ color: 'var(--tertiary)', fontSize: '0.92rem', lineHeight: 1.4, margin: 0, opacity: 0.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    <p style={{ color: 'var(--muted)', fontSize: '0.95rem', lineHeight: 1.55, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                       {getNoteExcerpt(note)}
                     </p>
-                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '2.5rem' }}>
+                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.6rem' }}>
                       <span style={{ color: 'var(--tertiary)', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                         {formatNoteDate(note.updated_at)}
                       </span>
-                      <span style={{ color: '#D1AC70', fontSize: '1.4rem', fontWeight: 300 }}>→</span>
+                      <span style={{ color: 'var(--accent)', fontSize: '1.4rem', fontWeight: 300 }}>→</span>
                     </div>
                   </article>
                 ))}
                 {!selectionMode && (
-                  <Link href="/notes/new" style={{ background: 'transparent', borderRadius: '20px', border: '2px dashed rgba(255,255,255,0.04)', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '240px' }}>
-                    <div style={{ width: '64px', height: '64px', borderRadius: '32px', background: 'rgba(255,255,255,0.03)', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#D1AC70', fontSize: '1.8rem', fontWeight: 300 }}>
+                  <Link href="/notes/new" style={{ background: 'transparent', borderRadius: '20px', border: '2px dashed var(--line-strong)', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '240px' }}>
+                    <div style={{ width: '64px', height: '64px', borderRadius: '32px', background: 'var(--surface-1)', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'var(--accent)', fontSize: '1.8rem', fontWeight: 300 }}>
                       +
                     </div>
                   </Link>
@@ -570,10 +572,10 @@ export function NotesListView() {
 }
 
 const panelCardStyle: React.CSSProperties = {
-  background: '#1A1D26',
+  background: 'var(--panel)',
   borderRadius: '20px',
   padding: '1.5rem',
-  border: '1px solid rgba(255,255,255,0.03)',
+  border: '1px solid var(--line)',
   width: '100%',
 };
 
@@ -612,7 +614,7 @@ const inputStyle: React.CSSProperties = {
   padding: '0.4rem 0',
   background: 'transparent',
   border: 'none',
-  borderBottom: '1px solid rgba(255, 248, 235, 0.1)',
+  borderBottom: '1px solid var(--line)',
   color: 'var(--text)',
   fontSize: '0.9rem',
 };

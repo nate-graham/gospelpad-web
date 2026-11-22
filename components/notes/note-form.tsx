@@ -297,12 +297,12 @@ export function NoteForm({
                 style={{
                   padding: 0,
                   gap: 0,
-                  background: 'rgba(18, 20, 25, 0.95)',
+                  background: 'var(--panel-raised)',
                   borderRadius: '40px',
                   overflow: 'hidden',
                   minHeight: '76vh',
                   position: 'relative',
-                  boxShadow: '0 32px 80px rgba(0, 0, 0, 0.35)',
+                  boxShadow: 'var(--shadow-card)',
                 }}
               >
                 <div
@@ -312,7 +312,7 @@ export function NoteForm({
                     justifyContent: 'space-between',
                     gap: '1rem',
                     padding: '1.6rem 2.4rem',
-                    borderBottom: '1px solid rgba(78, 70, 58, 0.14)',
+                    borderBottom: '1px solid var(--line)',
                   }}
                 >
                   <div
@@ -351,7 +351,7 @@ export function NoteForm({
                           style={{
                             border: 0,
                             borderRadius: '999px',
-                            background: reference === activeReference ? 'rgba(209, 172, 112, 0.14)' : 'rgba(255, 248, 235, 0.05)',
+                            background: reference === activeReference ? 'var(--accent-soft)' : 'var(--surface-1)',
                             color: 'var(--accent)',
                             padding: '0.58rem 0.92rem',
                             fontSize: '0.74rem',
@@ -374,7 +374,7 @@ export function NoteForm({
                   style={{
                     display: 'grid',
                     gap: '2.2rem',
-                    padding: '4.3rem 3.6rem 7.5rem',
+                    padding: 'clamp(1.5rem, 4vw, 3.4rem) clamp(1.1rem, 4vw, 3.2rem) 7.5rem',
                     minHeight: '100%',
                   }}
                 >
@@ -387,11 +387,12 @@ export function NoteForm({
                       border: 0,
                       outline: 'none',
                       background: 'transparent',
-                      color: 'rgba(220, 223, 229, 0.48)', // Readable ghosted title
-                      fontSize: 'clamp(3.6rem, 6vw, 5.2rem)',
-                      lineHeight: 0.94,
-                      letterSpacing: '-0.07em',
-                      fontWeight: 600,
+                      color: 'var(--text)',
+                      fontFamily: 'var(--font-serif)',
+                      fontSize: 'clamp(2.2rem, 4vw, 3.2rem)',
+                      lineHeight: 1.1,
+                      letterSpacing: '-0.01em',
+                      fontWeight: 500,
                       padding: 0,
                       width: '100%',
                     }}
@@ -527,10 +528,10 @@ export function NoteForm({
                       gap: '0.6rem',
                       padding: '0.6rem 0.8rem',
                     borderRadius: '999px',
-                      background: 'rgba(25, 28, 35, 0.9)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      background: 'var(--panel-raised)',
+                      border: '1px solid var(--line)',
                       backdropFilter: 'blur(20px)',
-                      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4)',
+                      boxShadow: 'var(--shadow-card)',
                     pointerEvents: 'auto',
                   }}
                 >
@@ -575,9 +576,9 @@ const canvasInputStyle: CSSProperties = {
   minHeight: 54,
   borderRadius: 18,
   padding: '0.95rem 1.05rem',
-  background: 'rgba(255, 248, 235, 0.02)',
+  background: 'var(--surface-1)',
   color: 'var(--text)',
-  border: '1px solid rgba(78, 70, 58, 0.08)',
+  border: '1px solid var(--line)',
   outline: 'none',
   appearance: 'none',
   backgroundImage: 'none',

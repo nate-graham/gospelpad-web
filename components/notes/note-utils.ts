@@ -1,9 +1,18 @@
 import type { NoteRecord, NoteType } from '@/lib/notes';
 import { findScriptureReferences } from '@/lib/scripture-references';
+import { isBereaNote, parseBereaStudy } from '@/lib/berea';
 
 export const DEFAULT_NOTE_TYPE: NoteType = 'Church notes';
 
-export function getNoteExcerpt(note: Pick<NoteRecord, 'body'>) {
+export function getNoteExcerpt(note: Pick<NoteRecord, 'body'> & Partial<Pick<NoteRecord, 'title' | 'type'>>) {
+  if (isBereaNote({ body: note.body ?? '', type: note.type ?? 'Study' })) {
+    const study = parseBereaStudy({ title: note.title ?? '', body: note.body ?? '' });
+    const summary = study.observe || study.interpret || study.passage;
+    if (summary) {
+      const flat = summary.replace(/\s+/g, ' ').trim();
+      return flat.length > 180 ? `${flat.slice(0, 177)}...` : flat;
+    }
+  }
   const raw = (note.body ?? '').replace(/\s+/g, ' ').trim();
   if (!raw) return 'No content yet.';
   return raw.length > 180 ? `${raw.slice(0, 177)}...` : raw;

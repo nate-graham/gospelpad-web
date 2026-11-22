@@ -6,26 +6,86 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useSupabaseAuth } from '@/components/providers/supabase-auth-provider';
 
-const navItems = [
-  { href: '/notes', label: 'My Notes', shortLabel: 'Notes' },
-  { href: '/groups', label: 'Groups', shortLabel: 'Groups' },
-  { href: '/profile', label: 'Profile', shortLabel: 'Profile' },
-  { href: '/settings', label: 'Preferences', shortLabel: 'Settings' },
+type NavKey = 'notes' | 'record' | 'berea' | 'groups' | 'profile' | 'settings';
+
+const navItems: Array<{ key: NavKey; href: string; label: string; shortLabel: string }> = [
+  { key: 'notes', href: '/notes', label: 'Notebook', shortLabel: 'Notes' },
+  { key: 'record', href: '/notes/dictate', label: 'Record', shortLabel: 'Record' },
+  { key: 'berea', href: '/berea', label: 'Berea', shortLabel: 'Berea' },
+  { key: 'groups', href: '/groups', label: 'Groups', shortLabel: 'Groups' },
+  { key: 'profile', href: '/profile', label: 'Profile', shortLabel: 'Profile' },
+  { key: 'settings', href: '/settings', label: 'Settings', shortLabel: 'Settings' },
 ];
 
-const editorSidebarItems = [
-  { href: '/notes', label: 'Library', icon: '📚' },
-  { href: '/notes', label: 'My Notes', icon: '📄' },
-  { href: '/groups', label: 'Groups', icon: '👥' },
-  { href: '/notes', label: 'Daily Verses', icon: '✦' },
-  { href: '/settings', label: 'Settings', icon: '⚙' },
-];
+const mobileNavKeys: NavKey[] = ['notes', 'record', 'berea', 'groups', 'profile'];
 
-const editorTopNavItems = [
-  { href: '/notes', label: 'Meditations' },
-  { href: '/notes', label: 'Scriptures' },
-  { href: '/profile', label: 'Reflections' },
-];
+function isNavActive(key: NavKey, pathname: string) {
+  switch (key) {
+    case 'record':
+      return pathname.startsWith('/notes/dictate');
+    case 'notes':
+      return pathname.startsWith('/notes') && !pathname.startsWith('/notes/dictate');
+    case 'berea':
+      return pathname.startsWith('/berea');
+    case 'groups':
+      return pathname.startsWith('/groups');
+    case 'profile':
+      return pathname.startsWith('/profile');
+    case 'settings':
+      return pathname.startsWith('/settings') || pathname.startsWith('/admin');
+    default:
+      return false;
+  }
+}
+
+function NavIcon({ name }: { name: NavKey }) {
+  const common = { width: 17, height: 17, fill: 'none', 'aria-hidden': true as const };
+  switch (name) {
+    case 'notes':
+      return (
+        <svg {...common} viewBox="0 0 16 16">
+          <path d="M3 1.5h7.5l2.5 2.5v10.5H3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M5.5 7h5M5.5 10h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case 'record':
+      return (
+        <svg {...common} viewBox="0 0 16 20">
+          <rect x="4.5" y="1" width="7" height="12" rx="3.5" stroke="var(--vermilion)" strokeWidth="1.6" />
+          <path d="M1.5 9.5a6.5 6.5 0 0013 0M8 16v3" stroke="var(--vermilion)" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+      );
+    case 'berea':
+      return (
+        <svg {...common} viewBox="0 0 18 18">
+          <circle cx="7.5" cy="7.5" r="5.5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M11.5 11.5l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case 'groups':
+      return (
+        <svg {...common} viewBox="0 0 16 16">
+          <circle cx="6" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="11.5" cy="6.5" r="2" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M1.5 14c.5-2.5 2.3-4 4.5-4s4 1.5 4.5 4M10.5 10.2c2-.2 3.6 1 4 3.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case 'profile':
+      return (
+        <svg {...common} viewBox="0 0 24 24">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+          <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="1.7" />
+        </svg>
+      );
+    case 'settings':
+      return (
+        <svg {...common} viewBox="0 0 20 20">
+          <circle cx="10" cy="10" r="2.6" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M10 1.8v2.4M10 15.8v2.4M1.8 10h2.4M15.8 10h2.4M4.2 4.2l1.7 1.7M14.1 14.1l1.7 1.7M4.2 15.8l1.7-1.7M14.1 5.9l1.7-1.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+  }
+}
 
 const PAGE_TRANSITION_MS = 280;
 
@@ -60,8 +120,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     (typeof user?.user_metadata?.name === 'string' && user.user_metadata.name.trim()) ||
     user?.email?.split('@')[0] ||
     'Account';
-  const isEditorRoute =
-    pathname === '/notes/new' || /^\/notes\/[^/]+\/edit$/.test(pathname);
 
   const signOut = async () => {
     const supabase = getSupabaseBrowserClient();
@@ -132,341 +190,204 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
   }, []);
 
+
+  const initial = headerName.trim().charAt(0).toUpperCase() || 'G';
+
   return (
-    <div className="app-shell-root" style={{ minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
+    <div className="gp-shell">
       <a className="button button-secondary skip-link" href="#main-content">
         Skip to content
       </a>
-      <header className={`app-top-nav${isEditorRoute ? ' is-hidden-on-editor-desktop' : ''}`}>
-        <div className="top-nav-container">
-          <div className="top-nav-left">
-            <Link href="/notes" className="brand-logo">GospelPad</Link>
-          </div>
-          <nav className="top-nav-center">
-            {navItems.map((item) => {
-              const active = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`top-nav-link${active ? ' is-active' : ''}`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="top-nav-right">
-            <div className="nav-search-wrapper">
-              <span className="search-icon">🔍</span>
-              <input type="text" placeholder="Search your sanctuary..." className="nav-search-input" />
-            </div>
-            <button className="profile-trigger" onClick={() => router.push('/profile')}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
 
-      <div className={`shell-page full-width-layout${isEditorRoute ? ' editor-shell-layout' : ''}`}>
-        {isEditorRoute ? (
-          <aside className="editor-shell-sidebar">
-            <Link href="/notes" className="editor-shell-brand">GospelPad</Link>
-            <div className="editor-shell-curator">
-              <div className="editor-shell-avatar" />
-              <div className="editor-shell-curator-copy">
-                <strong>{headerName}</strong>
-                <span>In Silent Reflection</span>
-              </div>
-            </div>
-            <Link href="/notes/new" className="editor-shell-primary-cta">
-              New Journal Entry
-            </Link>
-            <nav className="editor-shell-nav">
-              {editorSidebarItems.map((item, index) => {
-                const active = index === 0;
-                return (
-                  <Link
-                    key={`${item.href}-${item.label}`}
-                    href={item.href}
-                    className={`editor-shell-nav-link${active ? ' is-active' : ''}`}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="editor-shell-footer-links">
-              <Link href="/settings">Help</Link>
-              <Link href="/privacy">Privacy</Link>
-            </div>
-          </aside>
-        ) : null}
+      <aside className="gp-sidebar" aria-label="GospelPad">
+        <Link href="/notes" className="gp-brand">
+          <span className="gp-brand-name">GospelPad</span>
+          <span className="gp-brand-tag">The Digital Sanctuary</span>
+        </Link>
 
-        <div className={`app-content-frame centered-container${isEditorRoute ? ' editor-content-frame' : ''}`}>
-          {isEditorRoute ? (
-            <header className="editor-shell-topnav">
-              <nav className="editor-shell-topnav-center">
-                {editorTopNavItems.map((item, index) => (
-                  <Link
-                    key={`${item.href}-${item.label}`}
-                    href={item.href}
-                    className={`editor-shell-topnav-link${index === 0 ? ' is-active' : ''}`}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-              </nav>
-              <div className="editor-shell-topnav-right">
-                <div className="editor-shell-search">
-                  <span>🔍</span>
-                  <input type="text" placeholder="Search the scriptures..." />
-                </div>
-                <button className="profile-trigger" onClick={() => router.push('/profile')}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                  </svg>
-                </button>
-              </div>
-            </header>
-          ) : null}
+        <Link href="/notes/new" className="button button-primary gp-new-note">
+          <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 1v12M1 7h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          New note
+        </Link>
 
-          <header className="mobile-topbar">
-            <div className="mobile-topbar-title">
-              <div className="mobile-topbar-title-text">
-                {headerName}
-              </div>
-            </div>
-          </header>
-
-          <main
-            className={`app-main-panel${isEditorRoute ? ' editor-main-panel' : ''}`}
-            id="main-content"
-            tabIndex={-1}
-            style={{ paddingTop: isEditorRoute ? '1.25rem' : '2rem' }}
-          >
-            {mounted ? (
-              <div
-                className={`app-page-transition-stage${routeRender.animating ? ` is-animating is-${routeRender.direction}` : ''}`}
+        <nav className="gp-nav" aria-label="Primary">
+          {navItems.map((item) => {
+            const active = isNavActive(item.key, pathname);
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={`gp-nav-link${active ? ' is-active' : ''}`}
               >
-                {routeRender.previous ? (
-                  <div 
-                    className="app-page-transition-layer app-page-transition-layer-previous" 
-                    style={{ display: routeRender.animating ? 'block' : 'none' }}
-                  >
-                    {routeRender.previous.node}
-                  </div>
-                ) : null}
-                <div
-                  className="app-page-transition-layer app-page-transition-layer-current"
-                  key={routeRender.current.pathname}
-                >
-                  {routeRender.current.node}
-                </div>
-              </div>
-            ) : (
-              <div className="app-page-transition-stage">
-                <div className="app-page-transition-layer app-page-transition-layer-current">{children}</div>
-              </div>
-            )}
-          </main>
+                <NavIcon name={item.key} />
+                <span>{item.label}</span>
+                {item.key === 'berea' ? <span className="gp-nav-tag">Study</span> : null}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="gp-sidebar-footer">
+          <Link href="/profile" className="gp-user">
+            <span className="gp-avatar" aria-hidden="true">{initial}</span>
+            <span className="gp-user-copy">
+              <strong>{headerName}</strong>
+              <span>Profile and plan</span>
+            </span>
+          </Link>
+          <button className="gp-signout" disabled={signingOut} onClick={() => void signOut()} type="button">
+            {signingOut ? 'Signing out…' : 'Sign out'}
+          </button>
         </div>
+      </aside>
+
+      <div className="gp-content">
+        <header className="gp-mobile-bar">
+          <Link href="/notes" className="gp-brand-name">GospelPad</Link>
+          <Link href="/notes/new" className="button button-primary gp-mobile-new">
+            New note
+          </Link>
+        </header>
+
+        <main className="gp-main" id="main-content" tabIndex={-1}>
+          {mounted ? (
+            <div
+              className={`app-page-transition-stage${routeRender.animating ? ` is-animating is-${routeRender.direction}` : ''}`}
+            >
+              {routeRender.previous ? (
+                <div
+                  className="app-page-transition-layer app-page-transition-layer-previous"
+                  style={{ display: routeRender.animating ? 'block' : 'none' }}
+                >
+                  {routeRender.previous.node}
+                </div>
+              ) : null}
+              <div
+                className="app-page-transition-layer app-page-transition-layer-current"
+                key={routeRender.current.pathname}
+              >
+                {routeRender.current.node}
+              </div>
+            </div>
+          ) : (
+            <div className="app-page-transition-stage">
+              <div className="app-page-transition-layer app-page-transition-layer-current">{children}</div>
+            </div>
+          )}
+        </main>
       </div>
 
-      <nav className="mobile-bottom-nav" aria-label="Bottom navigation">
-        {navItems.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <Link
-              aria-current={active ? 'page' : undefined}
-              key={item.href}
-              href={item.href}
-              className={`mobile-bottom-nav-link${active ? ' is-active' : ''}`}
-            >
-              {item.shortLabel}
-            </Link>
-          );
-        })}
+      <nav className="gp-bottom-nav" aria-label="Bottom navigation">
+        {navItems
+          .filter((item) => mobileNavKeys.includes(item.key))
+          .map((item) => {
+            const active = isNavActive(item.key, pathname);
+            return (
+              <Link
+                aria-current={active ? 'page' : undefined}
+                key={item.key}
+                href={item.href}
+                className={`gp-bottom-link${active ? ' is-active' : ''}`}
+              >
+                <NavIcon name={item.key} />
+                <span>{item.shortLabel}</span>
+              </Link>
+            );
+          })}
       </nav>
 
       <style jsx>{`
-        .app-top-nav {
-          position: sticky;
-          top: 0;
-          z-index: 100;
-          background: rgba(12, 15, 20, 0.9);
-          backdrop-filter: blur(12px);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-          padding: 1.6rem 0;
+        .gp-shell {
+          min-height: 100vh;
+          display: flex;
+          align-items: stretch;
+          background: var(--bg);
         }
 
-        .top-nav-container {
-          max-width: 1440px;
+        .gp-sidebar {
+          display: none;
+        }
+
+        .gp-content {
+          flex: 1 1 auto;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .gp-main {
+          flex: 1;
+          width: 100%;
+          max-width: 1320px;
           margin: 0 auto;
-          padding: 0 4rem;
+          box-sizing: border-box;
+          padding: 1.25rem max(16px, env(safe-area-inset-right, 0px)) 6.5rem max(16px, env(safe-area-inset-left, 0px));
+        }
+
+        .gp-main:focus {
+          outline: none;
+        }
+
+        .gp-mobile-bar {
+          position: sticky;
+          top: 0;
+          z-index: 40;
           display: flex;
           align-items: center;
           justify-content: space-between;
+          gap: 1rem;
+          padding: calc(0.75rem + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0.75rem max(16px, env(safe-area-inset-left, 0px));
+          background: color-mix(in srgb, var(--bg) 92%, transparent);
+          backdrop-filter: blur(10px);
+          border-bottom: 1px solid var(--line);
         }
 
-        .brand-logo {
-          font-size: 1.4rem;
-          font-weight: 600;
-          color: #D1AC70;
-          letter-spacing: -0.02em;
-        }
-
-        .top-nav-center {
-          display: flex;
-          gap: 4.5rem;
-          align-items: center;
-        }
-
-        .top-nav-link {
+        .gp-mobile-bar :global(.gp-mobile-new) {
+          min-height: 38px;
+          padding: 0.5rem 1rem;
           font-size: 0.88rem;
-          font-weight: 500;
-          color: var(--tertiary);
-          letter-spacing: 0.02em;
-          transition: color 0.2s;
         }
 
-        .top-nav-link.is-active {
-          color: var(--secondary);
-          position: relative;
-        }
-
-        .top-nav-link.is-active::after {
-          content: '';
-          position: absolute;
-          bottom: -8px;
-          left: 50%;
-          transform: translateX(-50%);
-          width: 20px;
-          height: 2px;
-          background: #D1AC70;
-        }
-
-        .top-nav-right {
-          display: flex;
-          align-items: center;
-          gap: 2rem;
-        }
-
-        .nav-search-wrapper {
-          position: relative;
-          display: flex;
-          align-items: center;
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 1rem;
-          font-size: 0.8rem;
-          opacity: 0.4;
-        }
-
-        .nav-search-input {
-          background: rgba(255, 255, 255, 0.04);
-          border: none;
-          border-radius: 28px;
-          padding: 0.65rem 1.2rem 0.65rem 3rem;
-          width: 260px;
-          color: var(--secondary);
-          font-size: 0.85rem;
-          letter-spacing: 0.01em;
-        }
-
-        .profile-trigger {
-          background: none;
-          border: none;
-          color: var(--tertiary);
-          cursor: pointer;
-          padding: 0;
-        }
-
-        .centered-container {
-          max-width: 1440px;
-          margin: 0 auto;
-          padding: 0 3rem;
-        }
-
-        .editor-shell-layout {
-          display: grid;
-          grid-template-columns: 320px minmax(0, 1fr);
-          align-items: stretch;
-          width: 100%;
-          min-height: 100vh;
-        }
-
-        .editor-shell-sidebar {
-          display: none;
-        }
-
-        .editor-content-frame {
-          max-width: none;
-          width: 100%;
-          padding: 0 2.75rem 0 1.8rem;
-        }
-
-        .editor-shell-topnav {
-          display: none;
-        }
-
-        .editor-main-panel {
-          min-height: calc(100vh - 120px);
-        }
-
-        .full-width-layout {
-          width: 100%;
-          min-width: 0;
-        }
-
-        .app-main-panel {
-            min-height: calc(100vh - 80px);
-        }
-
-        .mobile-bottom-nav {
-          position: fixed;
-          left: 50%;
-          transform: translateX(-50%);
-          bottom: 0.7rem;
-          z-index: 30;
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 0.2rem;
-          padding: 0.2rem;
-          width: calc(100vw - 1.4rem);
-          max-width: 29rem;
-          background: rgba(12, 15, 20, 0.96);
-          border-radius: 22px;
-          overflow: hidden;
-        }
-
-        .mobile-bottom-nav-link {
-          display: grid;
-          place-items: center;
-          padding: 0.8rem 0.5rem;
-          color: var(--muted);
-          font-weight: 600;
-          font-size: 0.72rem;
-          letter-spacing: 0.08em;
+        .gp-shell :global(.gp-brand-name) {
+          font-family: var(--font-sans);
+          font-size: 0.86rem;
+          font-weight: 700;
+          letter-spacing: 0.24em;
           text-transform: uppercase;
-          border-radius: 16px;
-        }
-
-        .mobile-bottom-nav-link.is-active {
           color: var(--accent);
-          background: rgba(255, 248, 235, 0.05);
         }
 
-        .mobile-bottom-nav :global(a) {
+        .gp-bottom-nav {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 40;
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          padding: 0.35rem max(8px, env(safe-area-inset-right, 0px)) calc(0.35rem + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
+          background: var(--panel);
+          border-top: 1px solid var(--line);
+        }
+
+        .gp-bottom-nav :global(.gp-bottom-link) {
+          display: grid;
+          justify-items: center;
+          gap: 0.2rem;
+          padding: 0.45rem 0.2rem;
+          border-radius: 12px;
+          color: var(--muted);
+          font-size: 0.7rem;
+          font-weight: 600;
           min-width: 0;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+        }
+
+        .gp-bottom-nav :global(.gp-bottom-link.is-active) {
+          color: var(--accent-strong);
+          background: var(--accent-soft);
         }
 
         .app-page-transition-stage {
@@ -506,51 +427,23 @@ export function AppShell({ children }: { children: ReactNode }) {
         }
 
         @keyframes app-page-enter-right {
-          from {
-            transform: translate3d(40px, 0, 0);
-            opacity: 0.38;
-          }
-
-          to {
-            transform: translate3d(0, 0, 0);
-            opacity: 1;
-          }
+          from { transform: translate3d(24px, 0, 0); opacity: 0.4; }
+          to { transform: translate3d(0, 0, 0); opacity: 1; }
         }
 
         @keyframes app-page-exit-left {
-          from {
-            transform: translate3d(0, 0, 0);
-            opacity: 1;
-          }
-
-          to {
-            transform: translate3d(-28px, 0, 0);
-            opacity: 0;
-          }
+          from { transform: translate3d(0, 0, 0); opacity: 1; }
+          to { transform: translate3d(-18px, 0, 0); opacity: 0; }
         }
 
         @keyframes app-page-enter-left {
-          from {
-            transform: translate3d(-40px, 0, 0);
-            opacity: 0.38;
-          }
-
-          to {
-            transform: translate3d(0, 0, 0);
-            opacity: 1;
-          }
+          from { transform: translate3d(-24px, 0, 0); opacity: 0.4; }
+          to { transform: translate3d(0, 0, 0); opacity: 1; }
         }
 
         @keyframes app-page-exit-right {
-          from {
-            transform: translate3d(0, 0, 0);
-            opacity: 1;
-          }
-
-          to {
-            transform: translate3d(28px, 0, 0);
-            opacity: 0;
-          }
+          from { transform: translate3d(0, 0, 0); opacity: 1; }
+          to { transform: translate3d(18px, 0, 0); opacity: 0; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -560,232 +453,146 @@ export function AppShell({ children }: { children: ReactNode }) {
           }
         }
 
-        @media (min-width: 768px) {
-          .mobile-bottom-nav {
-            display: none;
-          }
-        }
-
-        @media (max-width: 979px) {
-          .shell-page {
-            grid-template-columns: minmax(0, 1fr);
-          }
-        }
-
         @media (min-width: 980px) {
-          .full-width-layout {
-             display: block;
-          }
-
-          .app-top-nav.is-hidden-on-editor-desktop {
+          .gp-mobile-bar,
+          .gp-bottom-nav {
             display: none;
           }
 
-          .editor-shell-layout {
-            display: grid;
-          }
-
-          .editor-shell-sidebar {
+          .gp-sidebar {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            flex: 0 0 var(--sidebar-width);
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            padding: 2.2rem 2rem 2rem;
-            background: #0b0e14;
-            box-shadow: 40px 0 60px -15px rgba(0, 0, 0, 0.3);
+            gap: 1.6rem;
+            padding: 1.9rem 1.3rem 1.4rem;
+            background: var(--bg-soft);
+            border-right: 1px solid var(--line);
+            overflow-y: auto;
           }
 
-          .editor-shell-brand {
-            color: var(--accent);
-            font-size: 1.18rem;
-            font-weight: 700;
-            letter-spacing: -0.04em;
-          }
-
-          .editor-shell-curator {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin: 3rem 0 2rem;
-          }
-
-          .editor-shell-avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 999px;
-            background: radial-gradient(circle at 35% 30%, #d1ac70 0%, #8b5c2f 38%, #1d2026 100%);
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-          }
-
-          .editor-shell-curator-copy {
+          .gp-sidebar :global(.gp-brand) {
             display: grid;
-            gap: 0.2rem;
+            gap: 0.35rem;
+            padding: 0 0.6rem;
           }
 
-          .editor-shell-curator-copy strong {
-            color: var(--text);
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            font-size: 0.82rem;
-          }
-
-          .editor-shell-curator-copy span {
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            font-size: 0.72rem;
-          }
-
-          .editor-shell-primary-cta {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 64px;
-            margin-bottom: 2rem;
-            border-radius: 999px;
-            background: var(--accent);
-            color: #101319;
+          .gp-brand-tag {
+            font-size: 0.66rem;
             font-weight: 600;
-            font-size: 0.95rem;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--muted);
           }
 
-          .editor-shell-nav {
+          .gp-sidebar :global(.gp-new-note) {
+            gap: 0.5rem;
+          }
+
+          .gp-nav {
             display: grid;
-            gap: 0.85rem;
+            gap: 0.15rem;
           }
 
-          .editor-shell-nav-link {
+          .gp-nav :global(.gp-nav-link) {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.2rem;
-            border-radius: 24px;
-            color: var(--muted);
+            gap: 0.75rem;
+            padding: 0.68rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--ink-soft);
+          }
+
+          .gp-nav :global(.gp-nav-link:hover) {
+            background: var(--surface-1);
+          }
+
+          .gp-nav :global(.gp-nav-link.is-active) {
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+          }
+
+          .gp-nav-tag {
+            margin-left: auto;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
-            letter-spacing: 0.14em;
-            font-size: 0.82rem;
-          }
-
-          .editor-shell-nav-link.is-active {
-            background: rgba(255, 248, 235, 0.05);
             color: var(--accent);
-            box-shadow: inset 0 0 0 1px rgba(209, 172, 112, 0.6);
           }
 
-          .editor-shell-footer-links {
+          .gp-sidebar-footer {
             margin-top: auto;
             display: grid;
-            gap: 1rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(78, 70, 58, 0.15);
+            gap: 0.6rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--line);
           }
 
-          .editor-shell-footer-links :global(a) {
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
-            font-size: 0.74rem;
-          }
-
-          .editor-shell-topnav {
+          .gp-sidebar-footer :global(.gp-user) {
             display: flex;
             align-items: center;
-            justify-content: center;
-            position: relative;
-            padding: 1.9rem 0 1.25rem;
+            gap: 0.7rem;
+            padding: 0.4rem 0.5rem;
+            border-radius: 12px;
+            min-width: 0;
           }
 
-          .editor-shell-topnav-center {
-            display: flex;
-            align-items: center;
-            gap: 3rem;
+          .gp-sidebar-footer :global(.gp-user:hover) {
+            background: var(--surface-1);
           }
 
-          .editor-shell-topnav-link {
-            color: var(--muted);
-            font-size: 0.95rem;
-            letter-spacing: 0.01em;
-          }
-
-          .editor-shell-topnav-link.is-active {
-            color: var(--accent);
-            padding-bottom: 0.5rem;
-            box-shadow: inset 0 -2px 0 var(--accent);
-          }
-
-          .editor-shell-topnav-right {
-            display: flex;
-            align-items: center;
-            gap: 1.4rem;
-            position: absolute;
-            right: 0;
-          }
-
-          .editor-shell-search {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            min-width: 320px;
-            padding: 0.85rem 1.1rem;
+          .gp-avatar {
+            width: 32px;
+            height: 32px;
+            flex: none;
             border-radius: 999px;
-            background: rgba(255, 248, 235, 0.045);
+            display: grid;
+            place-items: center;
+            background: var(--accent-soft);
+            color: var(--accent-strong);
+            font-weight: 700;
+            font-size: 0.82rem;
+          }
+
+          .gp-user-copy {
+            display: grid;
+            min-width: 0;
+          }
+
+          .gp-user-copy strong {
+            font-size: 0.88rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .gp-user-copy span {
+            font-size: 0.76rem;
             color: var(--muted);
           }
 
-          .editor-shell-search input {
-            width: 100%;
+          .gp-signout {
+            justify-self: start;
             border: 0;
-            outline: none;
-            background: transparent;
-            color: var(--text);
-            font-size: 0.92rem;
+            background: none;
+            padding: 0.35rem 0.5rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--muted);
           }
 
-          .app-main-panel {
-            padding-top: 0.5rem;
+          .gp-signout:hover {
+            color: var(--vermilion);
           }
 
-          .mobile-topbar {
-            display: none;
-          }
-        }
-
-        @media (max-width: 767px) {
-          .app-shell-root {
-            padding: 0;
-            overflow-x: visible;
-          }
-
-          .shell-page {
-            width: 100%;
-            gap: 0.8rem;
-          }
-
-          .mobile-topbar {
-            width: calc(100% - 1.4rem);
-            max-width: calc(100% - 1.4rem);
-            margin: 0.7rem auto 0;
-          }
-
-          .app-main-panel {
-            min-height: calc(100vh - 7.5rem);
-            width: calc(100% - 1.4rem);
-            max-width: calc(100% - 1.4rem);
-            margin: 0 auto;
-            padding: 0.85rem 0;
-          }
-
-          .mobile-bottom-nav {
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 0.5rem;
-            width: calc(100vw - 1.4rem);
-            max-width: calc(100vw - 1.4rem);
-          }
-
-          .mobile-bottom-nav :global(a) {
-            font-size: 0.68rem;
-            padding: 0.8rem 0.25rem;
+          .gp-main {
+            padding: 2rem clamp(1.5rem, 3.5vw, 3.5rem) 3.5rem;
           }
         }
       `}</style>

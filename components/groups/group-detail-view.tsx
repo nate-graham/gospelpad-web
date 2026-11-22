@@ -443,7 +443,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         ) : (
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {announcements.map((announcement) => (
-              <article key={announcement.id} style={{ display: 'grid', gap: '0.6rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
+              <article key={announcement.id} style={{ display: 'grid', gap: '0.6rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'grid', gap: '0.3rem' }}>
                     <strong>{announcement.title}</strong>
@@ -529,7 +529,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           ) : (
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {members.map((member) => (
-                <article key={member.id} style={{ display: 'grid', gap: '0.45rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
+                <article key={member.id} style={{ display: 'grid', gap: '0.45rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                     <strong>{getGroupMemberLabel(member)}</strong>
                     {member.is_owner ? <span className="badge">Owner</span> : null}
@@ -603,7 +603,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           ) : (
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {nativeNotes.map((note) => (
-                <article key={note.id} style={{ display: 'grid', gap: '0.55rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
+                <article key={note.id} style={{ display: 'grid', gap: '0.55rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                     <strong>{note.title?.trim() || 'Untitled'}</strong>
                     <span className="badge">group note</span>
@@ -652,7 +652,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           ) : (
             <div style={{ display: 'grid', gap: '0.75rem' }}>
               {joinRequests.map((request) => (
-                <article key={request.id} style={{ display: 'grid', gap: '0.65rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
+                <article key={request.id} style={{ display: 'grid', gap: '0.65rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                     <strong>{getRequestLabel(request)}</strong>
                     <span className="badge">{request.username ? `@${request.username}` : 'Pending member'}</span>
@@ -709,7 +709,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
         ) : (
           <div style={{ display: 'grid', gap: '0.75rem' }}>
             {sharedNotes.map((note) => (
-              <article key={`shared-${note.id}`} style={{ display: 'grid', gap: '0.55rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid rgba(255, 248, 235, 0.06)' }}>
+              <article key={`shared-${note.id}`} style={{ display: 'grid', gap: '0.55rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                   <strong>{note.title?.trim() || 'Untitled'}</strong>
                   <span className="badge">{note.permissions}</span>
