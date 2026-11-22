@@ -90,6 +90,24 @@ export function splitNoteIntoBlocks(text: string): Block[] {
       }
     }
 
+    // "Psalm 23:5" alone on a line, then the verse starting with its own number ("5 You prepare…").
+    const bare = asReference(line);
+    const firstVerse = bare?.match(/:\s*(\d{1,3})/)?.[1];
+    const nextLine = lines[index + 1] ?? '';
+    const nextNumber = nextLine.match(/^\s*(\d{1,3})\s+\S/)?.[1];
+    if (bare && firstVerse && nextNumber && Number(nextNumber) === Number(firstVerse)) {
+      const verseLines: string[] = [];
+      let next = index + 1;
+      while (next < lines.length && lines[next].trim()) {
+        verseLines.push(lines[next].trim());
+        next += 1;
+      }
+      blocks.push({ kind: 'verse', reference: bare, translation: '', text: verseLines.join('\n') });
+      current = null;
+      index = next - 1;
+      continue;
+    }
+
     pushText(line);
   }
 
