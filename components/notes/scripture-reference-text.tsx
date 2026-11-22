@@ -38,12 +38,22 @@ function shortTranslation(value: string) {
   return TRANSLATION_ABBREVIATIONS[upper] ?? (upper.length <= 8 ? upper : cleaned);
 }
 
+/**
+ * The whole string is one Scripture reference (abbreviations like "Rev 13:8" or "Matt 11:28"
+ * included); returns it in its full form ("Revelation 13:8"), or null.
+ */
 function asReference(candidate: string) {
-  const trimmed = candidate.trim();
-  const found = findScriptureReferences(trimmed);
-  if (found.length !== 1) return null;
-  const compact = (value: string) => value.replace(/\s+/g, '').toLowerCase();
-  return compact(found[0]) === compact(trimmed) ? found[0] : null;
+  const trimmed = candidate.trim().replace(/[:.,;]+$/, '');
+  if (!trimmed) return null;
+  const segments = splitTextByScriptureReferences(trimmed);
+  const references = segments.filter((segment) => segment.type === 'reference');
+  const leftover = segments
+    .filter((segment) => segment.type === 'text')
+    .map((segment) => segment.value)
+    .join('')
+    .trim();
+  if (references.length !== 1 || leftover) return null;
+  return findScriptureReferences(references[0].value)[0] ?? references[0].value;
 }
 
 /** Splits a note body into ordinary text and verses that were inserted from Scripture. */
