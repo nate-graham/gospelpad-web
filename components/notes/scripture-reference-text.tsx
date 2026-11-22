@@ -47,8 +47,18 @@ function asReference(candidate: string) {
 }
 
 /** Splits a note body into ordinary text and verses that were inserted from Scripture. */
+// Line breaks other than "\n" (carriage returns, Unicode line/paragraph separators) still show as
+// new lines on screen, and pasted or app-edited text can carry invisible characters. Normalise
+// both before looking for verses so what looks like a verse is treated as one.
+const LINE_BREAKS = /\r\n|\r|\u2028|\u2029|\u0085/g;
+const INVISIBLES = /[\u200B-\u200F\u2060\uFEFF\u00AD]/g;
+
+export function normaliseNoteText(text: string) {
+  return text.replace(LINE_BREAKS, '\n').replace(INVISIBLES, '').replace(/\u00A0/g, ' ');
+}
+
 export function splitNoteIntoBlocks(text: string): Block[] {
-  const lines = text.split('\n');
+  const lines = normaliseNoteText(text).split('\n');
   const blocks: Block[] = [];
   let current: TextBlock | null = null;
 
@@ -93,11 +103,12 @@ export function splitNoteIntoBlocks(text: string): Block[] {
     // "Psalm 23:5" alone on a line, then the verse starting with its own number ("5 You prepare…").
     const bare = asReference(line);
     const firstVerse = bare?.match(/:\s*(\d{1,3})/)?.[1];
-    const nextLine = lines[index + 1] ?? '';
-    const nextNumber = nextLine.match(/^\s*(\d{1,3})\s+\S/)?.[1];
+    const verseStart = !(lines[index + 1] ?? '').trim() && (lines[index + 2] ?? '').trim() ? index + 2 : index + 1;
+    const nextLine = lines[verseStart] ?? '';
+    const nextNumber = nextLine.match(/^\s*(\d{1,3})\s*(?=[^\d\s:.,])/)?.[1];
     if (bare && firstVerse && nextNumber && Number(nextNumber) === Number(firstVerse)) {
       const verseLines: string[] = [];
-      let next = index + 1;
+      let next = verseStart;
       while (next < lines.length && lines[next].trim()) {
         verseLines.push(lines[next].trim());
         next += 1;
@@ -168,7 +179,7 @@ export function ScriptureReferenceText({
 
   // Plain notes keep exactly the inline rendering they had before.
   if (!blocks.some((block) => block.kind === 'verse')) {
-    return <TextLines lines={text.split('\n')} onReferenceClick={onReferenceClick} />;
+    return <TextLines lines={normaliseNoteText(text).split('\n')} onReferenceClick={onReferenceClick} />;
   }
 
   return (
@@ -178,7 +189,7 @@ export function ScriptureReferenceText({
           <span className="verse-callout note-verse" key={`verse-${blockIndex}`} role="figure" aria-label={`${block.reference}, ${block.translation}`}>
             <span className="verse-callout-text">
               {block.text.split('\n').map((line, lineIndex, all) => {
-                const numbered = line.match(/^\s*(\d{1,3})\s+(\S.*)$/);
+                const numbered = line.match(/^\s*(\d{1,3})\s*([^\d\s:.,].*)$/);
                 return (
                   <Fragment key={`${lineIndex}-${line}`}>
                     {numbered ? (
