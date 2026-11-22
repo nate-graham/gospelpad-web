@@ -1185,3 +1185,73 @@ input[type='radio'] {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Verses inside a note: set like the mockup, italic with a lapis rule and the reference beneath. */
+.note-flow {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.note-flow-text {
+  display: block;
+  white-space: pre-wrap;
+}
+
+.note-verse {
+  margin: 0.15rem 0 0.15rem 0.1rem;
+  white-space: normal;
+}
+
+.note-verse .verse-callout-text {
+  font-size: 0.94em;
+  color: color-mix(in srgb, var(--accent-strong) 35%, var(--ink-soft));
+}
+
+button.verse-callout-ref {
+  justify-self: start;
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.verse-callout-ref:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.note-page-header h1 {
+  font-size: clamp(2.4rem, 4.6vw, 3.4rem);
+}
+
+.note-page-subtitle {
+  margin: -0.2rem 0 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.note-status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.7rem;
+  border-radius: 999px;
+  background: var(--vermilion-soft);
+  color: var(--vermilion);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.note-status-pill.is-answered {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.reading-surface .scripture-ref-button,
+.note-flow-text .scripture-ref-button {
+  font-family: inherit;
+  font-weight: 500;
+}

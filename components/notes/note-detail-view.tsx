@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { format } from 'date-fns';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { createNote, duplicateNote, getNoteById, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteInput, type NoteRecord, type NoteUserShare } from '@/lib/notes';
@@ -349,20 +350,31 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
 
   return (
     <div className="page-container page-section">
-      <header className="page-header">
-        <div className="meta-row">
-          <span className="badge">{note.type ?? 'Note'}</span>
-          {note.speaker && supportsSpeakerField(note.type) ? <span>Speaker: {note.speaker}</span> : null}
-          {note.status ? <span>Status: {note.status}</span> : null}
-          {note.type === 'Dream' && note.is_lucid_dream ? <span>Lucid dream</span> : null}
-          {note.type === 'Dream' && !note.is_lucid_dream ? <span>Not lucid</span> : null}
-          {note.type === 'Dream' && note.dream_role ? <span>Role: {note.dream_role}</span> : null}
-          {note.shared ? <span>Shared</span> : null}
-        </div>
+      <header className="page-header note-page-header">
+        <span className="eyebrow" style={{ color: 'var(--vermilion)' }}>
+          {[
+            isBereaNote(note) ? 'Berea study' : note.type ?? 'Note',
+            format(new Date(note.created_at), 'EEEE · d MMMM yyyy'),
+            note.clips?.length ? `${note.clips.length} audio clip${note.clips.length === 1 ? '' : 's'}` : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        </span>
         <h1>{note.title?.trim() || 'Untitled'}</h1>
-        <p className="page-description">
-          Updated {formatNoteDate(note.updated_at)} • Created {formatNoteDate(note.created_at)}
-        </p>
+        {[note.speaker && supportsSpeakerField(note.type) ? note.speaker : null, detectedReferences[0]?.split(':')[0] ?? null].filter(Boolean).length ? (
+          <p className="note-page-subtitle">
+            {[note.speaker && supportsSpeakerField(note.type) ? note.speaker : null, detectedReferences[0]?.split(':')[0] ?? null]
+              .filter(Boolean)
+              .join(' · ')}
+          </p>
+        ) : null}
+        <div className="meta-row" style={{ fontSize: '0.84rem' }}>
+          {note.status ? <span className={`note-status-pill${note.status === 'Answered' ? ' is-answered' : ''}`}>{note.status}</span> : null}
+          {note.type === 'Dream' ? <span className="note-status-pill">{note.is_lucid_dream ? 'Lucid dream' : 'Not lucid'}</span> : null}
+          {note.type === 'Dream' && note.dream_role ? <span className="note-status-pill">{note.dream_role === 'involved' ? 'Involved' : 'Observing'}</span> : null}
+          {note.shared ? <span className="note-status-pill">Shared</span> : null}
+          <span>Updated {formatNoteDate(note.updated_at)}</span>
+        </div>
       </header>
 
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
@@ -387,10 +399,11 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
               className="note-body-content"
               style={{
                 whiteSpace: 'pre-wrap',
-                lineHeight: 1.92,
-                color: 'var(--text)',
-                fontSize: '1.03rem',
+                lineHeight: 1.8,
+                color: 'var(--ink-soft)',
+                fontSize: '1.16rem',
                 minHeight: '260px',
+                maxWidth: '68ch',
               }}
             >
               {(note.body ?? '').trim() ? (
