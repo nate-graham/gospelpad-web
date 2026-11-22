@@ -1164,3 +1164,24 @@ input[type='radio'] {
     animation: none !important;
   }
 }
+
+/* Note editor: one column unless there is something to show beside it. */
+.note-editor-layout.no-rail {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.note-editor-layout.no-rail .note-editor-main {
+  width: min(100%, 980px);
+}
+
+@media (min-width: 1024px) {
+  .note-editor-layout.has-rail {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  }
+}
+
+@media (max-width: 1023px) {
+  .note-editor-layout.has-rail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

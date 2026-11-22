@@ -269,6 +269,8 @@ export function NoteForm({
     }
   };
 
+  const hasEditorRail = Boolean(activeReference ?? orderedDetectedReferences[0]) || Boolean(note?.clips?.length);
+
   return (
     <div className="page-section">
       {loadingDraft ? (
@@ -284,9 +286,8 @@ export function NoteForm({
       {!loadingDraft ? (
         <form onSubmit={onSubmit} style={{ display: 'grid', gap: '1rem' }}>
           <div
-            className="note-editor-layout"
+            className={`note-editor-layout ${hasEditorRail ? 'has-rail' : 'no-rail'}`}
             style={{
-              gridTemplateColumns: 'minmax(0, 1fr) 360px',
               alignItems: 'start',
               gap: '2rem',
             }}
@@ -298,9 +299,10 @@ export function NoteForm({
                   padding: 0,
                   gap: 0,
                   background: 'var(--panel-raised)',
-                  borderRadius: '40px',
-                  overflow: 'hidden',
-                  minHeight: '76vh',
+                  borderRadius: 'var(--radius-xl)',
+                  border: '1px solid var(--line)',
+                  overflow: 'clip',
+                  minHeight: 'min(76vh, 760px)',
                   position: 'relative',
                   boxShadow: 'var(--shadow-card)',
                 }}
@@ -310,8 +312,9 @@ export function NoteForm({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    flexWrap: 'wrap',
                     gap: '1rem',
-                    padding: '1.6rem 2.4rem',
+                    padding: '1.2rem clamp(1.1rem, 4vw, 2.4rem)',
                     borderBottom: '1px solid var(--line)',
                   }}
                 >
@@ -549,6 +552,7 @@ export function NoteForm({
               </section>
             </div>
 
+            {hasEditorRail ? (
             <aside className="note-editor-rail" style={{ gap: '1.5rem', alignContent: 'start' }}>
               <ScriptureReferencePreview
                 onInsert={insertScripture}
@@ -565,6 +569,7 @@ export function NoteForm({
                 />
               ) : null}
             </aside>
+            ) : null}
           </div>
         </form>
       ) : null}
