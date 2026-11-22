@@ -80,6 +80,58 @@ export function splitNoteIntoBlocks(text: string): Block[] {
     current.lines.push(line);
   };
 
+  const isBlank = (at: number) => !(lines[at] ?? '').trim();
+  const numberLine = (value: string) => value.trim().match(/^(\d{1,3})$/)?.[1];
+  const numberedStart = (value: string) => value.match(/^\s*(\d{1,3})\s*(?=[^\d\s:.,])/)?.[1];
+
+  /** Verse numbers a reference covers, e.g. "Matthew 6:25-34" → 25..34. */
+  const verseRange = (reference: string) => {
+    const match = reference.match(/:\s*(\d{1,3})(?:\s*[-–]\s*(\d{1,3}))?\s*$/);
+    if (!match) return null;
+    const from = Number(match[1]);
+    return { from, to: match[2] ? Number(match[2]) : from };
+  };
+
+  /**
+   * Reads the verse text that starts at `from`: consecutive lines, joining a verse number that
+   * sits on its own line ("16" then "For God so loved…"), and carrying on across blank lines while
+   * the next line is a later verse inside the reference's range.
+   */
+  const collectVerse = (from: number, reference: string) => {
+    const range = verseRange(reference);
+    const verseLines: string[] = [];
+    let at = from;
+    let lastNumber = 0;
+
+    for (;;) {
+      while (at < lines.length && !isBlank(at)) {
+        const value = lines[at].trim();
+        const lone = numberLine(value);
+        if (lone && !isBlank(at + 1)) {
+          verseLines.push(`${lone} ${lines[at + 1].trim()}`);
+          lastNumber = Number(lone);
+          at += 2;
+          continue;
+        }
+        const numbered = numberedStart(value);
+        if (numbered) lastNumber = Number(numbered);
+        verseLines.push(value);
+        at += 1;
+      }
+
+      if (!range || range.to <= range.from) break;
+      let peek = at;
+      while (peek < lines.length && isBlank(peek)) peek += 1;
+      if (peek - at > 2 || peek >= lines.length) break;
+      const nextValue = lines[peek].trim();
+      const nextNumber = Number(numberedStart(nextValue) ?? numberLine(nextValue) ?? NaN);
+      if (!(nextNumber > lastNumber && nextNumber <= range.to)) break;
+      at = peek;
+    }
+
+    return { text: verseLines.join('\n'), next: at };
+  };
+
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index];
 
@@ -94,39 +146,48 @@ export function splitNoteIntoBlocks(text: string): Block[] {
     }
 
     const heading = line.match(headingVersePattern);
-    if (heading && (lines[index + 1] ?? '').trim()) {
+    if (heading && !isBlank(index + 1)) {
       const reference = asReference(heading[1]);
       if (reference) {
-        const verseLines: string[] = [];
-        let next = index + 1;
-        while (next < lines.length && lines[next].trim()) {
-          verseLines.push(lines[next].trim());
-          next += 1;
-        }
-        blocks.push({ kind: 'verse', reference, translation: shortTranslation(heading[2]), text: verseLines.join('\n') });
+        const verse = collectVerse(index + 1, reference);
+        blocks.push({ kind: 'verse', reference, translation: shortTranslation(heading[2]), text: verse.text });
         current = null;
-        index = next - 1;
+        index = verse.next - 1;
         continue;
       }
     }
 
-    // "Psalm 23:5" alone on a line, then the verse starting with its own number ("5 You prepare…").
+    // A reference alone on a line ("Psalm 23:5" or "Rev 13:8"), optionally followed by the
+    // translation on its own line ("(King James Version)"), then the verse starting with its own
+    // number ("5 You prepare…", or "16" on one line and the text on the next).
     const bare = asReference(line);
-    const firstVerse = bare?.match(/:\s*(\d{1,3})/)?.[1];
-    const verseStart = !(lines[index + 1] ?? '').trim() && (lines[index + 2] ?? '').trim() ? index + 2 : index + 1;
-    const nextLine = lines[verseStart] ?? '';
-    const nextNumber = nextLine.match(/^\s*(\d{1,3})\s*(?=[^\d\s:.,])/)?.[1];
-    if (bare && firstVerse && nextNumber && Number(nextNumber) === Number(firstVerse)) {
-      const verseLines: string[] = [];
-      let next = verseStart;
-      while (next < lines.length && lines[next].trim()) {
-        verseLines.push(lines[next].trim());
-        next += 1;
+    const range = bare ? verseRange(bare) : null;
+    if (bare && range) {
+      let at = isBlank(index + 1) && !isBlank(index + 2) ? index + 2 : index + 1;
+
+      // "Matt 6:33" followed by "Matthew 6:33 [KJV] …": the inserted verse already names itself.
+      const inlineNext = (lines[at] ?? '').match(inlineVersePattern);
+      if (inlineNext && asReference(inlineNext[1])) {
+        current = null;
+        continue;
       }
-      blocks.push({ kind: 'verse', reference: bare, translation: '', text: verseLines.join('\n') });
-      current = null;
-      index = next - 1;
-      continue;
+
+      let translation = '';
+      const translationLine = (lines[at] ?? '').trim().match(/^\(([^()]{1,48})\)$/);
+      if (translationLine) {
+        translation = shortTranslation(translationLine[1]);
+        at += 1;
+      }
+
+      const startValue = (lines[at] ?? '').trim();
+      const startNumber = numberedStart(startValue) ?? (numberLine(startValue) && !isBlank(at + 1) ? numberLine(startValue) : undefined);
+      if (startNumber && Number(startNumber) === range.from) {
+        const verse = collectVerse(at, bare);
+        blocks.push({ kind: 'verse', reference: bare, translation, text: verse.text });
+        current = null;
+        index = verse.next - 1;
+        continue;
+      }
     }
 
     pushText(line);
