@@ -7,11 +7,36 @@ type TextBlock = { kind: 'text'; lines: string[] };
 type VerseBlock = { kind: 'verse'; reference: string; translation: string; text: string };
 type Block = TextBlock | VerseBlock;
 
-const TRANSLATION = '([A-Za-z][A-Za-z0-9-]{1,11})';
+const TRANSLATION = '([A-Za-z][A-Za-z0-9 .()\'-]{0,47}?)';
 // "John 14:27 [KJV] Peace I leave with you…" (inserted from Scripture search or a preview)
 const inlineVersePattern = new RegExp(`^(.+?)\\s+\\[${TRANSLATION}\\]\\s+(.+)$`);
-// "John 14:27 (KJV)" on its own line, verse text on the lines after it
-const headingVersePattern = new RegExp(`^(.+?)\\s+\\(${TRANSLATION}\\)\\s*$`);
+// "John 14:27 (KJV)" or "Psalm 103:1-2 (WORLD ENGLISH BIBLE)" on its own line, verse text below
+// (the format the phone app and Copy use). The translation may also be empty: "John 3:16 ()".
+const headingVersePattern = /^(.+?)\s+\(([^()]{0,48})\)\s*:?\s*$/;
+
+const TRANSLATION_ABBREVIATIONS: Record<string, string> = {
+  'KING JAMES VERSION': 'KJV',
+  'KING JAMES BIBLE': 'KJV',
+  'AUTHORIZED KING JAMES VERSION': 'KJV',
+  'WORLD ENGLISH BIBLE': 'WEB',
+  'OPEN ENGLISH BIBLE': 'OEB',
+  'OPEN ENGLISH BIBLE (US)': 'OEB',
+  'OPEN ENGLISH BIBLE, US EDITION': 'OEB',
+  'OEB-US': 'OEB',
+  'NEW INTERNATIONAL VERSION': 'NIV',
+  'ENGLISH STANDARD VERSION': 'ESV',
+  'NEW LIVING TRANSLATION': 'NLT',
+  'NEW KING JAMES VERSION': 'NKJV',
+  'AMERICAN STANDARD VERSION': 'ASV',
+  'BIBLE IN BASIC ENGLISH': 'BBE',
+};
+
+function shortTranslation(value: string) {
+  const cleaned = value.trim().replace(/\s+/g, ' ');
+  if (!cleaned) return '';
+  const upper = cleaned.toUpperCase();
+  return TRANSLATION_ABBREVIATIONS[upper] ?? (upper.length <= 8 ? upper : cleaned);
+}
 
 function asReference(candidate: string) {
   const trimmed = candidate.trim();
@@ -42,7 +67,7 @@ export function splitNoteIntoBlocks(text: string): Block[] {
     if (inline) {
       const reference = asReference(inline[1]);
       if (reference) {
-        blocks.push({ kind: 'verse', reference, translation: inline[2].toUpperCase(), text: inline[3].trim() });
+        blocks.push({ kind: 'verse', reference, translation: shortTranslation(inline[2]), text: inline[3].trim() });
         current = null;
         continue;
       }
@@ -58,7 +83,7 @@ export function splitNoteIntoBlocks(text: string): Block[] {
           verseLines.push(lines[next].trim());
           next += 1;
         }
-        blocks.push({ kind: 'verse', reference, translation: heading[2].toUpperCase(), text: verseLines.join('\n') });
+        blocks.push({ kind: 'verse', reference, translation: shortTranslation(heading[2]), text: verseLines.join('\n') });
         current = null;
         index = next - 1;
         continue;
@@ -133,9 +158,27 @@ export function ScriptureReferenceText({
       {blocks.map((block, blockIndex) =>
         block.kind === 'verse' ? (
           <span className="verse-callout note-verse" key={`verse-${blockIndex}`} role="figure" aria-label={`${block.reference}, ${block.translation}`}>
-            <span className="verse-callout-text">{block.text}</span>
+            <span className="verse-callout-text">
+              {block.text.split('\n').map((line, lineIndex, all) => {
+                const numbered = line.match(/^\s*(\d{1,3})\s+(\S.*)$/);
+                return (
+                  <Fragment key={`${lineIndex}-${line}`}>
+                    {numbered ? (
+                      <>
+                        <sup className="verse-num">{numbered[1]}</sup>
+                        {numbered[2]}
+                      </>
+                    ) : (
+                      line
+                    )}
+                    {lineIndex < all.length - 1 ? <br /> : null}
+                  </Fragment>
+                );
+              })}
+            </span>
             <button className="verse-callout-ref" onClick={() => onReferenceClick(block.reference)} type="button">
-              {formatVerseReference(block.reference)} · {block.translation}
+              {formatVerseReference(block.reference)}
+              {block.translation ? ` · ${block.translation}` : ''}
             </button>
           </span>
         ) : (

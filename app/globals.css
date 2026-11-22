@@ -1255,3 +1255,14 @@ button.verse-callout-ref:hover {
   font-family: inherit;
   font-weight: 500;
 }
+
+.verse-num {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--accent);
+  margin-right: 0.3em;
+  vertical-align: 0.45em;
+  line-height: 0;
+}
