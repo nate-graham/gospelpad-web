@@ -18,14 +18,15 @@ import { getMyEntitlements, type EntitlementSummary } from '@/lib/entitlements';
 import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useDisplayPreferences } from '@/components/providers/display-preferences-provider';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
+import { BereaSeatsSection } from '@/components/account/berea-seats-section';
 
 type NoteType = (typeof NOTE_TYPES)[number];
 
 const PLAN_COPY: Record<string, { name: string; copy: string }> = {
   free: { name: 'Free', copy: 'Notes, sharing, lookup by reference and groups up to 5. Premium adds Berea study, dictation, transcription and phrase search.' },
   premium: { name: 'Premium', copy: 'Berea study, dictation, transcription, phrase search and groups up to 25.' },
-  team: { name: 'Team', copy: 'Everything in Premium, with groups up to 100 for small ministry teams.' },
-  ministry: { name: 'Ministry', copy: 'Everything in Team, with groups up to 300 for churches and wider communities.' },
+  team: { name: 'Team', copy: 'Everything in Premium, groups up to 100, and Berea seats to give others.' },
+  ministry: { name: 'Ministry', copy: 'Everything in Team, groups up to 300, and Berea seats to give others.' },
 };
 
 const APPEARANCES = [
@@ -297,6 +298,8 @@ export function AccountView({ isAdmin = false }: { isAdmin?: boolean }) {
               <span>Confirm before moving notes to recently deleted</span>
             </label>
           </section>
+
+          <BereaSeatsSection />
 
           <section className="account-section" id="recently-deleted">
             <span className="rail-heading account-heading-row">

@@ -7,6 +7,8 @@ export type EntitlementSummary = {
   paidBibleTranslationsEnabled: boolean;
   transcriptionEnabled: boolean;
   groupMemberLimit: number;
+  /** Berea: on a paid plan, or holding a Berea seat from a Team or Ministry owner. */
+  bereaEnabled: boolean;
 };
 
 export async function getMyEntitlements(): Promise<EntitlementSummary> {
@@ -31,5 +33,8 @@ export async function getMyEntitlements(): Promise<EntitlementSummary> {
     paidBibleTranslationsEnabled: Boolean(row?.paid_bible_translations_enabled),
     transcriptionEnabled: Boolean(row?.transcription_enabled),
     groupMemberLimit: Number(row?.group_member_limit ?? 5),
+    // Older databases don't return berea_enabled yet; there, any paid plan has Berea.
+    bereaEnabled:
+      typeof row?.berea_enabled === 'boolean' ? row.berea_enabled : Boolean(row?.plan_code && row.plan_code !== 'free'),
   };
 }

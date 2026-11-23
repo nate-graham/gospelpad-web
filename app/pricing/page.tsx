@@ -50,7 +50,7 @@ const plans: Plan[] = [
     monthly: '£29',
     yearly: '£290',
     yearlyNote: 'about £24.17 a month',
-    features: ['Everything in Premium', 'Groups up to 100 members', 'Built for small ministry teams'],
+    features: ['Everything in Premium', 'Groups up to 100 members', 'Give Berea to others: £7 a month per seat'],
     accent: 'lapis',
   },
   {
@@ -60,7 +60,7 @@ const plans: Plan[] = [
     monthly: '£79',
     yearly: '£790',
     yearlyNote: 'about £65.83 a month',
-    features: ['Everything in Team', 'Groups up to 300 members', 'For churches and wider communities'],
+    features: ['Everything in Team', 'Groups up to 300 members', 'Give Berea to your church: £7 a month per seat'],
     accent: 'vermilion',
   },
 ];
@@ -173,7 +173,7 @@ export default function PricingPage() {
               </span>
               <ul>
                 {plan.features.map((feature) => (
-                  <li key={feature}>{feature}</li>
+                  <li key={feature}>{interval === 'year' ? feature.replace('£7 a month per seat', '£70 a year per seat') : feature}</li>
                 ))}
               </ul>
               {paid ? (

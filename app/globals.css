@@ -3736,3 +3736,126 @@ button.verse-callout-ref:hover {
   flex-wrap: wrap;
   gap: 0.6rem;
 }
+
+/* ── Berea seats ───────────────────────────────────────────────────── */
+.seat-meter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.seat-meter strong {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+.seat-meter span {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.seat-stepper {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1rem;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.seat-stepper-controls {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.seat-stepper-controls button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  background: none;
+  font-size: 1.1rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.seat-stepper-controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.seat-stepper-controls output {
+  min-width: 2.6rem;
+  text-align: center;
+  font-weight: 700;
+}
+
+.seat-stepper .button {
+  min-height: 38px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
+.seat-confirm p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.seat-give {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 460px;
+}
+
+.seat-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel-raised);
+}
+
+.seat-results li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.seat-results li:last-child {
+  border-bottom: 0;
+}
+
+.seat-results .button {
+  min-height: 34px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8rem;
+}
+
+.seat-holder .member-avatar {
+  background: var(--accent);
+}
+
+.seat-held {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.composer-hint.is-error {
+  color: var(--vermilion);
+}
+
+.seat-confirm {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}

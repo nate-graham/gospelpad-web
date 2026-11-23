@@ -18,7 +18,7 @@ export function BereaGate({ children, noteId }: { children: ReactNode; noteId?: 
   useEffect(() => {
     let active = true;
     getMyEntitlements()
-      .then((entitlements) => active && setState(entitlements.planCode && entitlements.planCode !== 'free' ? 'paid' : 'free'))
+      .then((entitlements) => active && setState(entitlements.bereaEnabled ? 'paid' : 'free'))
       // If the plan can't be checked, don't lock a paying member out.
       .catch(() => active && setState('paid'));
     return () => {
@@ -52,11 +52,12 @@ export function BereaGate({ children, noteId }: { children: ReactNode; noteId?: 
       </header>
 
       <section className="berea-gate-card">
-        <span className="plan-option-flag">Premium, Team and Ministry</span>
+        <span className="plan-option-flag">Premium, Team and Ministry · or a Berea seat</span>
         <h2>Berea is part of the paid plans.</h2>
         <p>
           Take any verse from your notes and study it in three stages, with the passage beside you and related Scripture to weigh
-          it against. Each study is saved in your notebook.
+          it against. Each study is saved in your notebook. If your church or team is on a Team or Ministry plan, they can
+          also give you a Berea seat.
         </p>
         <ol className="berea-gate-stages">
           {STAGES.map((stage) => (
