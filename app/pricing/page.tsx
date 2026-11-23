@@ -29,7 +29,7 @@ const plans: Plan[] = [
     monthly: '£0',
     yearly: '£0',
     yearlyNote: '',
-    features: ['Personal notes and sharing', 'Scripture lookup by reference', 'Berea inductive study', 'Groups up to 5 members', 'Web and mobile access'],
+    features: ['Personal notes and sharing', 'Scripture lookup by reference', 'Groups up to 5 members', 'Web and mobile access'],
     accent: 'ink',
   },
   {
@@ -39,7 +39,7 @@ const plans: Plan[] = [
     monthly: '£12.99',
     yearly: '£129',
     yearlyNote: 'about £10.75 a month',
-    features: ['Dictation and transcription', 'Scripture search by phrase or keyword', 'Paid Bible translations (coming soon)', 'Groups up to 25 members'],
+    features: ['Berea inductive study', 'Dictation and transcription', 'Scripture search by phrase or keyword', 'Paid Bible translations (coming soon)', 'Groups up to 25 members'],
     accent: 'gold',
     featured: true,
   },
@@ -127,7 +127,7 @@ export default function PricingPage() {
           <h1>
             Room for every <em>sermon.</em>
           </h1>
-          <p>Free keeps your notes open. Paid plans add dictation, transcription, phrase search and larger groups.</p>
+          <p>Free keeps your notes open. Paid plans add Berea study, dictation, transcription, phrase search and larger groups.</p>
         </div>
         <div className="segmented plans-interval" role="group" aria-label="Billing">
           <button aria-pressed={interval === 'month'} onClick={() => setBillingInterval('month')} type="button">

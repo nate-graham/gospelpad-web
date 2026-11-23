@@ -3622,3 +3622,117 @@ button.verse-callout-ref:hover {
 .plan-option ul {
   align-content: start;
 }
+
+/* ── Berea for free accounts ───────────────────────────────────────── */
+.berea-gate {
+  gap: 1.8rem;
+  max-width: 820px;
+}
+
+.berea-gate-header {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.berea-gate-header h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  line-height: 1.04;
+}
+
+.berea-gate-rule {
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  margin: 0 0.6rem;
+  vertical-align: middle;
+  background: var(--muted);
+}
+
+.berea-gate-quote {
+  margin: 0;
+  max-width: 52ch;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--accent);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.berea-gate-quote span {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.berea-gate-card {
+  display: grid;
+  gap: 0.9rem;
+  padding: clamp(1.3rem, 3vw, 2rem);
+  border-radius: 22px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.berea-gate-card .plan-option-flag {
+  margin: 0;
+  color: var(--accent-strong);
+}
+
+.berea-gate-card h2 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+
+.berea-gate-card p {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.berea-gate-stages {
+  list-style: none;
+  margin: 0.3rem 0;
+  padding: 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.berea-gate-stages li {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.berea-gate-stages strong {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.berea-gate-stages small {
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+
+.berea-gate-numeral {
+  min-width: 2.2rem;
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--vermilion);
+}
+
+.berea-gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}

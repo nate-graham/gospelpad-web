@@ -46,7 +46,7 @@ export function MarketingHero({ actions }: { actions: ReactNode }) {
           </article>
           <article>
             <span className="eyebrow" style={{ color: 'var(--accent)' }}>
-              Berea · New
+              Berea · Premium
             </span>
             <strong>Examine a passage the way the Bereans did: observe, interpret, apply.</strong>
           </article>
