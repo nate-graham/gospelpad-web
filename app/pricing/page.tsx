@@ -1,68 +1,67 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createCheckoutSession } from '@/lib/billing';
+import { getMyEntitlements } from '@/lib/entitlements';
 
 type PaidPlanCode = 'premium' | 'team' | 'ministry';
 type BillingInterval = 'month' | 'year';
 
-const plans: Array<{
+type Plan = {
   name: string;
-  planCode?: PaidPlanCode;
-  price: string;
-  cadence: string;
+  code: 'free' | PaidPlanCode;
+  tagline: string;
+  monthly: string;
+  yearly: string;
+  yearlyNote: string;
   features: string[];
+  accent: 'ink' | 'gold' | 'lapis' | 'vermilion';
   featured?: boolean;
-}> = [
+};
+
+const plans: Plan[] = [
   {
     name: 'Free',
-    price: '£0',
-    cadence: '',
-    features: [
-      'Personal notes and sharing',
-      'Scripture lookup by reference',
-      'Groups up to 5 members',
-      'Web and mobile access',
-    ],
+    code: 'free',
+    tagline: 'For your own notes',
+    monthly: '£0',
+    yearly: '£0',
+    yearlyNote: '',
+    features: ['Personal notes and sharing', 'Scripture lookup by reference', 'Berea inductive study', 'Groups up to 5 members', 'Web and mobile access'],
+    accent: 'ink',
   },
   {
     name: 'Premium',
-    planCode: 'premium',
-    price: '£12.99',
-    cadence: '/month or £129/year',
-    features: [
-      'Dictation and transcription',
-      'Scripture search by phrase or keyword',
-      'Paid Bible translations (coming soon)',
-      'Groups up to 25 members',
-    ],
+    code: 'premium',
+    tagline: 'For a deeper practice',
+    monthly: '£12.99',
+    yearly: '£129',
+    yearlyNote: 'about £10.75 a month',
+    features: ['Dictation and transcription', 'Scripture search by phrase or keyword', 'Paid Bible translations (coming soon)', 'Groups up to 25 members'],
+    accent: 'gold',
     featured: true,
   },
   {
     name: 'Team',
-    planCode: 'team',
-    price: '£29',
-    cadence: '/month or £290/year',
-    features: [
-      'Everything in Premium',
-      'Groups up to 100 members',
-      'More room for shared team work',
-      'Built for small ministry teams',
-    ],
+    code: 'team',
+    tagline: 'For small ministry teams',
+    monthly: '£29',
+    yearly: '£290',
+    yearlyNote: 'about £24.17 a month',
+    features: ['Everything in Premium', 'Groups up to 100 members', 'Built for small ministry teams'],
+    accent: 'lapis',
   },
   {
     name: 'Ministry',
-    planCode: 'ministry',
-    price: '£79',
-    cadence: '/month or £790/year',
-    features: [
-      'Everything in Team',
-      'Groups up to 300 members',
-      'Larger church and ministry support',
-      'Best fit for wider communities',
-    ],
+    code: 'ministry',
+    tagline: 'For churches and communities',
+    monthly: '£79',
+    yearly: '£790',
+    yearlyNote: 'about £65.83 a month',
+    features: ['Everything in Team', 'Groups up to 300 members', 'For churches and wider communities'],
+    accent: 'vermilion',
   },
 ];
 
@@ -70,6 +69,23 @@ export default function PricingPage() {
   const searchParams = useSearchParams();
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [interval, setBillingInterval] = useState<BillingInterval>('month');
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getMyEntitlements()
+      .then((entitlements) => {
+        if (!active) return;
+        setSignedIn(true);
+        setCurrentPlan(entitlements.planCode);
+      })
+      .catch(() => active && setSignedIn(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const checkoutMessage = useMemo(() => {
     const status = searchParams.get('checkout');
@@ -96,213 +112,94 @@ export default function PricingPage() {
   };
 
   return (
-    <main className="landing-page" style={{ padding: '1.25rem', minHeight: '100vh', display: 'grid' }}>
-      <section className="shell-page sanctuary-pricing">
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <Link
-            aria-label="Close plans"
-            className="button button-secondary"
-            href="/notes"
-            style={{ minWidth: '44px', minHeight: '44px', padding: '0.65rem 0.95rem', fontSize: '1.1rem' }}
-          >
-            ×
-          </Link>
+    <main className="plans-page">
+      <div className="plans-topbar">
+        <span className="plans-brand">
+          GospelPad <span aria-hidden="true" /> Plans
+        </span>
+        <Link aria-label="Close plans" className="plans-close" href={signedIn === false ? '/' : '/notes'}>
+          ×
+        </Link>
+      </div>
+
+      <header className="plans-header">
+        <div>
+          <h1>
+            Room for every <em>sermon.</em>
+          </h1>
+          <p>Free keeps your notes open. Paid plans add dictation, transcription, phrase search and larger groups.</p>
         </div>
-
-        <div className="sanctuary-pricing-layout">
-          <header className="sanctuary-pricing-copy">
-            <span className="badge">Plans</span>
-            <p className="sanctuary-pricing-kicker">Choose how deeply you want GospelPad to carry your practice.</p>
-            <h1 className="sanctuary-pricing-title">Keep the core free. Unlock deeper tools when you are ready.</h1>
-            <p className="sanctuary-pricing-description">
-              Every plan begins with the same note-centered foundation. Paid plans open the fuller scripture, dictation, transcription, and group experience without changing the calm of the product itself.
-            </p>
-
-            <div className="sanctuary-pricing-story">
-              <div className="sanctuary-pricing-story-line">
-                <span className="eyebrow">Free</span>
-                <strong>Write, read, and return to your notes with scripture by reference.</strong>
-              </div>
-              <div className="sanctuary-pricing-story-line">
-                <span className="eyebrow">Premium</span>
-                <strong>Add phrase search, voice capture, and a wider writing rhythm.</strong>
-              </div>
-              <div className="sanctuary-pricing-story-line">
-                <span className="eyebrow">Team & Ministry</span>
-                <strong>Extend the same sanctuary into larger shared spaces.</strong>
-              </div>
-            </div>
-          </header>
-
-          <section className="sanctuary-plan-stack">
-            {checkoutMessage ? (
-              <section className="empty-state status-message" role="status">
-                <strong>Checkout update</strong>
-                <span style={{ color: 'var(--muted)' }}>{checkoutMessage}</span>
-              </section>
-            ) : null}
-
-            {error ? (
-              <section className="error-state status-message" role="alert">
-                <strong>Checkout could not start</strong>
-                <span style={{ color: 'var(--muted)' }}>{error}</span>
-              </section>
-            ) : null}
-
-            <section className="sanctuary-plan-stack-list">
-              {plans.map((plan) => (
-                <article className={`sanctuary-plan${plan.featured ? ' is-featured' : ''}`} key={plan.name}>
-                  <div className="sanctuary-plan-header">
-                    <div className="note-hero-block" style={{ gap: '0.35rem' }}>
-                      <span className="eyebrow">{plan.name}</span>
-                      <strong style={{ fontSize: '2rem' }}>{plan.price}</strong>
-                      {plan.cadence ? <span style={{ color: 'var(--muted)' }}>{plan.cadence}</span> : null}
-                    </div>
-                  </div>
-
-                  <div className="feature-list">
-                    {plan.features.map((feature) => (
-                      <span key={feature} className="feature-list-item">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div className="cta-row">
-                    {plan.planCode ? (
-                      <>
-                        <button
-                          className={plan.featured ? 'button button-primary' : 'button button-secondary'}
-                          disabled={Boolean(loadingKey)}
-                          onClick={() => void startCheckout(plan.planCode!, 'month')}
-                          type="button"
-                        >
-                          {loadingKey === `${plan.planCode}-month` ? 'Starting…' : 'Choose monthly'}
-                        </button>
-                        <button
-                          className="button button-secondary"
-                          disabled={Boolean(loadingKey)}
-                          onClick={() => void startCheckout(plan.planCode!, 'year')}
-                          type="button"
-                        >
-                          {loadingKey === `${plan.planCode}-year` ? 'Starting…' : 'Choose yearly'}
-                        </button>
-                      </>
-                    ) : (
-                      <Link className="button button-secondary" href="/notes">
-                        Open app
-                      </Link>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </section>
-          </section>
+        <div className="segmented plans-interval" role="group" aria-label="Billing">
+          <button aria-pressed={interval === 'month'} onClick={() => setBillingInterval('month')} type="button">
+            Monthly
+          </button>
+          <button aria-pressed={interval === 'year'} onClick={() => setBillingInterval('year')} type="button">
+            Yearly <em>2 months free</em>
+          </button>
         </div>
+      </header>
 
-        <div className="cta-row">
-          <Link className="button button-secondary" href="/notes">
-            Back to notes
-          </Link>
-          <Link className="button button-primary" href="/auth/sign-in">
-            Sign in
-          </Link>
-        </div>
+      {checkoutMessage ? (
+        <section className="empty-state status-message" role="status">
+          <strong>Checkout update</strong>
+          <span style={{ color: 'var(--muted)' }}>{checkoutMessage}</span>
+        </section>
+      ) : null}
+
+      {error ? (
+        <section className="error-state status-message" role="alert">
+          <strong>Checkout could not start</strong>
+          <span style={{ color: 'var(--muted)' }}>{error}</span>
+        </section>
+      ) : null}
+
+      <section className="plans-grid">
+        {plans.map((plan) => {
+          const isCurrent = signedIn && (currentPlan ?? 'free') === plan.code;
+          const paid = plan.code !== 'free';
+          return (
+            <article className={`plan-option is-${plan.accent}${plan.featured ? ' is-featured' : ''}`} key={plan.name}>
+              <div className="plan-option-head">
+                <span className="plan-option-name">{plan.name}</span>
+                {plan.featured ? <span className="plan-option-flag">Most chosen</span> : null}
+                {isCurrent ? <span className="plan-option-flag is-current">Your plan</span> : null}
+              </div>
+              <div className="plan-option-price">
+                <strong>{interval === 'month' ? plan.monthly : plan.yearly}</strong>
+                {paid ? <span>/{interval === 'month' ? 'month' : 'year'}</span> : null}
+              </div>
+              <span className="plan-option-sub">
+                {paid ? (interval === 'month' ? `or ${plan.yearly} a year` : plan.yearlyNote) : plan.tagline}
+              </span>
+              <ul>
+                {plan.features.map((feature) => (
+                  <li key={feature}>{feature}</li>
+                ))}
+              </ul>
+              {paid ? (
+                <button
+                  className="button plan-option-button"
+                  disabled={Boolean(loadingKey) || Boolean(isCurrent)}
+                  onClick={() => (signedIn === false ? window.location.assign('/auth/sign-in?next=/pricing') : void startCheckout(plan.code as PaidPlanCode, interval))}
+                  type="button"
+                >
+                  {loadingKey === `${plan.code}-${interval}` ? 'Starting…' : isCurrent ? 'Your current plan' : `Choose ${plan.name}`}
+                </button>
+              ) : isCurrent ? (
+                <span className="button plan-option-button is-quiet">Your current plan</span>
+              ) : (
+                <Link className="button plan-option-button is-quiet" href={signedIn ? '/notes' : '/auth/sign-up'}>
+                  {signedIn ? 'Open GospelPad' : 'Start free'}
+                </Link>
+              )}
+            </article>
+          );
+        })}
       </section>
 
-      <style jsx>{`
-        .sanctuary-pricing {
-          width: min(100%, 1460px);
-          margin: 0 auto;
-          display: grid;
-          gap: 1.75rem;
-          padding: clamp(1.35rem, 4vw, 3rem);
-        }
-
-        .sanctuary-pricing-layout {
-          display: grid;
-          gap: clamp(1.6rem, 3vw, 3rem);
-          align-items: start;
-        }
-
-        .sanctuary-pricing-copy {
-          display: grid;
-          gap: 1rem;
-          min-width: 0;
-        }
-
-        .sanctuary-pricing-kicker {
-          margin: 0;
-          color: var(--muted-strong);
-          line-height: 1.7;
-        }
-
-        .sanctuary-pricing-title {
-          margin: 0;
-          font-size: clamp(2.6rem, 6vw, 5.2rem);
-          line-height: 1.04;
-          letter-spacing: -0.015em;
-          max-width: 11ch;
-        }
-
-        .sanctuary-pricing-description {
-          margin: 0;
-          color: var(--muted);
-          line-height: 1.85;
-          max-width: 58ch;
-        }
-
-        .sanctuary-pricing-story {
-          display: grid;
-          gap: 0.95rem;
-        }
-
-        .sanctuary-pricing-story-line {
-          display: grid;
-          gap: 0.35rem;
-          padding: 0.8rem 0;
-          border-top: 1px solid var(--line);
-        }
-
-        .sanctuary-pricing-story-line strong {
-          line-height: 1.6;
-          font-weight: 600;
-        }
-
-        .sanctuary-plan-stack {
-          display: grid;
-          gap: 1rem;
-          min-width: 0;
-        }
-
-        .sanctuary-plan-stack-list {
-          display: grid;
-          gap: 0.4rem;
-        }
-
-        .sanctuary-plan {
-          display: grid;
-          gap: 1rem;
-          padding: 1.2rem 0;
-          border-top: 1px solid var(--line);
-        }
-
-        .sanctuary-plan :global(strong) {
-          font-family: var(--font-serif);
-          font-weight: 500;
-        }
-
-        .sanctuary-plan.is-featured {
-          padding-left: 0.9rem;
-          border-left: 2px solid var(--accent);
-        }
-
-        @media (min-width: 1040px) {
-          .sanctuary-pricing-layout {
-            grid-template-columns: minmax(0, 0.95fr) minmax(340px, 0.95fr);
-          }
-        }
-      `}</style>
+      <p className="plans-footnote">
+        Payments are handled securely by Stripe. Your plan updates as soon as Stripe confirms it, and you can cancel any time.
+      </p>
     </main>
   );
 }
