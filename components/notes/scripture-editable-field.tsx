@@ -2,6 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { splitTextByScriptureReferences } from '@/lib/scripture-references';
+import { getVerseLineRanges } from '@/components/notes/scripture-reference-text';
 
 type ScriptureEditableFieldProps = {
   value: string;
@@ -19,28 +20,168 @@ function escapeHtml(value: string) {
     .replaceAll("'", '&#39;');
 }
 
+function lineHtml(line: string) {
+  return splitTextByScriptureReferences(line)
+    .map((segment) => {
+      if (segment.type === 'reference') {
+        return `<span class="scripture-ref-button" data-reference="${escapeHtml(segment.value)}" role="link">${escapeHtml(segment.value)}</span>`;
+      }
+
+      return escapeHtml(segment.value);
+    })
+    .join('');
+}
+
+/** Identifies where verses sit, so the editor only re-renders when that changes. */
+function verseSignature(value: string) {
+  return JSON.stringify(getVerseLineRanges(value));
+}
+
+/**
+ * Builds the editor's HTML: one line per "\n", with verses inserted from Scripture wrapped so they
+ * show as they will once saved (indented, italic, a lapis rule on the left). The wrapper adds no
+ * text, so the plain text read back out is unchanged.
+ */
 function buildEditorHtml(value: string) {
   const lines = value.split('\n');
+  const ranges = getVerseLineRanges(value);
+  const parts: string[] = [];
+  let index = 0;
 
-  return lines
-    .map((line) =>
-      splitTextByScriptureReferences(line)
-        .map((segment) => {
-          if (segment.type === 'reference') {
-            return `<span class="scripture-ref-button" data-reference="${escapeHtml(segment.value)}" role="link">${escapeHtml(segment.value)}</span>`;
-          }
+  while (index < lines.length) {
+    const range = ranges.find((candidate) => candidate.start === index);
+    if (range && range.end > range.start) {
+      const inner = lines
+        .slice(range.start, range.end)
+        .map((line, offset) =>
+          offset < range.head && line.trim()
+            ? `<span class="editor-verse-ref">${lineHtml(line)}</span>`
+            : lineHtml(line)
+        )
+        .join('<br>');
+      parts.push(`<span class="editor-verse">${inner}</span>`);
+      index = range.end;
+      continue;
+    }
+    parts.push(lineHtml(lines[index]));
+    index += 1;
+  }
 
-          return escapeHtml(segment.value);
-        })
-        .join('')
-    )
-    .join('<br>');
+  return parts.join('<br>') + (value.endsWith('\n') ? '<br>' : '');
+}
+
+/** Enter at the very end of a verse starts the next line outside it, not inside the verse. */
+function leaveVerseAtEnd(root: HTMLElement) {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) return;
+  const anchor = selection.anchorNode;
+  const verse = (anchor instanceof HTMLElement ? anchor : anchor?.parentElement)?.closest('.editor-verse');
+  if (!verse || !root.contains(verse)) return;
+  const after = document.createRange();
+  after.selectNodeContents(verse);
+  after.setStart(selection.getRangeAt(0).endContainer, selection.getRangeAt(0).endOffset);
+  if (after.toString().length > 0) return;
+  const outside = document.createRange();
+  outside.setStartAfter(verse);
+  outside.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(outside);
+}
+
+/** Caret position as an offset into the plain text, so it survives a re-render. */
+function getCaretOffset(root: HTMLElement) {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || !root.contains(selection.anchorNode)) return null;
+  const range = selection.getRangeAt(0).cloneRange();
+  range.selectNodeContents(root);
+  range.setEnd(selection.getRangeAt(0).endContainer, selection.getRangeAt(0).endOffset);
+  const holder = document.createElement('div');
+  holder.appendChild(range.cloneContents());
+  return readPlainTextFromEditor(holder).length;
+}
+
+function setCaretOffset(root: HTMLElement, offset: number) {
+  const selection = window.getSelection();
+  if (!selection) return;
+  let remaining = offset;
+  const range = document.createRange();
+
+  const place = (node: Node): boolean => {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const length = node.textContent?.length ?? 0;
+      if (remaining <= length) {
+        range.setStart(node, remaining);
+        return true;
+      }
+      remaining -= length;
+      return false;
+    }
+    if (!(node instanceof HTMLElement)) return false;
+    if (node.tagName === 'BR') {
+      if (remaining === 0) {
+        range.setStartBefore(node);
+        return true;
+      }
+      remaining -= 1;
+      if (remaining === 0) {
+        range.setStartAfter(node);
+        return true;
+      }
+      return false;
+    }
+    if (node.dataset.reference) {
+      const length = node.dataset.reference.length;
+      if (remaining <= length) {
+        if (remaining === length) range.setStartAfter(node);
+        else if (node.firstChild) range.setStart(node.firstChild, remaining);
+        else range.setStartAfter(node);
+        return true;
+      }
+      remaining -= length;
+      return false;
+    }
+    for (const child of Array.from(node.childNodes)) {
+      if (place(child)) return true;
+    }
+    return false;
+  };
+
+  if (!place(root)) {
+    range.selectNodeContents(root);
+    range.collapse(false);
+  } else {
+    range.collapse(true);
+  }
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+/**
+ * A line break at the very end of a contenteditable doesn't show (or hold the caret) unless a
+ * second one follows it, so the editor keeps one extra trailing <br> that isn't part of the text.
+ */
+function trailingSentinel(root: HTMLElement) {
+  let node: Node | null = root.lastChild;
+  while (node) {
+    if (node.nodeType === Node.TEXT_NODE && !(node.textContent ?? '')) {
+      node = node.previousSibling;
+      continue;
+    }
+    if (node instanceof HTMLElement && node.tagName !== 'BR' && !node.dataset.reference && node.lastChild) {
+      node = node.lastChild;
+      continue;
+    }
+    break;
+  }
+  return node instanceof HTMLElement && node.tagName === 'BR' ? node : null;
 }
 
 export function readPlainTextFromEditor(root: HTMLElement) {
   const chunks: string[] = [];
+  const sentinel = trailingSentinel(root);
 
   const walk = (node: Node) => {
+    if (node === sentinel) return;
     if (node.nodeType === Node.TEXT_NODE) {
       chunks.push(node.textContent ?? '');
       return;
@@ -128,8 +269,24 @@ export function insertTextIntoEditable(root: HTMLElement, text: string) {
     }
   });
 
+  const lastInserted = fragment.lastChild;
   range.insertNode(fragment);
   range.collapse(false);
+
+  // Ending on a new line with nothing after it: add the trailing <br> that lets the line show.
+  if (lastInserted instanceof HTMLElement && lastInserted.tagName === 'BR') {
+    const rest = document.createRange();
+    rest.selectNodeContents(root);
+    rest.setStartAfter(lastInserted);
+    const holder = document.createElement('div');
+    holder.appendChild(rest.cloneContents());
+    if (!holder.textContent && !holder.querySelector('br')) {
+      root.appendChild(document.createElement('br'));
+      range.setStartAfter(lastInserted);
+      range.collapse(true);
+    }
+  }
+
   activeSelection.removeAllRanges();
   activeSelection.addRange(range);
 }
@@ -137,6 +294,7 @@ export function insertTextIntoEditable(root: HTMLElement, text: string) {
 export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditableFieldProps>(
   function ScriptureEditableField({ value, onChange, onReferenceClick, placeholder = 'Write your note here...' }, forwardedRef) {
     const localRef = useRef<HTMLDivElement | null>(null);
+    const renderedSignatureRef = useRef<string | null>(null);
 
     useImperativeHandle(forwardedRef, () => localRef.current as HTMLDivElement, []);
 
@@ -150,10 +308,19 @@ export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditab
       root.dataset.empty = value.trim() ? 'false' : 'true';
 
       if (isActive && currentValue === value) {
+        // Typing (or inserting a verse) changed where verses are: re-render so they take their
+        // verse styling straight away, keeping the caret where it was.
+        const signature = verseSignature(value);
+        if (signature === renderedSignatureRef.current) return;
+        const caret = getCaretOffset(root);
+        root.innerHTML = buildEditorHtml(value);
+        renderedSignatureRef.current = signature;
+        if (caret !== null) setCaretOffset(root, caret);
         return;
       }
 
       root.innerHTML = buildEditorHtml(value);
+      renderedSignatureRef.current = verseSignature(value);
     }, [value]);
 
     return (
@@ -179,6 +346,7 @@ export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditab
           onKeyDown={(event) => {
             if (event.key !== 'Enter') return;
             event.preventDefault();
+            leaveVerseAtEnd(event.currentTarget);
             insertTextIntoEditable(event.currentTarget, '\n');
             onChange(readPlainTextFromEditor(event.currentTarget));
           }}

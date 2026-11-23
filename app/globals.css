@@ -2410,3 +2410,29 @@ button.verse-callout-ref:hover {
     text-align: left;
   }
 }
+
+/* Verses inside the note editor look as they will once saved. */
+.scripture-editor .editor-verse {
+  display: inline-block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.2rem 0;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--accent);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.scripture-editor .editor-verse-ref {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.scripture-editor .editor-verse-ref .scripture-ref-button {
+  text-decoration: none;
+}

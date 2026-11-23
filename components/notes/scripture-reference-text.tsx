@@ -4,7 +4,14 @@ import { Fragment } from 'react';
 import { findScriptureReferences, splitTextByScriptureReferences } from '@/lib/scripture-references';
 
 type TextBlock = { kind: 'text'; lines: string[] };
-type VerseBlock = { kind: 'verse'; reference: string; translation: string; text: string };
+type VerseBlock = {
+  kind: 'verse';
+  reference: string;
+  translation: string;
+  text: string;
+  /** Where the verse sits in the note's lines: [start, end), and how many leading lines are its reference. */
+  lines?: { start: number; end: number; head: number };
+};
 type Block = TextBlock | VerseBlock;
 
 const TRANSLATION = '([A-Za-z][A-Za-z0-9 .()\'-]{0,47}?)';
@@ -139,7 +146,13 @@ export function splitNoteIntoBlocks(text: string): Block[] {
     if (inline) {
       const reference = asReference(inline[1]);
       if (reference) {
-        blocks.push({ kind: 'verse', reference, translation: shortTranslation(inline[2]), text: inline[3].trim() });
+        blocks.push({
+          kind: 'verse',
+          reference,
+          translation: shortTranslation(inline[2]),
+          text: inline[3].trim(),
+          lines: { start: index, end: index + 1, head: 0 },
+        });
         current = null;
         continue;
       }
@@ -150,7 +163,13 @@ export function splitNoteIntoBlocks(text: string): Block[] {
       const reference = asReference(heading[1]);
       if (reference) {
         const verse = collectVerse(index + 1, reference);
-        blocks.push({ kind: 'verse', reference, translation: shortTranslation(heading[2]), text: verse.text });
+        blocks.push({
+          kind: 'verse',
+          reference,
+          translation: shortTranslation(heading[2]),
+          text: verse.text,
+          lines: { start: index, end: verse.next, head: 1 },
+        });
         current = null;
         index = verse.next - 1;
         continue;
@@ -183,7 +202,7 @@ export function splitNoteIntoBlocks(text: string): Block[] {
       const startNumber = numberedStart(startValue) ?? (numberLine(startValue) && !isBlank(at + 1) ? numberLine(startValue) : undefined);
       if (startNumber && Number(startNumber) === range.from) {
         const verse = collectVerse(at, bare);
-        blocks.push({ kind: 'verse', reference: bare, translation, text: verse.text });
+        blocks.push({ kind: 'verse', reference: bare, translation, text: verse.text, lines: { start: index, end: verse.next, head: at - index } });
         current = null;
         index = verse.next - 1;
         continue;
@@ -207,6 +226,13 @@ export function splitNoteIntoBlocks(text: string): Block[] {
       return { ...block, lines };
     })
     .filter((block) => block.kind === 'verse' || block.lines.length > 0);
+}
+
+/** Line ranges of the verses in a note, for styling them while the note is being edited. */
+export function getVerseLineRanges(text: string) {
+  return splitNoteIntoBlocks(text)
+    .map((block) => (block.kind === 'verse' ? block.lines : undefined))
+    .filter((range): range is { start: number; end: number; head: number } => Boolean(range));
 }
 
 export function formatVerseReference(reference: string) {
