@@ -3067,3 +3067,19 @@ button.verse-callout-ref:hover {
 .notebook-row > input[type='checkbox']:disabled {
   opacity: 0.3;
 }
+
+.select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.4rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.select-all input {
+  width: 17px;
+  height: 17px;
+}

@@ -180,6 +180,11 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const removableCount =
     nativeNotes.filter(canDeleteNativeNote).length + sharedNotes.filter(canRemoveSharedNote).length;
 
+  const allRemovableKeys = [
+    ...nativeNotes.filter(canDeleteNativeNote).map((note) => `g:${note.id}`),
+    ...sharedNotes.filter(canRemoveSharedNote).map((note) => `s:${note.id}`),
+  ];
+
   const toggleNoteKey = (key: string) =>
     setSelectedNoteKeys((current) => (current.includes(key) ? current.filter((item) => item !== key) : [...current, key]));
 
@@ -623,7 +628,14 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
                     >
                       Delete{selectedNoteKeys.length ? ` (${selectedNoteKeys.length})` : ''}
                     </button>
-                    <span className="composer-hint">Tick the notes to delete.</span>
+                    <label className="select-all">
+                      <input
+                        checked={allRemovableKeys.length > 0 && allRemovableKeys.every((key) => selectedNoteKeys.includes(key))}
+                        onChange={(event) => setSelectedNoteKeys(event.target.checked ? allRemovableKeys : [])}
+                        type="checkbox"
+                      />
+                      Tick all{allRemovableKeys.length ? ` (${allRemovableKeys.length})` : ''}
+                    </label>
                   </>
                 ) : (
                   <>
