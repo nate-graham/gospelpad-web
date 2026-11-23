@@ -3056,3 +3056,14 @@ button.verse-callout-ref:hover {
 .button-vermilion:disabled {
   opacity: 0.45;
 }
+
+.confirm-card {
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--vermilion) 30%, transparent);
+  background: var(--vermilion-soft);
+}
+
+.notebook-row > input[type='checkbox']:disabled {
+  opacity: 0.3;
+}

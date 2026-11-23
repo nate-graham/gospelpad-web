@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  deleteGroupNotes,
   getCurrentMembership,
   getGroupNativeNoteById,
   getGroupSharedNoteById,
@@ -45,6 +46,7 @@ export function GroupSharedNoteView({
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [duplicating, setDuplicating] = useState(false);
   const [unsharing, setUnsharing] = useState(false);
+  const [deletingNote, setDeletingNote] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -131,6 +133,25 @@ export function GroupSharedNoteView({
       setActionError(duplicateError instanceof Error ? duplicateError.message : 'Failed to copy note into your library.');
     } finally {
       setDuplicating(false);
+    }
+  };
+
+  const onDeleteGroupNote = async () => {
+    if (!note || note.source !== 'group') return;
+    if (!window.confirm('Delete this group note and its comments for everyone? This can’t be undone.')) {
+      return;
+    }
+
+    try {
+      setDeletingNote(true);
+      setActionError(null);
+      setActionNotice(null);
+      const deleted = await deleteGroupNotes([note.id]);
+      if (!deleted) throw new Error('Only the note’s author or a group admin can delete it.');
+      router.replace(`/groups/${groupId}?tab=notes&noteDeleted=1`);
+    } catch (deleteError) {
+      setActionError(deleteError instanceof Error ? deleteError.message : 'Failed to delete the group note.');
+      setDeletingNote(false);
     }
   };
 
@@ -315,6 +336,12 @@ export function GroupSharedNoteView({
                 <Link className="button button-secondary" href={`/groups/${groupId}/notes/${note.id}/edit`}>
                   Edit group note
                 </Link>
+              ) : null}
+
+              {canEditGroupNote && note.source === 'group' ? (
+                <button className="button button-ghost" disabled={deletingNote} onClick={onDeleteGroupNote} type="button" style={{ color: 'var(--vermilion)' }}>
+                  {deletingNote ? 'Deleting…' : 'Delete group note'}
+                </button>
               ) : null}
             </div>
           </section>

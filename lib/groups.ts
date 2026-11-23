@@ -502,6 +502,23 @@ export async function listGroupSharedNotes(groupId: string) {
     .filter((note): note is GroupSharedNoteSummary => note !== null);
 }
 
+/**
+ * Deletes group notes (with their comments). The database only lets each note's author or a group
+ * admin delete it, so this reports how many actually went.
+ */
+export async function deleteGroupNotes(noteIds: string[]) {
+  if (noteIds.length === 0) return 0;
+  const { supabase } = await getAuthenticatedContext();
+
+  const { data, error } = await supabase.from('group_notes').delete().in('id', noteIds).select('id');
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data?.length ?? 0;
+}
+
 export async function listGroupNativeNotes(groupId: string) {
   const { supabase } = await getAuthenticatedContext();
 

@@ -7,6 +7,7 @@ import {
   approveJoinRequest,
   createGroupAnnouncement,
   deleteGroup,
+  deleteGroupNotes,
   deleteGroupAnnouncement,
   declineJoinRequest,
   getCurrentMembership,
@@ -30,6 +31,7 @@ import {
 import { formatGroupDate, getGroupMemberLabel, getGroupVisibilityLabel } from '@/components/groups/group-utils';
 import { getNoteExcerpt, getScriptureReferenceCount } from '@/components/notes/note-utils';
 import { GroupInvitePanel } from '@/components/groups/group-invite-panel';
+import { removeOwnedGroupShare } from '@/lib/notes';
 
 export function GroupDetailView({ groupId }: { groupId: string }) {
   const router = useRouter();
@@ -49,11 +51,20 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementBody, setAnnouncementBody] = useState('');
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [selectingNotes, setSelectingNotes] = useState(false);
+  const [selectedNoteKeys, setSelectedNoteKeys] = useState<string[]>([]);
+  const [confirmNoteDelete, setConfirmNoteDelete] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState('');
   const initialTab = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'feed' | 'notes' | 'announcements' | 'members'>(
+  const [activeTab, setActiveTabState] = useState<'feed' | 'notes' | 'announcements' | 'members'>(
     initialTab === 'notes' || initialTab === 'announcements' || initialTab === 'members' ? initialTab : 'feed'
   );
+  const setActiveTab = (next: 'feed' | 'notes' | 'announcements' | 'members') => {
+    setActiveTabState(next);
+    setSelectingNotes(false);
+    setSelectedNoteKeys([]);
+    setConfirmNoteDelete(false);
+  };
 
   useEffect(() => {
     let active = true;
@@ -111,6 +122,7 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
     if (searchParams.get('created') === '1') return 'Group created successfully.';
     if (searchParams.get('left') === '1') return 'You left the group.';
     if (searchParams.get('unshared') === '1') return 'Shared note removed from this group.';
+    if (searchParams.get('noteDeleted') === '1') return 'Group note deleted.';
     return null;
   }, [searchParams]);
 
@@ -155,6 +167,55 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
       router.replace('/groups?left=1');
     } catch (leaveError) {
       setActionError(leaveError instanceof Error ? leaveError.message : 'Failed to leave group.');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const isAdminViewer = Boolean(membership && (membership.role === 'admin' || isOwner));
+  const canDeleteNativeNote = (note: GroupNativeNoteSummary) =>
+    Boolean(membership && (isAdminViewer || note.created_by === membership.user_id));
+  const canRemoveSharedNote = (note: GroupSharedNoteSummary) =>
+    Boolean(membership && note.shared_by && note.shared_by === membership.user_id);
+  const removableCount =
+    nativeNotes.filter(canDeleteNativeNote).length + sharedNotes.filter(canRemoveSharedNote).length;
+
+  const toggleNoteKey = (key: string) =>
+    setSelectedNoteKeys((current) => (current.includes(key) ? current.filter((item) => item !== key) : [...current, key]));
+
+  const stopSelectingNotes = () => {
+    setSelectingNotes(false);
+    setSelectedNoteKeys([]);
+    setConfirmNoteDelete(false);
+  };
+
+  const selectedNative = selectedNoteKeys.filter((key) => key.startsWith('g:')).map((key) => key.slice(2));
+  const selectedShared = selectedNoteKeys.filter((key) => key.startsWith('s:')).map((key) => key.slice(2));
+
+  const onDeleteSelectedNotes = async () => {
+    if (!group || selectedNoteKeys.length === 0) return;
+    try {
+      setPendingAction('delete-notes');
+      setActionError(null);
+      setActionNotice(null);
+      const deleted = await deleteGroupNotes(selectedNative);
+      for (const noteId of selectedShared) {
+        await removeOwnedGroupShare(noteId, group.id);
+      }
+      const [nextNative, nextShared] = await Promise.all([listGroupNativeNotes(group.id), listGroupSharedNotes(group.id)]);
+      setNativeNotes(nextNative);
+      setSharedNotes(nextShared);
+      const parts = [
+        deleted ? `${deleted} group ${deleted === 1 ? 'note' : 'notes'} deleted` : '',
+        selectedShared.length ? `${selectedShared.length} shared ${selectedShared.length === 1 ? 'note' : 'notes'} removed from the group` : '',
+      ].filter(Boolean);
+      setActionNotice(parts.length ? `${parts.join(' and ')}.` : 'Nothing was deleted.');
+      if (deleted < selectedNative.length) {
+        setActionError('Some notes could not be deleted. Only a note’s author or a group admin can delete it.');
+      }
+      stopSelectingNotes();
+    } catch (deleteError) {
+      setActionError(deleteError instanceof Error ? deleteError.message : 'Failed to delete notes.');
     } finally {
       setPendingAction(null);
     }
@@ -549,10 +610,63 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
           {tab === 'notes' ? (
             <>
               <div className="group-quick-actions">
-                <Link className="button button-primary" href={`/groups/${group.id}/notes/new`}>
-                  + New group note
-                </Link>
+                {selectingNotes ? (
+                  <>
+                    <button className="button button-secondary" onClick={stopSelectingNotes} type="button">
+                      Cancel
+                    </button>
+                    <button
+                      className="button button-vermilion"
+                      disabled={selectedNoteKeys.length === 0 || pendingAction === 'delete-notes'}
+                      onClick={() => setConfirmNoteDelete(true)}
+                      type="button"
+                    >
+                      Delete{selectedNoteKeys.length ? ` (${selectedNoteKeys.length})` : ''}
+                    </button>
+                    <span className="composer-hint">Tick the notes to delete.</span>
+                  </>
+                ) : (
+                  <>
+                    <Link className="button button-primary" href={`/groups/${group.id}/notes/new`}>
+                      + New group note
+                    </Link>
+                    {removableCount > 0 ? (
+                      <button className="button button-secondary" onClick={() => setSelectingNotes(true)} type="button">
+                        Select
+                      </button>
+                    ) : null}
+                  </>
+                )}
               </div>
+
+              {confirmNoteDelete && selectedNoteKeys.length ? (
+                <section className="danger-zone confirm-card" role="alertdialog" aria-label="Confirm delete">
+                  <p>
+                    {selectedNative.length
+                      ? `Delete ${selectedNative.length} group ${selectedNative.length === 1 ? 'note' : 'notes'} and ${selectedNative.length === 1 ? 'its' : 'their'} comments for everyone. This can’t be undone.`
+                      : ''}
+                    {selectedNative.length && selectedShared.length ? ' ' : ''}
+                    {selectedShared.length
+                      ? selectedShared.length === 1
+                        ? 'Remove your shared note from the group (it stays in your notebook).'
+                        : `Remove ${selectedShared.length} of your shared notes from the group (they stay in your notebook).`
+                      : ''}
+                  </p>
+                  <div className="danger-zone-actions">
+                    <button className="button button-secondary" onClick={() => setConfirmNoteDelete(false)} type="button">
+                      Keep them
+                    </button>
+                    <button
+                      className="button button-vermilion"
+                      disabled={pendingAction === 'delete-notes'}
+                      onClick={onDeleteSelectedNotes}
+                      type="button"
+                    >
+                      {pendingAction === 'delete-notes' ? 'Deleting…' : 'Yes, delete'}
+                    </button>
+                  </div>
+                </section>
+              ) : null}
               {nativeNotes.length + sharedNotes.length === 0 ? (
                 <section className="notebook-empty" role="status">
                   <strong>No group notes yet</strong>
@@ -562,7 +676,16 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
                 <ul className="notebook-list">
                   {nativeNotes.map((note) => (
                     <li key={`g-${note.id}`}>
-                      <div className="notebook-row">
+                      <div className={`notebook-row${selectedNoteKeys.includes(`g:${note.id}`) ? ' is-selected' : ''}`}>
+                        {selectingNotes ? (
+                          <input
+                            aria-label={`Select ${note.title || 'note'}`}
+                            checked={selectedNoteKeys.includes(`g:${note.id}`)}
+                            disabled={!canDeleteNativeNote(note)}
+                            onChange={() => toggleNoteKey(`g:${note.id}`)}
+                            type="checkbox"
+                          />
+                        ) : null}
                         <span className="notebook-type type-berea">Group note</span>
                         <Link className="notebook-row-main" href={`/groups/${group.id}/notes/${note.id}`}>
                           <span className="notebook-row-title">
@@ -585,20 +708,30 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
                   ))}
                   {sharedNotes.map((note) => (
                     <li key={`s-${note.id}`}>
-                      <Link className="notebook-row" href={`/groups/${group.id}/notes/${note.id}`}>
+                      <div className={`notebook-row${selectedNoteKeys.includes(`s:${note.id}`) ? ' is-selected' : ''}`}>
+                        {selectingNotes ? (
+                          <input
+                            aria-label={`Select ${note.title || 'note'}`}
+                            checked={selectedNoteKeys.includes(`s:${note.id}`)}
+                            disabled={!canRemoveSharedNote(note)}
+                            onChange={() => toggleNoteKey(`s:${note.id}`)}
+                            title={canRemoveSharedNote(note) ? undefined : 'Only the person who shared it can remove it'}
+                            type="checkbox"
+                          />
+                        ) : null}
                         <span className={`notebook-type type-${(note.type ?? 'note').toLowerCase().replace(/[^a-z]+/g, '-')}`}>Shared</span>
-                        <span className="notebook-row-main">
+                        <Link className="notebook-row-main" href={`/groups/${group.id}/notes/${note.id}`}>
                           <span className="notebook-row-title">
                             {note.title?.trim() || 'Untitled'}
                             <em> · {memberName(note.shared_by)}</em>
                           </span>
                           <span className="notebook-row-excerpt">{getNoteExcerpt(note)}</span>
-                        </span>
+                        </Link>
                         <span className="notebook-row-meta">
                           <span className="notebook-pill">{note.permissions === 'edit' ? 'Can edit' : note.permissions === 'comment' ? 'Can comment' : 'Read-only'}</span>
                           <span className="notebook-date">{shortGroupDate(note.shared_at || note.updated_at)}</span>
                         </span>
-                      </Link>
+                      </div>
                     </li>
                   ))}
                 </ul>
