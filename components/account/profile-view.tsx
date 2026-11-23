@@ -288,7 +288,7 @@ export function ProfileView() {
         </aside>
       </section>
 
-      <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
+      <section className="panel" id="recently-deleted" style={{ padding: '1rem', display: 'grid', gap: '1rem', scrollMarginTop: '1.5rem' }}>
         <div style={{ display: 'grid', gap: '0.35rem' }}>
           <span className="eyebrow">Recently deleted</span>
           <strong style={{ fontSize: '1.1rem' }}>Restore notes within 30 days</strong>

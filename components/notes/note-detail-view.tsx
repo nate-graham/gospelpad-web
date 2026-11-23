@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { createNote, duplicateNote, getNoteById, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteInput, type NoteRecord, type NoteUserShare } from '@/lib/notes';
+import { createNote, duplicateNote, getNoteById, listOwnedGroupShares, listOwnedUserShares, updateNote, type NoteGroupShare, softDeleteNote, type NoteInput, type NoteRecord, type NoteUserShare } from '@/lib/notes';
 import {
   formatNoteDate,
   getNoteReadingTimeMinutes,
@@ -13,8 +13,7 @@ import {
   getScriptureReferenceCount,
   supportsSpeakerField,
 } from '@/components/notes/note-utils';
-import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
-import { ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
+import { formatVerseReference, ScriptureReferenceText } from '@/components/notes/scripture-reference-text';
 import { findScriptureReferences } from '@/lib/scripture-references';
 import { NoteSharePanel } from '@/components/notes/note-share-panel';
 import { getPrayerRequestById, type PrayerRequestRecord, type PrayerRequestStatus, upsertPrayerRequest } from '@/lib/prayer-requests';
@@ -24,7 +23,7 @@ import { createRecordingSignedUrl, formatTranscriptText, transcribeRecording } f
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
-import type { ScriptureResult } from '@/lib/scripture';
+import { fetchScriptureByReference, type ScriptureResult } from '@/lib/scripture';
 import { bereaHrefForReference, isBereaNote } from '@/lib/berea';
 
 export function NoteDetailView({ noteId }: { noteId: string }) {
@@ -42,6 +41,7 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const [updatingPrayerStatus, setUpdatingPrayerStatus] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -104,9 +104,13 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
 
     const loadUserShares = async () => {
       try {
-        const data = await listOwnedUserShares(note.id);
+        const [users, groups] = await Promise.all([
+          listOwnedUserShares(note.id),
+          listOwnedGroupShares(note.id).catch(() => [] as NoteGroupShare[]),
+        ]);
         if (!active) return;
-        setUserShares(data);
+        setUserShares(users);
+        setGroupShares(groups);
       } catch {
         if (!active) return;
         setUserShares([]);
@@ -133,20 +137,12 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
   const wordCount = useMemo(() => getNoteWordCount(note ?? { body: '' } as NoteRecord), [note]);
   const readingMinutes = useMemo(() => getNoteReadingTimeMinutes(note ?? { body: '' } as NoteRecord), [note]);
   const scriptureCount = useMemo(() => getScriptureReferenceCount(note ?? { body: '' } as NoteRecord), [note]);
-  const metadataSummary = useMemo(() => {
-    const parts = [
-      `${wordCount} words`,
-      `${readingMinutes} min read`,
-      `${scriptureCount} ref${scriptureCount === 1 ? '' : 's'}`,
-      note?.type ?? 'Note',
-    ];
-
-    if (groupShares.length + userShares.length > 0) {
-      parts.push(`shared with ${groupShares.length + userShares.length}`);
-    }
-
-    return parts.join(' • ');
-  }, [groupShares.length, note?.type, readingMinutes, scriptureCount, userShares.length, wordCount]);
+  useEffect(() => {
+    if (!shareOpen) return;
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && setShareOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [shareOpen]);
 
   const onDelete = async () => {
     if (getShowDeleteWarningPreference()) {
@@ -348,239 +344,223 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
     );
   }
 
+  const isBerea = isBereaNote(note);
+  const typeLabel = isBerea ? 'Berea study' : note.type === 'Prayer Requests' ? 'Prayer request' : note.type ?? 'Note';
+  const subtitle = [note.speaker && supportsSpeakerField(note.type) ? note.speaker : null, detectedReferences[0]?.split(':')[0] ?? null].filter(Boolean);
+  const shareCount = groupShares.length + userShares.length;
+  const railReference = activeReference ?? detectedReferences[0] ?? null;
+  const prayerStatus = (prayerRequest?.status ?? note.status ?? 'Ongoing') as PrayerRequestStatus;
+
   return (
-    <div className="page-container page-section">
-      <header className="page-header note-page-header">
-        <span className="eyebrow" style={{ color: 'var(--vermilion)' }}>
-          {[
-            isBereaNote(note) ? 'Berea study' : note.type ?? 'Note',
-            format(new Date(note.created_at), 'EEEE · d MMMM yyyy'),
-            note.clips?.length ? `${note.clips.length} audio clip${note.clips.length === 1 ? '' : 's'}` : null,
-          ]
-            .filter(Boolean)
-            .join(' · ')}
+    <div className="page-container page-section note-view">
+      <div className="note-view-topbar">
+        <Link className="back-link" href="/notes">
+          <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 11 18" width="7">
+            <path d="M9 1L1 9l8 8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+          </svg>
+          Notebook
+        </Link>
+        <span className="note-view-crumb">
+          / {typeLabel} · {shareCount > 0 ? `Shared with ${shareCount}` : 'Saved'}
         </span>
-        <h1>{note.title?.trim() || 'Untitled'}</h1>
-        {[note.speaker && supportsSpeakerField(note.type) ? note.speaker : null, detectedReferences[0]?.split(':')[0] ?? null].filter(Boolean).length ? (
-          <p className="note-page-subtitle">
-            {[note.speaker && supportsSpeakerField(note.type) ? note.speaker : null, detectedReferences[0]?.split(':')[0] ?? null]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-        ) : null}
-        <div className="meta-row" style={{ fontSize: '0.84rem' }}>
-          {note.status ? <span className={`note-status-pill${note.status === 'Answered' ? ' is-answered' : ''}`}>{note.status}</span> : null}
-          {note.type === 'Dream' ? <span className="note-status-pill">{note.is_lucid_dream ? 'Lucid dream' : 'Not lucid'}</span> : null}
-          {note.type === 'Dream' && note.dream_role ? <span className="note-status-pill">{note.dream_role === 'involved' ? 'Involved' : 'Observing'}</span> : null}
-          {note.shared ? <span className="note-status-pill">Shared</span> : null}
-          <span>Updated {formatNoteDate(note.updated_at)}</span>
+        <div className="note-view-actions">
+          <button className="button button-secondary" onClick={() => setShareOpen(true)} type="button">
+            <svg aria-hidden="true" fill="none" height="14" viewBox="0 0 24 24" width="14">
+              <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="1.8" />
+            </svg>
+            Share
+          </button>
+          <Link className="button button-primary" href={isBerea ? `/berea/${note.id}` : `/notes/${note.id}/edit`}>
+            {isBerea ? 'Open in Berea' : 'Edit note'}
+          </Link>
+          <details className="more-menu">
+            <summary aria-label="More actions">⋯</summary>
+            <div className="more-menu-list" role="menu">
+              {isBerea ? (
+                <Link href={`/notes/${note.id}/edit`} role="menuitem">
+                  Edit as text
+                </Link>
+              ) : null}
+              <button disabled={duplicating} onClick={onDuplicate} role="menuitem" type="button">
+                {duplicating ? 'Duplicating…' : 'Duplicate'}
+              </button>
+              <button className="is-danger" disabled={deleting} onClick={onDelete} role="menuitem" type="button">
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </details>
         </div>
-      </header>
+      </div>
 
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
       {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
 
-      <div className="note-detail-layout">
-        <div className="note-detail-main">
-          <section
-            className="reading-surface"
-            style={{
-              background: 'transparent',
-              padding: 0,
-              gap: '1.4rem',
-            }}
-          >
-            <div className="meta-row">
-              <span>{wordCount} words</span>
-              <span>{readingMinutes} min read</span>
-              <span>{scriptureCount} ref{scriptureCount === 1 ? '' : 's'}</span>
-            </div>
-            <div
-              className="note-body-content"
-              style={{
-                whiteSpace: 'pre-wrap',
-                lineHeight: 1.8,
-                color: 'var(--ink-soft)',
-                fontSize: '1.16rem',
-                minHeight: '260px',
-                maxWidth: '68ch',
-              }}
-            >
-              {(note.body ?? '').trim() ? (
-                <ScriptureReferenceText
-                  onReferenceClick={setActiveReference}
-                  text={(note.body ?? '').trim()}
-                />
-              ) : (
-                'No body content yet.'
-              )}
-            </div>
-            <div className="cta-row">
-              <Link className="button button-primary" href={`/notes/${note.id}/edit`}>
-                Edit note
-              </Link>
-              <button className="button button-secondary" disabled={duplicating} onClick={onDuplicate} type="button">
-                {duplicating ? 'Duplicating…' : 'Duplicate note'}
-              </button>
-              <button className="button button-ghost" disabled={deleting} onClick={onDelete} type="button">
-                {deleting ? 'Deleting…' : 'Delete note'}
-              </button>
-              <Link className="button button-secondary" href="/notes">
-                Back to list
-              </Link>
-            </div>
-          </section>
-
-          {note.shared || groupShares.length > 0 ? (
-            <SharedNoteComments noteId={note.id} />
-          ) : null}
-        </div>
-
-        <aside className="note-detail-rail">
-          {activeReference ? (
-            <ScriptureReferencePreview
-              onClose={() => setActiveReference(null)}
-              reference={activeReference}
-            />
-          ) : null}
-
-          <details className="detail-toggle" open style={{ background: 'transparent', padding: 0 }}>
-            <summary>
-              <span>Note details</span>
-              <span>{metadataSummary}</span>
-            </summary>
-
-            <div className="detail-toggle-content">
-              <div className="support-block">
-                <span className="eyebrow">Guidance</span>
-                <strong className="support-block-title">{getNoteTypeGuidance(note.type ?? 'Note')}</strong>
+      <div className="note-view-columns">
+        <article className="note-view-main">
+          <header className="note-page-header">
+            <span className="eyebrow" style={{ color: 'var(--vermilion)' }}>
+              {[
+                typeLabel,
+                format(new Date(note.created_at), 'EEEE · d MMMM yyyy'),
+                note.clips?.length ? `${note.clips.length} audio clip${note.clips.length === 1 ? '' : 's'}` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </span>
+            <h1>{note.title?.trim() || 'Untitled'}</h1>
+            {subtitle.length ? <p className="note-page-subtitle">{subtitle.join(' · ')}</p> : null}
+            {note.status || note.type === 'Dream' || note.shared ? (
+              <div className="meta-row" style={{ fontSize: '0.84rem' }}>
+                {note.status && note.type !== 'Prayer Requests' ? <span className="note-status-pill">{note.status}</span> : null}
+                {note.type === 'Dream' ? <span className="note-status-pill">{note.is_lucid_dream ? 'Lucid dream' : 'Standard dream'}</span> : null}
+                {note.type === 'Dream' && note.dream_role ? <span className="note-status-pill">{note.dream_role === 'involved' ? 'Involved' : 'Observing'}</span> : null}
+                {note.shared ? <span className="note-status-pill">Shared</span> : null}
               </div>
+            ) : null}
+          </header>
 
-              {note.type === 'Prayer Requests' ? (
-                <div className="inline-support-stack">
-                  <span className="eyebrow">Prayer workflow</span>
-                  <strong className="support-block-title">{prayerRequest?.status ?? note.status ?? 'Ongoing'}</strong>
-                  <div className="cta-row">
-                    <button
-                      className="button button-secondary"
-                      disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Ongoing'}
-                      onClick={() => onPrayerStatusChange('Ongoing')}
-                      type="button"
-                    >
-                      {updatingPrayerStatus ? 'Updating…' : 'Mark ongoing'}
-                    </button>
-                    <button
-                      className="button button-primary"
-                      disabled={updatingPrayerStatus || (prayerRequest?.status ?? note.status) === 'Answered'}
-                      onClick={() => onPrayerStatusChange('Answered')}
-                      type="button"
-                    >
-                      {updatingPrayerStatus ? 'Updating…' : 'Mark answered'}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="support-block">
-                <span className="eyebrow">Visibility</span>
-                <strong className="support-block-title">
-                  {groupShares.length + userShares.length > 0
-                    ? `Shared to ${groupShares.length} group${groupShares.length === 1 ? '' : 's'} and ${userShares.length} user${userShares.length === 1 ? '' : 's'}`
-                    : 'Private note'}
-                </strong>
-                <p className="support-block-copy">
-                  {groupShares.length + userShares.length > 0
-                    ? [
-                        ...groupShares.map((share) => share.group_name),
-                        ...userShares.map((share) => share.user_label),
-                      ].join(', ')
-                    : 'Visible only to you.'}
-                </p>
-              </div>
-            </div>
-          </details>
-
-          {isBereaNote(note) ? (
-            <div className="inline-support-stack" style={{ padding: '1.1rem', borderRadius: 'var(--radius-lg)', background: 'var(--accent-soft)', border: '1px solid var(--accent-line)' }}>
-              <div className="support-block">
-                <span className="eyebrow" style={{ color: 'var(--accent-strong)' }}>Berea study</span>
-                <p className="support-block-copy">This note is an inductive study. Open it in Berea to keep working through observe, interpret and apply.</p>
-              </div>
-              <div className="cta-row">
-                <Link className="button button-lapis" href={`/berea/${note.id}`}>
-                  Open in Berea
-                </Link>
-              </div>
-            </div>
-          ) : detectedReferences.length > 0 ? (
-            <div className="inline-support-stack" style={{ padding: '1.1rem', borderRadius: 'var(--radius-lg)', background: 'var(--accent-soft)', border: '1px solid var(--accent-line)' }}>
-              <div className="support-block">
-                <span className="eyebrow" style={{ color: 'var(--accent-strong)' }}>Examine in Berea</span>
-                <p className="support-block-copy">Study a verse from this note: observe what it says, interpret what it means, apply it.</p>
-              </div>
-              <div className="note-reference-row">
-                {detectedReferences.slice(0, 6).map((reference) => (
-                  <Link
-                    className="verse-chip"
-                    href={bereaHrefForReference(reference, { id: note.id, title: note.title })}
-                    key={`berea-${reference}`}
-                  >
-                    <span className="pilcrow" aria-hidden="true">¶</span>
-                    {reference}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {detectedReferences.length > 0 ? (
-            <div className="inline-support-stack">
-              <div className="support-block">
-                <span className="eyebrow">Detected references</span>
-                <p className="support-block-copy">Tap a reference to read it in context.</p>
-              </div>
-              <div className="note-reference-row">
-                {detectedReferences.map((reference) => (
+          {note.type === 'Prayer Requests' ? (
+            <div className="note-prayer-status">
+              <span className={`note-status-pill${prayerStatus === 'Answered' ? ' is-answered' : ''}`}>{prayerStatus}</span>
+              <div className="segmented" role="group" aria-label="Prayer status">
+                {(['Ongoing', 'Answered'] as PrayerRequestStatus[]).map((status) => (
                   <button
-                    className="button button-secondary"
-                    key={reference}
-                    onClick={() => setActiveReference(reference)}
+                    aria-pressed={prayerStatus === status}
+                    disabled={updatingPrayerStatus}
+                    key={status}
+                    onClick={() => prayerStatus !== status && onPrayerStatusChange(status)}
                     type="button"
                   >
-                    {reference}
+                    {status === 'Answered' ? 'Mark answered' : 'Ongoing'}
                   </button>
                 ))}
               </div>
             </div>
           ) : null}
 
-          <details className="detail-toggle" open style={{ background: 'transparent', padding: 0 }}>
-            <summary>
-              <span>Scripture search</span>
-              <span>Reference, phrase, or keyword</span>
-            </summary>
-            <div className="detail-toggle-content">
-              <ScriptureSearchPanel compact onCreateNote={createScriptureNote} onInsert={insertScriptureIntoNote} />
-            </div>
-          </details>
+          <div className="note-body-content note-view-body">
+            {(note.body ?? '').trim() ? (
+              <ScriptureReferenceText onReferenceClick={setActiveReference} text={(note.body ?? '').trim()} />
+            ) : (
+              <span style={{ color: 'var(--muted)' }}>No body content yet.</span>
+            )}
+          </div>
 
-          {note.clips?.length ? (
-            <NoteClipsList
-              clips={note.clips}
-              onTranscribeClip={onTranscribeClip}
-            />
+          {note.shared || groupShares.length > 0 ? <SharedNoteComments noteId={note.id} /> : null}
+        </article>
+
+        <aside className="note-view-rail">
+          {isBerea ? (
+            <section className="rail-section">
+              <span className="rail-heading">Berea study</span>
+              <div className="verse-focus">
+                <p className="verse-focus-copy">This note is an inductive study. Keep working through observe, interpret and apply.</p>
+                <Link className="berea-cta" href={`/berea/${note.id}`}>
+                  <span>
+                    <strong>Open in Berea</strong>
+                    <small>Pick up where you left off</small>
+                  </span>
+                  <span aria-hidden="true">›</span>
+                </Link>
+              </div>
+            </section>
+          ) : detectedReferences.length ? (
+            <section className="rail-section">
+              <span className="rail-heading">Verses in this note</span>
+              <VerseFocus
+                bereaHref={bereaHrefForReference(railReference as string, { id: note.id, title: note.title })}
+                reference={railReference as string}
+              />
+              {detectedReferences
+                .filter((reference) => reference !== railReference)
+                .map((reference) => (
+                  <div className="verse-row" key={reference}>
+                    <button onClick={() => setActiveReference(reference)} type="button">
+                      <span className="pilcrow" aria-hidden="true">¶</span>
+                      {formatVerseReference(reference)}
+                    </button>
+                    <Link href={bereaHrefForReference(reference, { id: note.id, title: note.title })}>Study</Link>
+                  </div>
+                ))}
+            </section>
           ) : null}
 
-          <details className="detail-toggle" style={{ background: 'transparent', padding: 0 }}>
-            <summary>
-              <span>Share note</span>
-            </summary>
-            <div className="detail-toggle-content">
-              <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
-            </div>
+          {note.clips?.length ? (
+            <section className="rail-section">
+              <span className="rail-heading">Recording</span>
+              <NoteClipsList clips={note.clips} onTranscribeClip={onTranscribeClip} />
+            </section>
+          ) : null}
+
+          <section className="rail-section">
+            <span className="rail-heading">Note details</span>
+            <dl className="note-facts">
+              <div>
+                <dt>Type</dt>
+                <dd>{typeLabel}</dd>
+              </div>
+              <div>
+                <dt>Length</dt>
+                <dd>
+                  {wordCount} words · {readingMinutes} min
+                </dd>
+              </div>
+              <div>
+                <dt>References</dt>
+                <dd>{scriptureCount}</dd>
+              </div>
+              <div>
+                <dt>Visibility</dt>
+                <dd>
+                  {shareCount > 0
+                    ? [...groupShares.map((share) => share.group_name), ...userShares.map((share) => share.user_label)].join(', ')
+                    : 'Private · only you'}
+                </dd>
+              </div>
+              <div>
+                <dt>Updated</dt>
+                <dd>{formatNoteDate(note.updated_at)}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <details className="rail-section rail-details">
+            <summary className="rail-heading">Add Scripture</summary>
+            <ScriptureSearchPanel compact onCreateNote={createScriptureNote} onInsert={insertScriptureIntoNote} />
           </details>
+
+          <p className="composer-guidance">{getNoteTypeGuidance(note.type ?? 'Note')}</p>
         </aside>
       </div>
+
+      {shareOpen ? (
+        <div className="share-dialog-backdrop" onClick={() => setShareOpen(false)} role="presentation">
+          <section
+            aria-labelledby="share-dialog-title"
+            aria-modal="true"
+            className="share-dialog"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <header className="share-dialog-header">
+              <div>
+                <span className="eyebrow" style={{ color: 'var(--accent)' }}>Share note</span>
+                <h2 id="share-dialog-title">{note.title?.trim() || 'Untitled'}</h2>
+                <p>Share with people, post it to a group, or send a read-only link.</p>
+              </div>
+              <button aria-label="Close" className="share-dialog-close" onClick={() => setShareOpen(false)} type="button">
+                ×
+              </button>
+            </header>
+            <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
+            <div className="share-dialog-footer">
+              <button className="button button-primary" onClick={() => setShareOpen(false)} type="button">
+                Done
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       <DeleteNotesDialog
         deleting={deleting}
@@ -589,6 +569,42 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
         onConfirm={confirmDelete}
         open={deleteDialogOpen}
       />
+    </div>
+  );
+}
+
+/** The verse in focus beside the note: its text, and the way into a Berea study of it. */
+function VerseFocus({ reference, bereaHref }: { reference: string; bereaHref: string }) {
+  const [result, setResult] = useState<ScriptureResult | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setResult(null);
+    setFailed(false);
+    fetchScriptureByReference(reference, 'KJV')
+      .then((next) => active && setResult(next))
+      .catch(() => active && setFailed(true));
+    return () => {
+      active = false;
+    };
+  }, [reference]);
+
+  return (
+    <div className="verse-focus">
+      <div className="verse-focus-head">
+        <span className="pilcrow" aria-hidden="true">¶</span>
+        <strong>{formatVerseReference(reference)}</strong>
+      </div>
+      {result ? <p className="verse-focus-text">{result.text.trim()}</p> : null}
+      {!result && !failed ? <p className="verse-focus-copy">Loading the verse…</p> : null}
+      <Link className="berea-cta" href={bereaHref}>
+        <span>
+          <strong>Examine in Berea</strong>
+          <small>Study {formatVerseReference(reference)} · observe, interpret, apply</small>
+        </span>
+        <span aria-hidden="true">›</span>
+      </Link>
     </div>
   );
 }

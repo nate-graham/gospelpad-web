@@ -2,17 +2,19 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { CSSProperties, FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createNote, NOTE_TYPES, updateNote, type NoteInput, type NoteRecord } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
 import { createRecordingSignedUrl, formatTranscriptText, transcribeRecording } from '@/lib/transcription';
 import {
   DEFAULT_NOTE_TYPE,
+  getNoteTypeGuidance,
   getNoteTypePlaceholders,
   supportsSpeakerField,
 } from '@/components/notes/note-utils';
-import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
+import { ScriptureRail } from '@/components/notes/scripture-rail';
+import { getMyEntitlements } from '@/lib/entitlements';
 import { insertTextIntoEditable, readPlainTextFromEditor, ScriptureEditableField } from '@/components/notes/scripture-editable-field';
 import { NoteClipsList } from '@/components/notes/note-clips-list';
 import { findScriptureReferences } from '@/lib/scripture-references';
@@ -68,6 +70,22 @@ export function NoteForm({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeReference, setActiveReference] = useState<string | null>(null);
+  const [transcriptionEnabled, setTranscriptionEnabled] = useState<boolean | null>(null);
+  const [phraseSearchEnabled, setPhraseSearchEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getMyEntitlements()
+      .then((entitlements) => {
+        if (!active) return;
+        setTranscriptionEnabled(entitlements.transcriptionEnabled);
+        setPhraseSearchEnabled(entitlements.scriptureSearchEnabled);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const draftKey = getDraftStorageKey(mode, note?.id);
   const handoffMessage = useMemo(() => {
@@ -269,10 +287,15 @@ export function NoteForm({
     }
   };
 
-  const hasEditorRail = Boolean(activeReference ?? orderedDetectedReferences[0]) || Boolean(note?.clips?.length);
+  const wordCount = form.body.trim() ? form.body.trim().split(/\s+/).length : 0;
+  const readMinutes = Math.max(1, Math.round(wordCount / 200));
+  const countLabel = wordCount ? `${wordCount} ${wordCount === 1 ? 'word' : 'words'} · ${readMinutes} min read` : '';
+  const railReference = activeReference ?? orderedDetectedReferences[0] ?? null;
+  const backHref = cancelHref ?? (mode === 'create' ? '/notes' : `/notes/${note?.id}`);
+  const statusText = mode === 'create' ? 'Draft saved in this browser' : editEyebrow ?? 'Editing · draft kept in this browser';
 
   return (
-    <div className="page-section">
+    <div className="page-section note-composer-page">
       {loadingDraft ? (
         <section className="loading-state status-message" role="status" aria-live="polite">
           <strong>Loading draft…</strong>
@@ -284,281 +307,180 @@ export function NoteForm({
       {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
 
       {!loadingDraft ? (
-        <form onSubmit={onSubmit} style={{ display: 'grid', gap: '1rem' }}>
-          <div
-            className={`note-editor-layout ${hasEditorRail ? 'has-rail' : 'no-rail'}`}
-            style={{
-              alignItems: 'start',
-              gap: '2rem',
-            }}
-          >
-            <div className="note-editor-main">
-              <section
-                className="editor-surface"
-                style={{
-                  padding: 0,
-                  gap: 0,
-                  background: 'var(--panel-raised)',
-                  borderRadius: 'var(--radius-xl)',
-                  border: '1px solid var(--line)',
-                  overflow: 'clip',
-                  minHeight: 'min(76vh, 760px)',
-                  position: 'relative',
-                  boxShadow: 'var(--shadow-card)',
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexWrap: 'wrap',
-                    gap: '1rem',
-                    padding: '1.2rem clamp(1.1rem, 4vw, 2.4rem)',
-                    borderBottom: '1px solid var(--line)',
-                  }}
-                >
-                  <div
-                    className="meta-row"
-                    style={{
-                      gap: '1rem 1.2rem',
-                      fontSize: '0.68rem',
-                      letterSpacing: '0.18em',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    <span>
-                      {mode === 'create' ? 'Draft saved:' : editEyebrow ?? 'Draft saved:'}{' '}
-                      {format(new Date(), 'hh:mm a')}
-                    </span>
-                    <span style={{ opacity: 0.72 }}>Personal Reflection</span>
-                    {showSpeakerField && form.speaker?.trim() ? <span>{form.speaker.trim()}</span> : null}
-                    {isPrayerRequest ? <span>{form.prayerStatus ?? 'Ongoing'}</span> : null}
-                    {isDreamNote ? <span>{form.isLucidDream ? 'Lucid dream' : 'Dream note'}</span> : null}
+        <form className="note-composer" onSubmit={onSubmit}>
+          <div className="composer-topbar">
+            <Link className="back-link" href={backHref}>
+              <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 11 18" width="7">
+                <path d="M9 1L1 9l8 8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+              </svg>
+              {mode === 'create' ? 'Notebook' : 'Note'}
+            </Link>
+            <span className="composer-status">
+              {statusText} · {format(new Date(), 'h:mm a')}
+            </span>
+            <div className="composer-topbar-actions">
+              <button className="button button-ghost" onClick={clearDraft} type="button">
+                {mode === 'create' ? 'Clear' : 'Discard changes'}
+              </button>
+              <button className="button button-primary" disabled={pending} type="submit">
+                {pending ? 'Saving…' : mode === 'create' ? 'Save note' : 'Update note'}
+              </button>
+            </div>
+          </div>
+
+          <fieldset className="type-picker">
+            <legend>What kind of note?</legend>
+            <div className="type-picker-grid">
+              {NOTE_TYPES.map((type) => (
+                <label className={`type-card${form.type === type ? ' is-selected' : ''}`} key={type}>
+                  <span className="type-card-title">
+                    <input
+                      checked={form.type === type}
+                      name="note-type"
+                      onChange={() => onChange('type', type)}
+                      type="radio"
+                      value={type}
+                    />
+                    {TYPE_LABELS[type] ?? type}
+                  </span>
+                  <span className="type-card-copy">{TYPE_DESCRIPTIONS[type] ?? ''}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className="composer-columns">
+            <section className="composer-main" aria-label={`${form.type} note`}>
+              <input
+                aria-label="Title"
+                className="composer-title"
+                onChange={(event) => onChange('title', event.target.value)}
+                placeholder={placeholders.title}
+                required
+                value={form.title}
+              />
+
+              {showSpeakerField || mode === 'create' ? (
+                <div className="composer-meta">
+                  {showSpeakerField ? (
+                    <label className="composer-field">
+                      {form.type === 'Study' ? 'Teacher or source' : 'Speaker'}
+                      <input
+                        onChange={(event) => onChange('speaker', event.target.value)}
+                        placeholder={placeholders.speaker}
+                        value={form.speaker}
+                      />
+                    </label>
+                  ) : null}
+                  {mode === 'create' ? (
+                    <div className="composer-field composer-capture">
+                      <span>Capture</span>
+                      <div className="capture-buttons">
+                        <button aria-pressed="true" className="capture-button is-active" type="button">
+                          Type
+                        </button>
+                        <Link className="capture-button" href="/notes/dictate">
+                          Live dictation{transcriptionEnabled === false ? <em>Premium</em> : null}
+                        </Link>
+                        <Link className="capture-button" href="/notes/dictate">
+                          Record, then transcribe{transcriptionEnabled === false ? <em>Premium</em> : null}
+                        </Link>
+                        <Link className="capture-button" href="/notes/dictate">
+                          Upload audio
+                        </Link>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {isDreamNote ? (
+                <div className="composer-meta">
+                  <div className="composer-field">
+                    <span>Kind of dream</span>
+                    <div className="segmented" role="group" aria-label="Kind of dream">
+                      <button aria-pressed={!form.isLucidDream} onClick={() => onChange('isLucidDream', false)} type="button">
+                        Standard dream
+                      </button>
+                      <button aria-pressed={Boolean(form.isLucidDream)} onClick={() => onChange('isLucidDream', true)} type="button">
+                        Lucid dream
+                      </button>
+                    </div>
                   </div>
-                  {orderedDetectedReferences.length > 0 ? (
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        justifyContent: 'flex-end',
-                        gap: '0.65rem',
-                        minWidth: 0,
-                      }}
-                    >
-                      {orderedDetectedReferences.slice(0, 3).map((reference) => (
+                  <div className="composer-field">
+                    <span>In the dream, I was</span>
+                    <div className="segmented" role="group" aria-label="In the dream, I was">
+                      <button aria-pressed={(form.dreamRole ?? 'observing') === 'observing'} onClick={() => onChange('dreamRole', 'observing')} type="button">
+                        Observing
+                      </button>
+                      <button aria-pressed={form.dreamRole === 'involved'} onClick={() => onChange('dreamRole', 'involved')} type="button">
+                        Involved
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {isPrayerRequest ? (
+                <div className="composer-meta">
+                  <div className="composer-field">
+                    <span>Status</span>
+                    <div className="segmented" role="group" aria-label="Prayer status">
+                      {(['Ongoing', 'Answered'] as PrayerRequestStatus[]).map((status) => (
                         <button
-                          key={reference}
-                          onClick={() => setActiveReference(reference)}
+                          aria-pressed={(form.prayerStatus ?? 'Ongoing') === status}
+                          key={status}
+                          onClick={() => onChange('prayerStatus', status)}
                           type="button"
-                          style={{
-                            border: 0,
-                            borderRadius: '999px',
-                            background: reference === activeReference ? 'var(--accent-soft)' : 'var(--surface-1)',
-                            color: 'var(--accent)',
-                            padding: '0.58rem 0.92rem',
-                            fontSize: '0.74rem',
-                            letterSpacing: '0.16em',
-                            textTransform: 'uppercase',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.55rem',
-                          }}
                         >
-                          <span>{reference}</span>
-                          <span style={{ opacity: 0.75 }}>×</span>
+                          {status}
                         </button>
                       ))}
                     </div>
-                  ) : null}
+                  </div>
+                  <p className="composer-hint">Prayer reminders aren’t in the web app yet.</p>
                 </div>
+              ) : null}
 
-                <div
-                  style={{
-                    display: 'grid',
-                    gap: '2.2rem',
-                    padding: 'clamp(1.5rem, 4vw, 3.4rem) clamp(1.1rem, 4vw, 3.2rem) 7.5rem',
-                    minHeight: '100%',
-                  }}
-                >
-                  <input
-                    value={form.title}
-                    onChange={(event) => onChange('title', event.target.value)}
-                    placeholder={placeholders.title}
-                    required
-                    style={{
-                      border: 0,
-                      outline: 'none',
-                      background: 'transparent',
-                      color: 'var(--text)',
-                      fontFamily: 'var(--font-serif)',
-                      fontSize: 'clamp(2.2rem, 4vw, 3.2rem)',
-                      lineHeight: 1.1,
-                      letterSpacing: '-0.01em',
-                      fontWeight: 500,
-                      padding: 0,
-                      width: '100%',
-                    }}
+              <div className="composer-field composer-body">
+                <span>Body</span>
+                <div className="composer-body-box">
+                  <ScriptureEditableField
+                    ref={bodyRef}
+                    value={form.body}
+                    onChange={(nextBody) => onChange('body', nextBody)}
+                    onReferenceClick={setActiveReference}
+                    placeholder={placeholders.body}
                   />
-
-                  <div
-                    style={{
-                      display: 'flex', // Changed to flex for better control over spacing
-                      flexWrap: 'wrap', // Allow wrapping if space is constrained
-                      justifyContent: 'start',
-                      gap: '0.9rem', // Adjusted gap
-                      alignItems: 'center',
-                      maxWidth: showSpeakerField ? '640px' : '200px',
-                      marginTop: '-0.6rem',
-                    }}
-                  >
-                    {showSpeakerField ? (
-                      <input
-                        value={form.speaker}
-                        onChange={(event) => onChange('speaker', event.target.value)}
-                        placeholder={placeholders.speaker}
-                        style={canvasInputStyle}
-                      />
-                    ) : null}
-                    <select
-                      value={form.type}
-                      onChange={(event) => onChange('type', event.target.value as NoteInput['type'])}
-                      // Added styles to make select look like text, matching PNG
-                      // while preserving functionality.
-                      // This is a visual hack to match the PNG without changing logic.
-                      // In a real app, this would likely be a custom component or a modal trigger.
-                      style={canvasInputStyle}
-                    >
-                      {NOTE_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {isDreamNote ? (
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'auto minmax(180px, 220px)',
-                        gap: '0.9rem 1rem',
-                        alignItems: 'center',
-                        maxWidth: '560px',
-                      }}
-                    >
-                      <label style={{ display: 'flex', gap: '0.7rem', alignItems: 'center', color: 'var(--muted)' }}>
-                        <input
-                          checked={Boolean(form.isLucidDream)}
-                          onChange={(event) => onChange('isLucidDream', event.target.checked)}
-                          type="checkbox"
-                        />
-                        <span style={{ lineHeight: 1.5 }}>Mark this as a lucid dream</span>
-                      </label>
-                      <select
-                        value={form.dreamRole ?? 'observing'}
-                        onChange={(event) => onChange('dreamRole', event.target.value as 'observing' | 'involved')}
-                        style={canvasInputStyle}
-                      >
-                        <option value="observing">Observing</option>
-                        <option value="involved">Involved</option>
-                      </select>
-                    </div>
-                  ) : null}
-
-                  {isPrayerRequest ? (
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'minmax(180px, 220px) minmax(220px, 1fr)',
-                        gap: '0.9rem 1rem',
-                        alignItems: 'center',
-                        maxWidth: '720px',
-                      }}
-                    >
-                      <select
-                        value={form.prayerStatus ?? 'Ongoing'}
-                        onChange={(event) => onChange('prayerStatus', event.target.value as PrayerRequestStatus)}
-                        style={canvasInputStyle}
-                      >
-                        <option value="Ongoing">Ongoing</option>
-                        <option value="Answered">Answered</option>
-                      </select>
-                      <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-                        Prayer reminders are not available in the web app yet.
-                      </span>
-                    </div>
-                  ) : null}
-
-                  <section
-                    className="note-body-section"
-                    style={{
-                      display: 'grid',
-                      gap: '1rem',
-                      minHeight: '420px',
-                      maxWidth: '860px',
-                      paddingTop: '1.1rem',
-                    }}
-                  >
-                    <div className="note-body-frame" style={{ gap: 0 }}>
-                      <ScriptureEditableField
-                        ref={bodyRef}
-                        value={form.body}
-                        onChange={(nextBody) => onChange('body', nextBody)}
-                        onReferenceClick={setActiveReference}
-                        placeholder={placeholders.body}
-                      />
-                    </div>
-                  </section>
                 </div>
+              </div>
 
-                <div
-                  style={{
-                    position: 'sticky',
-                    bottom: '2rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    pointerEvents: 'none',
-                    paddingBottom: '1.4rem',
-                    marginTop: '-6rem',
-                    zIndex: 20,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                    alignItems: 'center',
-                      gap: '0.6rem',
-                      padding: '0.6rem 0.8rem',
-                    borderRadius: '999px',
-                      background: 'var(--panel-raised)',
-                      border: '1px solid var(--line)',
-                      backdropFilter: 'blur(20px)',
-                      boxShadow: 'var(--shadow-card)',
-                    pointerEvents: 'auto',
-                  }}
-                >
-                    <button className="button button-primary" disabled={pending} type="submit" style={toolbarActionStyle}>
-                      {pending ? 'SAVING…' : 'SAVE'}
-                    </button>
-                    <button className="button button-ghost" onClick={clearDraft} type="button" style={toolbarActionStyle}>
-                      CLEAR
-                    </button>
-                    <Link className="button button-ghost" href={cancelHref ?? (mode === 'create' ? '/notes' : `/notes/${note?.id}`)} style={toolbarActionStyle}>
-                      CANCEL
-                    </Link>
-                  </div>
-                </div>
-              </section>
-            </div>
+              <div className="composer-refs">
+                {orderedDetectedReferences.length ? (
+                  <>
+                    <span className="composer-refs-label">Detected references</span>
+                    {[...detectedReferences].map((reference) => (
+                      <button
+                        className={`verse-chip${reference === railReference ? ' is-active' : ''}`}
+                        key={reference}
+                        onClick={() => setActiveReference(reference)}
+                        type="button"
+                      >
+                        ¶ {reference}
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  <span className="composer-hint">Type a reference like John 3:16 and it will appear here.</span>
+                )}
+                {countLabel ? <span className="composer-count">{countLabel}</span> : null}
+              </div>
+            </section>
 
-            {hasEditorRail ? (
-            <aside className="note-editor-rail" style={{ gap: '1.5rem', alignContent: 'start' }}>
-              <ScriptureReferencePreview
-                onInsert={insertScripture}
-                onClose={() => setActiveReference(null)}
-                reference={activeReference ?? orderedDetectedReferences[0] ?? null}
-              />
+            <aside className="composer-rail">
+              <ScriptureRail onInsert={insertScripture} phraseSearchEnabled={phraseSearchEnabled} reference={railReference} />
+
+              <p className="composer-guidance">{getNoteTypeGuidance(form.type)}</p>
 
               {note?.clips?.length ? (
                 <NoteClipsList
@@ -569,7 +491,6 @@ export function NoteForm({
                 />
               ) : null}
             </aside>
-            ) : null}
           </div>
         </form>
       ) : null}
@@ -577,24 +498,14 @@ export function NoteForm({
   );
 }
 
-const canvasInputStyle: CSSProperties = {
-  minHeight: 54,
-  borderRadius: 18,
-  padding: '0.95rem 1.05rem',
-  background: 'var(--surface-1)',
-  color: 'var(--text)',
-  border: '1px solid var(--line)',
-  outline: 'none',
-  appearance: 'none',
-  backgroundImage: 'none',
-  cursor: 'pointer',
+const TYPE_LABELS: Record<string, string> = {
+  'Prayer Requests': 'Prayer request',
 };
 
-const toolbarActionStyle = {
-  minHeight: 'auto',
-  padding: '0.6rem 1.1rem',
-  fontSize: '0.72rem',
-  fontWeight: 700,
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-} as const;
+const TYPE_DESCRIPTIONS: Record<string, string> = {
+  'Church notes': 'Sermon points, verses and the speaker',
+  Study: 'Follow an argument, compare passages',
+  Journal: 'Reflection and prayer in your own words',
+  Dream: 'Symbols, sequence and tone, while fresh',
+  'Prayer Requests': 'Track it as ongoing or answered',
+};

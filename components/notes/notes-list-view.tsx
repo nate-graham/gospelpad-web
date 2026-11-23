@@ -4,12 +4,10 @@ import Link from 'next/link';
 import { isBereaNote } from '@/lib/berea';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { createNote, listNotes, listReceivedSharedNotes, NOTE_TYPES, softDeleteNotes, type NoteListQuery, type NoteRecord, type ReceivedSharedNoteSummary } from '@/lib/notes';
-import { formatNoteDate, getNoteExcerpt } from '@/components/notes/note-utils';
+import { listNotes, listReceivedSharedNotes, NOTE_TYPES, softDeleteNotes, type NoteListQuery, type NoteRecord, type ReceivedSharedNoteSummary } from '@/lib/notes';
+import { getNoteExcerpt, getScriptureReferenceCount } from '@/components/notes/note-utils';
 import { DeleteNotesDialog } from '@/components/notes/delete-notes-dialog';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
-import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
-import type { ScriptureResult } from '@/lib/scripture';
 import { useSupabaseAuth } from '@/components/providers/supabase-auth-provider';
 
 export function NotesListView() {
@@ -26,7 +24,6 @@ export function NotesListView() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingSelected, setDeletingSelected] = useState(false);
   const [inlineNotice, setInlineNotice] = useState<string | null>(null);
-  const [coarsePointer, setCoarsePointer] = useState(false);
 
   const headerName =
     (typeof user?.user_metadata?.username === 'string' && user.user_metadata.username.trim()) ||
@@ -54,7 +51,7 @@ export function NotesListView() {
         setLoading(true);
         setError(null);
         const [data, received] = await Promise.all([
-          listNotes(query),
+          listNotes({ ...query, type: 'all' }),
           listReceivedSharedNotes(),
         ]);
         if (!active) return;
@@ -73,25 +70,7 @@ export function NotesListView() {
     return () => {
       active = false;
     };
-  }, [query]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return;
-    }
-
-    const media = window.matchMedia('(pointer: coarse)');
-    const update = () => setCoarsePointer(media.matches);
-    update();
-
-    if (typeof media.addEventListener === 'function') {
-      media.addEventListener('change', update);
-      return () => media.removeEventListener('change', update);
-    }
-
-    media.addListener(update);
-    return () => media.removeListener(update);
-  }, []);
+  }, [query.search, query.status, query.scope, query.sort]);
 
   const successMessage = useMemo(() => {
     if (searchParams.get('created') === '1') return 'Note created successfully.';
@@ -99,8 +78,6 @@ export function NotesListView() {
     if (searchParams.get('deleted') === '1') return 'Note deleted successfully.';
     return inlineNotice;
   }, [inlineNotice, searchParams]);
-
-  const noteCountLabel = notes.length === 1 ? '1 note' : `${notes.length} notes`;
 
   const activeFilterCount = useMemo(() => {
     return [
@@ -182,55 +159,129 @@ export function NotesListView() {
     }
   };
 
-  const createScriptureNote = async (payload: string, result: ScriptureResult) => {
-    const noteId = await createNote({
-      title: result.reference,
-      body: payload,
-      speaker: '',
-      type: 'Church notes',
-    });
-    router.push(`/notes/${noteId}/edit?created=1&from=scripture-search`);
+  const view = searchParams.get('view') === 'shared' ? 'shared' : query.scope === 'group' ? 'group' : 'personal';
+  const typeCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    notes.forEach((note) => counts.set(note.type ?? 'Note', (counts.get(note.type ?? 'Note') ?? 0) + 1));
+    return counts;
+  }, [notes]);
+  const visibleNotes = useMemo(
+    () => (query.type && query.type !== 'all' ? notes.filter((note) => note.type === query.type) : notes),
+    [notes, query.type]
+  );
+
+  const setView = (next: 'personal' | 'shared' | 'group') => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('view');
+    params.delete('scope');
+    if (next === 'shared') params.set('view', 'shared');
+    if (next === 'group') params.set('scope', 'group');
+    router.replace(params.toString() ? `${pathname}?${params.toString()}` : pathname);
+  };
+
+  const openNote = (note: NoteRecord) => {
+    if (selectionMode) {
+      toggleSelectedNote(note.id);
+      return;
+    }
+    router.push(isBereaNote(note) ? `/berea/${note.id}` : `/notes/${note.id}`);
   };
 
   return (
-    <div className="page-container page-section notes-list-page">
-      <header 
-        className="note-list-hero" 
-        style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: '0.25rem',
-          gap: '2rem'
-        }}
-      >
-        <div className="note-list-title" style={{ letterSpacing: '-0.02em' }}>
-          <span className="eyebrow" style={{ color: 'var(--tertiary)', letterSpacing: '0.05em', fontSize: '0.8rem', fontWeight: 500, marginBottom: '0', display: 'block', opacity: 0.7, textTransform: 'none' }}>{headerName}</span>
-          <h1 style={{ margin: 0, fontSize: 'clamp(2.4rem, 4.5vw, 3.6rem)', lineHeight: 1.05 }}>Your <em>notebook.</em></h1>
+    <div className="page-container page-section notebook-page">
+      <header className="notebook-header">
+        <div>
+          <span className="eyebrow" style={{ color: 'var(--accent)' }}>
+            {headerName}’s library
+          </span>
+          <h1>Notebook</h1>
         </div>
-        <div className="cta-row notes-list-actions" style={{ flexShrink: 0, gap: '1.25rem', alignItems: 'center' }}>
-          <button className="button button-secondary" onClick={toggleSelectionMode} type="button" style={{ borderRadius: '24px', padding: '0.4rem 1rem', background: 'transparent', border: '1px solid var(--line)', fontSize: '0.8rem', opacity: 0.8 }}>
+        <div className="notebook-actions">
+          <button className="button button-secondary" onClick={toggleSelectionMode} type="button">
             {selectionMode ? 'Cancel' : 'Select'}
           </button>
           {selectionMode ? (
             <button
-              className="button button-primary"
+              className="button button-vermilion"
               disabled={selectedNoteIds.length === 0 || deletingSelected}
               onClick={requestDeleteSelected}
-              type="button" style={{ borderRadius: '24px', padding: '0.4rem 1.25rem' }}
+              type="button"
             >
-              {deletingSelected ? 'Deleting…' : selectedNoteIds.length > 0 ? `Delete selected (${selectedNoteIds.length})` : 'Delete selected'}
+              {deletingSelected ? 'Deleting…' : `Delete${selectedNoteIds.length ? ` (${selectedNoteIds.length})` : ''}`}
             </button>
-          ) : null}
-          <Link className="button button-secondary" href="/notes/dictate" style={{ gap: '0.6rem' }}>
-            <svg width="12" height="15" viewBox="0 0 16 20" fill="none" aria-hidden="true"><rect x="4.5" y="1" width="7" height="12" rx="3.5" stroke="var(--vermilion)" strokeWidth="1.8" /><path d="M1.5 9.5a6.5 6.5 0 0013 0M8 16v3" stroke="var(--vermilion)" strokeWidth="1.8" strokeLinecap="round" /></svg>
-            Record or dictate
-          </Link>
-          <Link className="button button-primary" href="/notes/new" style={{ gap: '0.5rem' }}>
+          ) : (
+            <Link className="button button-secondary" href="/notes/dictate">
+              <svg width="12" height="15" viewBox="0 0 16 20" fill="none" aria-hidden="true"><rect x="4.5" y="1" width="7" height="12" rx="3.5" stroke="var(--vermilion)" strokeWidth="1.8" /><path d="M1.5 9.5a6.5 6.5 0 0013 0M8 16v3" stroke="var(--vermilion)" strokeWidth="1.8" strokeLinecap="round" /></svg>
+              Record
+            </Link>
+          )}
+          <Link className="button button-primary" href="/notes/new">
             <span aria-hidden="true">+</span> New note
           </Link>
         </div>
       </header>
+
+      <nav className="notebook-tabs" aria-label="Notebook sections">
+        <button aria-current={view === 'personal' ? 'page' : undefined} onClick={() => setView('personal')} type="button">
+          Personal notes {view === 'personal' && !loading ? <span>{notes.length}</span> : null}
+        </button>
+        <button aria-current={view === 'shared' ? 'page' : undefined} onClick={() => setView('shared')} type="button">
+          Shared with you {!loading ? <span>{receivedSharedNotes.length}</span> : null}
+        </button>
+        <button aria-current={view === 'group' ? 'page' : undefined} onClick={() => setView('group')} type="button">
+          Group notes {view === 'group' && !loading ? <span>{notes.length}</span> : null}
+        </button>
+      </nav>
+
+      {view !== 'shared' ? (
+        <>
+          <div className="notebook-filters">
+            <label className="notebook-search">
+              <svg aria-hidden="true" fill="none" height="15" viewBox="0 0 24 24" width="15">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+                <path d="m20 20-3.5-3.5" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
+              </svg>
+              <input
+                aria-label="Search notes"
+                onChange={(event) => updateQuery({ search: event.target.value })}
+                placeholder="Search titles, speakers and text…"
+                type="search"
+                value={query.search ?? ''}
+              />
+            </label>
+            <label className="notebook-select">
+              Status
+              <select onChange={(event) => updateQuery({ status: event.target.value as NoteListQuery['status'] })} value={query.status ?? 'all'}>
+                <option value="all">Any status</option>
+                <option value="with-status">Has status</option>
+                <option value="no-status">No status</option>
+              </select>
+            </label>
+            <label className="notebook-select">
+              Sort
+              <select onChange={(event) => updateQuery({ sort: event.target.value as NoteListQuery['sort'] })} value={query.sort ?? 'updated-desc'}>
+                <option value="updated-desc">Recently updated</option>
+                <option value="updated-asc">Oldest updated</option>
+                <option value="created-desc">Recently created</option>
+                <option value="created-asc">Oldest created</option>
+                <option value="title-asc">Title A–Z</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="notebook-chips" role="group" aria-label="Filter by type">
+            <button aria-pressed={!query.type || query.type === 'all'} onClick={() => updateQuery({ type: 'all' })} type="button">
+              All types
+            </button>
+            {NOTE_TYPES.map((type) => (
+              <button aria-pressed={query.type === type} key={type} onClick={() => updateQuery({ type })} type="button">
+                {type === 'Prayer Requests' ? 'Prayer requests' : type === 'Church notes' ? 'Church notes' : type}
+                {typeCounts.get(type) ? ` · ${typeCounts.get(type)}` : ''}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
 
       {successMessage ? <div className="empty-state status-message" role="status" aria-live="polite">{successMessage}</div> : null}
 
@@ -251,315 +302,126 @@ export function NotesListView() {
         </section>
       ) : null}
 
-      {!loading && !error && notes.length === 0 ? (
-        <section className="empty-state status-message" role="status">
+      {!loading && !error && view !== 'shared' && visibleNotes.length === 0 ? (
+        <section className="notebook-empty" role="status">
           <strong>{activeFilterCount > 0 ? 'No notes match these filters' : 'No notes yet'}</strong>
-          <span style={{ color: 'var(--muted)' }}>
+          <span>
             {activeFilterCount > 0
-              ? 'Try broadening your search or resetting the current note filters.'
-              : 'Start with a church note, study note, journal entry, dream note, or prayer request.'}
+              ? 'Try a broader search, or clear the filters.'
+              : 'Start with a church note, study, journal entry, dream or prayer request.'}
           </span>
-          <div className="cta-row">
-            {activeFilterCount > 0 ? (
-              <button className="button button-secondary" onClick={resetFilters} type="button">
-                Reset filters
-              </button>
-            ) : (
-              <Link className="button button-primary" href="/notes/new">
-                Create your first note
-              </Link>
-            )}
-          </div>
+          {activeFilterCount > 0 ? (
+            <button className="button button-secondary" onClick={resetFilters} type="button">
+              Clear filters
+            </button>
+          ) : (
+            <Link className="button button-primary" href="/notes/new">
+              Write your first note
+            </Link>
+          )}
         </section>
       ) : null}
 
-      {!loading && !error ? (
-        <div className="note-library-layout" style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '1rem', alignItems: 'start' }}>
-          <aside className="note-library-rail" style={{ display: 'grid', gap: '1rem' }}>
-            <section style={panelCardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-                <span className="eyebrow" style={{ color: 'var(--accent)', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.1em' }}>OVERVIEW</span>
-                <span style={{ fontSize: '0.6rem', color: 'var(--tertiary)', transform: 'rotate(180deg)' }}>▼</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', alignItems: 'baseline' }}>
-                <span style={{ color: 'var(--tertiary)', fontSize: '0.9rem', opacity: 0.8 }}>Total Reflections</span>
-                <strong style={{ fontSize: '2rem', fontWeight: 400, color: 'var(--secondary)', letterSpacing: '-0.02em' }}>{notes.length}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2.2rem', alignItems: 'baseline' }}>
-                <span style={{ color: 'var(--tertiary)', fontSize: '0.9rem', opacity: 0.8 }}>Recent Activity</span>
-                <strong style={{ fontSize: '0.92rem', fontWeight: 500, color: 'var(--accent)' }}>2 hours ago</strong>
-              </div>
-              <div style={{ borderTop: '1px solid var(--line)', paddingTop: '1.5rem' }}>
-                <p style={{ color: 'var(--tertiary)', fontStyle: 'italic', fontSize: '0.92rem', lineHeight: 1.9, margin: 0, opacity: 0.6 }}>
-                  "The heart of the discerning acquires knowledge, for the ears of the wise seek it out."
-                </p>
-              </div>
-            </section>
-
-            <details style={panelCardStyle}>
-              <summary style={panelSummaryStyle}>
-                <span className="eyebrow" style={{ color: 'var(--secondary)', fontSize: '0.75rem', letterSpacing: '0.1em' }}>DISCOVERY</span>
-                <span style={{ fontSize: '0.6rem', color: 'var(--tertiary)' }}>▼</span>
-              </summary>
-              <div style={{ display: 'grid', gap: '1.5rem', paddingTop: '1.5rem' }}>
-                <label style={fieldStyle}>
-                  <span className="eyebrow" style={labelTextStyle}>Search</span>
-                  <input
-                    onChange={(e) => updateQuery({ search: e.target.value })}
-                    placeholder="Search title, speaker, or body..."
-                    style={inputStyle}
-                    value={query.search ?? ''}
-                  />
-                </label>
-
-                <label style={fieldStyle}>
-                  <span className="eyebrow" style={labelTextStyle}>Type</span>
-                  <select
-                    onChange={(event) => updateQuery({ type: event.target.value as NoteListQuery['type'] })}
-                    style={inputStyle}
-                    value={query.type ?? 'all'}
-                  >
-                    <option value="all">All note types</option>
-                    {NOTE_TYPES.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label style={fieldStyle}>
-                  <span className="eyebrow" style={labelTextStyle}>Status</span>
-                  <select
-                    onChange={(event) => updateQuery({ status: event.target.value as NoteListQuery['status'] })}
-                    style={inputStyle}
-                    value={query.status ?? 'all'}
-                  >
-                    <option value="all">Any status</option>
-                    <option value="with-status">Has status</option>
-                    <option value="no-status">No status</option>
-                  </select>
-                </label>
-
-                <label style={fieldStyle}>
-                  <span className="eyebrow" style={labelTextStyle}>Scope</span>
-                  <select
-                    onChange={(event) => updateQuery({ scope: event.target.value as NoteListQuery['scope'] })}
-                    style={inputStyle}
-                    value={query.scope ?? 'personal'}
-                  >
-                    <option value="personal">Personal notes</option>
-                    <option value="all">All available notes</option>
-                    <option value="group">Group-linked notes</option>
-                  </select>
-                </label>
-
-                <label style={fieldStyle}>
-                  <span className="eyebrow" style={labelTextStyle}>Sort</span>
-                  <select
-                    onChange={(event) => updateQuery({ sort: event.target.value as NoteListQuery['sort'] })}
-                    style={inputStyle}
-                    value={query.sort ?? 'updated-desc'}
-                  >
-                    <option value="updated-desc">Recently updated</option>
-                    <option value="updated-asc">Oldest updated</option>
-                    <option value="created-desc">Recently created</option>
-                    <option value="created-asc">Oldest created</option>
-                    <option value="title-asc">Title A-Z</option>
-                  </select>
-                </label>
-              </div>
-              <div className="cta-row">
-                <button className="button button-secondary" onClick={resetFilters} type="button">
-                  Reset filters
-                </button>
-              </div>
-            </details>
-
-            <details style={panelCardStyle}>
-              <summary style={panelSummaryStyle}>
-                <span className="eyebrow" style={{ color: 'var(--secondary)', fontSize: '0.75rem', letterSpacing: '0.1em' }}>SCRIPTURE SEARCH</span>
-                <span style={{ fontSize: '0.6rem', color: 'var(--tertiary)' }}>▼</span>
-              </summary>
-              <div style={{ paddingTop: '1.5rem' }}>
-                <ScriptureSearchPanel compact onCreateNote={createScriptureNote} />
-              </div>
-            </details>
-          </aside>
-
-          <div className="note-library-main">
-            <nav 
-              className="tab-bar" 
-              style={{ 
-                position: 'relative',
-                display: 'flex', 
-                gap: '3.5rem', 
-                justifyContent: 'center',
-                marginBottom: '0.5rem', 
-                borderBottom: '1px solid var(--border-soft)' 
-              }}
-            >
-              <button 
-                className="tab-item" 
-                onClick={() => resetFilters()}
-                style={{ 
-                  position: 'relative',
-                  background: 'none', 
-                  border: 'none', 
-                  padding: '1.2rem 0', 
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  color: activeFilterCount === 0 ? 'var(--secondary)' : 'var(--tertiary)',
-                  fontWeight: activeFilterCount === 0 ? 500 : 400,
-                  opacity: activeFilterCount === 0 ? 1 : 0.4
-                }}
-              >
-                All Notes
-                {activeFilterCount === 0 && (
-                  <div style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: '20px', height: '2px', background: 'var(--accent)' }} />
-                )}
-              </button>
-              <button 
-                className="tab-item" 
-                disabled
-                style={{ 
-                  background: 'none', 
-                  border: 'none', 
-                  padding: '1.2rem 0', 
-                  cursor: 'not-allowed',
-                  fontSize: '0.95rem',
-                  color: 'var(--tertiary)',
-                  opacity: 0.3
-                }}
-              >
-                Favorites
-              </button>
-              <button 
-                className="tab-item" 
-                onClick={() => updateQuery({ sort: 'updated-desc' })}
-                style={{ 
-                  position: 'relative',
-                  background: 'none', 
-                  border: 'none', 
-                  padding: '1.2rem 0', 
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  color: query.sort === 'updated-desc' && activeFilterCount > 0 ? 'var(--secondary)' : 'var(--tertiary)',
-                  fontWeight: query.sort === 'updated-desc' && activeFilterCount > 0 ? 500 : 400,
-                  opacity: query.sort === 'updated-desc' && activeFilterCount > 0 ? 1 : 0.4
-                }}
-              >
-                Recent
-                {query.sort === 'updated-desc' && activeFilterCount > 0 && (
-                  <div style={{ position: 'absolute', bottom: -1, left: '50%', transform: 'translateX(-50%)', width: '20px', height: '2px', background: 'var(--accent)' }} />
-                )}
-              </button>
-              <button 
-                style={{ 
-                  position: 'absolute',
-                  right: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none', 
-                  border: 'none', 
-                  color: 'var(--tertiary)', 
-                  fontSize: '1.2rem', 
-                  cursor: 'pointer', 
-                  padding: 0, 
-                  opacity: 0.5 
-                }}
-              >
-                ⊞
-              </button>
-            </nav>
-
-            {notes.length > 0 ? (
-              <section className="note-card-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.2rem' }}>
-                {notes.map((note) => (
-                  <article
-                    key={note.id}
-                    className="note-card"
-                    onClick={() => {
-                      if (selectionMode) {
-                        toggleSelectedNote(note.id);
-                        return;
-                      }
-                      if (coarsePointer) {
-                        return;
-                      }
-                      router.push(isBereaNote(note) ? `/berea/${note.id}` : `/notes/${note.id}`);
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        if (selectionMode) {
-                          toggleSelectedNote(note.id);
-                          return;
-                        }
-                        router.push(isBereaNote(note) ? `/berea/${note.id}` : `/notes/${note.id}`);
-                      }
-                    }}
-                    role={coarsePointer && !selectionMode ? undefined : 'button'}
-                    aria-pressed={selectionMode ? selectedNoteIds.includes(note.id) : undefined}
-                    tabIndex={coarsePointer && !selectionMode ? -1 : 0}
-                    style={{
-                      cursor: selectionMode ? 'default' : 'pointer',
-                      outline: selectionMode && selectedNoteIds.includes(note.id) ? '2px solid var(--accent)' : undefined,
-                      background: 'var(--panel)',
-                      borderRadius: '20px',
-                      padding: '1.25rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minHeight: '210px',
-                      border: '1px solid var(--line)',
-                      boxShadow: 'none',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.1rem', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', gap: '0.75rem' }}>
-                        <span className="eyebrow" style={{ color: isBereaNote(note) ? 'var(--accent)' : 'var(--vermilion)' }}>
-                          {isBereaNote(note) ? 'Berea study' : note.type ?? 'Note'}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        {selectionMode && (
-                          <input
-                            checked={selectedNoteIds.includes(note.id)}
-                            onClick={(event) => event.stopPropagation()}
-                            onChange={() => toggleSelectedNote(note.id)}
-                            type="checkbox"
-                            style={{ width: '18px', height: '18px', accentColor: 'var(--accent)' }}
-                          />
-                        )}
-                        <button style={{ background: 'none', border: 'none', color: 'var(--tertiary)', fontSize: '1.2rem', cursor: 'pointer', padding: 0 }}>⋮</button>
-                      </div>
-                    </div>
-                    <h3 style={{ fontSize: '1.45rem', lineHeight: 1.25, margin: '0 0 0.5rem', color: 'var(--text)' }}>
+      {!loading && !error && view !== 'shared' && visibleNotes.length > 0 ? (
+        <ul className="notebook-list">
+          {visibleNotes.map((note) => {
+            const refs = getScriptureReferenceCount(note);
+            const berea = isBereaNote(note);
+            const selected = selectedNoteIds.includes(note.id);
+            return (
+              <li key={note.id}>
+                <div
+                  aria-pressed={selectionMode ? selected : undefined}
+                  className={`notebook-row${selected ? ' is-selected' : ''}`}
+                  onClick={() => openNote(note)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      openNote(note);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  {selectionMode ? (
+                    <input
+                      aria-label={`Select ${note.title || 'note'}`}
+                      checked={selected}
+                      onChange={() => toggleSelectedNote(note.id)}
+                      onClick={(event) => event.stopPropagation()}
+                      type="checkbox"
+                    />
+                  ) : null}
+                  <span className={`notebook-type type-${typeSlug(berea ? 'Berea' : note.type)}`}>
+                    {berea ? 'Berea study' : note.type === 'Prayer Requests' ? 'Prayer request' : note.type ?? 'Note'}
+                  </span>
+                  <span className="notebook-row-main">
+                    <span className="notebook-row-title">
                       {note.title?.trim() || 'Untitled'}
-                    </h3>
-                    <p style={{ color: 'var(--muted)', fontSize: '0.95rem', lineHeight: 1.55, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {getNoteExcerpt(note)}
-                    </p>
-                    <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.6rem' }}>
-                      <span style={{ color: 'var(--tertiary)', fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                        {formatNoteDate(note.updated_at)}
+                      {note.speaker?.trim() && !berea ? <em> · {note.speaker.trim()}</em> : null}
+                    </span>
+                    <span className="notebook-row-excerpt">{getNoteExcerpt(note)}</span>
+                  </span>
+                  <span className="notebook-row-meta">
+                    {note.status ? <span className={`note-status-pill${note.status === 'Answered' ? ' is-answered' : ''}`}>{note.status}</span> : null}
+                    {note.type === 'Dream' ? (
+                      <span className="notebook-pill">
+                        {note.dream_role === 'involved' ? 'Involved' : 'Observing'} · {note.is_lucid_dream ? 'lucid' : 'not lucid'}
                       </span>
-                      <span style={{ color: 'var(--accent)', fontSize: '1.4rem', fontWeight: 300 }}>→</span>
-                    </div>
-                  </article>
-                ))}
-                {!selectionMode && (
-                  <Link href="/notes/new" style={{ background: 'transparent', borderRadius: '20px', border: '2px dashed var(--line-strong)', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '240px' }}>
-                    <div style={{ width: '64px', height: '64px', borderRadius: '32px', background: 'var(--surface-1)', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'var(--accent)', fontSize: '1.8rem', fontWeight: 300 }}>
-                      +
-                    </div>
-                  </Link>
-                )}
-              </section>
-            ) : null}
-          </div>
-        </div>
+                    ) : null}
+                    {refs > 0 ? (
+                      <span className="verse-chip">
+                        ¶ {refs} {refs === 1 ? 'reference' : 'references'}
+                      </span>
+                    ) : null}
+                    {note.clips?.length ? <span className="notebook-date">Audio ·</span> : null}
+                    <span className="notebook-date">{shortDate(note.updated_at)}</span>
+                  </span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       ) : null}
+
+      {!loading && !error && view === 'shared' ? (
+        receivedSharedNotes.length ? (
+          <ul className="notebook-list">
+            {receivedSharedNotes.map((item) => (
+              <li key={item.note.id}>
+                <Link className="notebook-row" href={`/notes/shared/${item.note.id}`}>
+                  <span className={`notebook-type type-${typeSlug(item.note.type)}`}>
+                    {item.note.type === 'Prayer Requests' ? 'Prayer request' : item.note.type ?? 'Note'}
+                  </span>
+                  <span className="notebook-row-main">
+                    <span className="notebook-row-title">
+                      {item.note.title?.trim() || 'Untitled'}
+                      <em> · from {item.shared_by_label}</em>
+                    </span>
+                    <span className="notebook-row-excerpt">{getNoteExcerpt(item.note)}</span>
+                  </span>
+                  <span className="notebook-row-meta">
+                    <span className="notebook-pill">{item.permissions.includes('edit') ? 'Can edit' : item.permissions.includes('comment') ? 'Can comment' : 'Read-only'}</span>
+                    <span className="notebook-date">{shortDate(item.shared_at)}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <section className="notebook-empty" role="status">
+            <strong>Nothing shared with you yet</strong>
+            <span>When someone shares a note with you, it appears here.</span>
+          </section>
+        )
+      ) : null}
+
+      {!loading && !error && view === 'personal' ? (
+        <Link className="notebook-footer-link" href="/profile#recently-deleted">
+          Recently deleted · restorable for 30 days →
+        </Link>
+      ) : null}
+
       <DeleteNotesDialog
         deleting={deletingSelected}
         noteCount={selectedNoteIds.length}
@@ -571,21 +433,20 @@ export function NotesListView() {
   );
 }
 
-const panelCardStyle: React.CSSProperties = {
-  background: 'var(--panel)',
-  borderRadius: '20px',
-  padding: '1.5rem',
-  border: '1px solid var(--line)',
-  width: '100%',
-};
+function typeSlug(type: string | null | undefined) {
+  return (type ?? 'note').toLowerCase().replace(/[^a-z]+/g, '-');
+}
 
-const panelSummaryStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  cursor: 'pointer',
-  listStyle: 'none',
-};
+/** "Today", a weekday within the last week, otherwise "8 Jul". */
+function shortDate(value: string) {
+  const date = new Date(value);
+  const now = new Date();
+  const days = Math.floor((new Date(now.toDateString()).getTime() - new Date(date.toDateString()).getTime()) / 86400000);
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return new Intl.DateTimeFormat('en-GB', { weekday: 'short' }).format(date);
+  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric' }).format(date);
+}
 
 function setParam(params: URLSearchParams, key: string, value: string, defaultValue: string) {
   if (!value || value === defaultValue) {
@@ -595,26 +456,3 @@ function setParam(params: URLSearchParams, key: string, value: string, defaultVa
 
   params.set(key, value);
 }
-
-const fieldStyle: React.CSSProperties = {
-  display: 'grid',
-  gap: '0.4rem',
-};
-
-const labelTextStyle: React.CSSProperties = {
-  fontSize: '0.68rem',
-  textTransform: 'uppercase',
-  letterSpacing: '0.05em',
-  color: 'var(--tertiary)',
-};
-
-const inputStyle: React.CSSProperties = {
-  minHeight: 40,
-  borderRadius: 0,
-  padding: '0.4rem 0',
-  background: 'transparent',
-  border: 'none',
-  borderBottom: '1px solid var(--line)',
-  color: 'var(--text)',
-  fontSize: '0.9rem',
-};
