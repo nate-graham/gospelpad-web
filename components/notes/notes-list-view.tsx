@@ -417,7 +417,7 @@ export function NotesListView() {
       ) : null}
 
       {!loading && !error && view === 'personal' ? (
-        <Link className="notebook-footer-link" href="/profile#recently-deleted">
+        <Link className="notebook-footer-link" href="/settings#recently-deleted">
           Recently deleted · restorable for 30 days →
         </Link>
       ) : null}

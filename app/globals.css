@@ -3083,3 +3083,298 @@ button.verse-callout-ref:hover {
   width: 17px;
   height: 17px;
 }
+
+/* ── Profile and settings ──────────────────────────────────────────── */
+.account-page {
+  gap: 1.6rem;
+}
+
+.account-main {
+  gap: 2.2rem;
+}
+
+.account-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  scroll-margin-top: 1.5rem;
+}
+
+.account-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.9rem;
+}
+
+.account-fields select {
+  padding: 0.7rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.account-fields input:disabled {
+  background: var(--surface-1);
+  color: var(--muted);
+}
+
+.account-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.account-actions .button {
+  min-height: 40px;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.88rem;
+}
+
+.account-heading-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.account-heading-aside {
+  color: var(--muted);
+}
+
+.appearance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0.75rem;
+}
+
+.appearance-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.8rem;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.appearance-card.is-selected {
+  border: 1.5px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.appearance-preview {
+  display: grid;
+  gap: 6px;
+  padding: 14px 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #ddd7cb;
+  background: #fbfaf6;
+}
+
+.appearance-preview span {
+  height: 5px;
+  border-radius: 3px;
+  background: #2b2823;
+}
+
+.appearance-preview span:nth-child(1) {
+  width: 55%;
+}
+
+.appearance-preview span:nth-child(2) {
+  width: 85%;
+  background: #a39b8d;
+}
+
+.appearance-preview span:nth-child(3) {
+  width: 38%;
+  background: #3d5a9c;
+}
+
+.appearance-preview.is-dark {
+  background: #1f1c18;
+  border-color: #1f1c18;
+}
+
+.appearance-preview.is-dark span:nth-child(1) {
+  background: #efe9dd;
+}
+
+.appearance-preview.is-dark span:nth-child(2) {
+  background: #8a8273;
+}
+
+.appearance-preview.is-dark span:nth-child(3) {
+  background: #c9a45c;
+}
+
+.appearance-preview.is-contrast {
+  background: #fff;
+  border: 2px solid #111;
+}
+
+.appearance-preview.is-contrast span:nth-child(1),
+.appearance-preview.is-contrast span:nth-child(2) {
+  background: #111;
+}
+
+.appearance-preview.is-contrast span:nth-child(3) {
+  background: #1d3f8f;
+}
+
+.appearance-label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.appearance-label input {
+  margin: 0;
+}
+
+.appearance-copy {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.account-check {
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+}
+
+.account-check input {
+  margin-top: 0;
+}
+
+.trash-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.85rem 0.5rem;
+  border-radius: 10px;
+}
+
+.trash-row.is-selected {
+  background: var(--surface-1);
+}
+
+.trash-row .button {
+  min-height: 36px;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.82rem;
+}
+
+.plan-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1.4rem;
+  border-radius: 20px;
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.plan-card::after {
+  content: 'G';
+  position: absolute;
+  right: -0.6rem;
+  bottom: -2.6rem;
+  font-family: var(--font-serif);
+  font-size: 9rem;
+  line-height: 1;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.plan-card-eyebrow {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold, #c9a45c);
+}
+
+.plan-card strong {
+  font-family: var(--font-serif);
+  font-size: 1.9rem;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.plan-card p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.plan-card-stats {
+  font-size: 0.78rem;
+  opacity: 0.65;
+}
+
+.plan-card .button {
+  align-self: flex-start;
+  min-height: 38px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  background: var(--on-ink);
+  color: var(--ink);
+  position: relative;
+  z-index: 1;
+}
+
+.account-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.account-links li {
+  border-bottom: 1px solid var(--line);
+}
+
+.account-links a,
+.account-links button {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account-links a:hover,
+.account-links button:hover {
+  color: var(--accent-strong);
+}
+
+.account-links .is-danger {
+  color: var(--vermilion);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .trash-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .trash-row > .button,
+  .trash-row > .feed-link {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

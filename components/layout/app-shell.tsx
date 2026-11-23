@@ -13,8 +13,7 @@ const navItems: Array<{ key: NavKey; href: string; label: string; shortLabel: st
   { key: 'record', href: '/notes/dictate', label: 'Record', shortLabel: 'Record' },
   { key: 'berea', href: '/berea', label: 'Berea', shortLabel: 'Berea' },
   { key: 'groups', href: '/groups', label: 'Groups', shortLabel: 'Groups' },
-  { key: 'profile', href: '/profile', label: 'Profile', shortLabel: 'Profile' },
-  { key: 'settings', href: '/settings', label: 'Settings', shortLabel: 'Settings' },
+  { key: 'profile', href: '/settings', label: 'Profile & settings', shortLabel: 'Account' },
 ];
 
 const mobileNavKeys: NavKey[] = ['notes', 'record', 'berea', 'groups', 'profile'];
@@ -30,9 +29,7 @@ function isNavActive(key: NavKey, pathname: string) {
     case 'groups':
       return pathname.startsWith('/groups');
     case 'profile':
-      return pathname.startsWith('/profile');
-    case 'settings':
-      return pathname.startsWith('/settings') || pathname.startsWith('/admin');
+      return pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/admin');
     default:
       return false;
   }
@@ -231,7 +228,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
 
         <div className="gp-sidebar-footer">
-          <Link href="/profile" className="gp-user">
+          <Link href="/settings" className="gp-user">
             <span className="gp-avatar" aria-hidden="true">{initial}</span>
             <span className="gp-user-copy">
               <strong>{headerName}</strong>

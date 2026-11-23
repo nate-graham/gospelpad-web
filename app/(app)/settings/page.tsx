@@ -1,4 +1,4 @@
-import { SettingsView } from '@/components/account/settings-view';
+import { AccountView } from '@/components/account/account-view';
 import { isAllowedAdminEmail } from '@/lib/admin';
 import { getSupabaseServerClient } from '@/lib/supabase/server';
 
@@ -8,5 +8,5 @@ export default async function SettingsPage() {
     data: { user },
   } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
 
-  return <SettingsView isAdmin={isAllowedAdminEmail(user?.email)} />;
+  return <AccountView isAdmin={isAllowedAdminEmail(user?.email)} />;
 }

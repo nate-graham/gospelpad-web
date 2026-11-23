@@ -1,5 +1,6 @@
-import { ProfileView } from '@/components/account/profile-view';
+import { redirect } from 'next/navigation';
 
+// Profile and settings are one page now.
 export default function ProfilePage() {
-  return <ProfileView />;
+  redirect('/settings');
 }
