@@ -47,6 +47,10 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementBody, setAnnouncementBody] = useState('');
+  const initialTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<'feed' | 'notes' | 'announcements' | 'members'>(
+    initialTab === 'notes' || initialTab === 'announcements' || initialTab === 'members' ? initialTab : 'feed'
+  );
 
   useEffect(() => {
     let active = true;
@@ -345,431 +349,465 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
     );
   }
 
+  const tab = activeTab;
+  const myMember = membership ? memberMap.get(membership.user_id) : undefined;
+  const roleLabel = myMember?.is_owner || isOwner ? 'owner' : membership?.role ?? 'member';
+  const feed = [
+    ...announcements.map((announcement) => ({ kind: 'announcement' as const, at: announcement.created_at, announcement })),
+    ...sharedNotes.map((note) => ({ kind: 'shared' as const, at: note.shared_at || note.updated_at, note })),
+    ...nativeNotes.map((note) => ({ kind: 'group-note' as const, at: note.updated_at, note })),
+  ].sort((left, right) => new Date(right.at).getTime() - new Date(left.at).getTime());
+  const memberName = (userId: string | null) => {
+    const member = userId ? memberMap.get(userId) : undefined;
+    return member ? getGroupMemberLabel(member) : 'A member';
+  };
+
+  const announcementComposer = canManageAnnouncements ? (
+    <section className="group-composer">
+      <span className="rail-heading">Post an announcement</span>
+      <input
+        aria-label="Announcement title"
+        onChange={(event) => setAnnouncementTitle(event.target.value)}
+        placeholder="Announce something to the group…"
+        value={announcementTitle}
+      />
+      {announcementTitle.trim() ? (
+        <>
+      <textarea
+            aria-label="Announcement details"
+            onChange={(event) => setAnnouncementBody(event.target.value)}
+            placeholder="Details for the group (optional)"
+            rows={3}
+            value={announcementBody}
+          />
+          <div className="group-composer-actions">
+            <button
+              className="button button-primary"
+              disabled={pendingAction === 'create-announcement' || !announcementTitle.trim()}
+              onClick={onCreateAnnouncement}
+              type="button"
+            >
+              {pendingAction === 'create-announcement' ? 'Posting…' : 'Post announcement'}
+            </button>
+          </div>
+        </>
+      ) : null}
+    </section>
+  ) : null;
+
   return (
-    <div className="page-container page-section">
-      <header className="hero-surface">
-        <div className="meta-row">
-          <span className="badge">{getGroupVisibilityLabel(group)}</span>
-          {membership ? <span>Your role: {membership.role}</span> : null}
+    <div className="page-container page-section group-page">
+      <Link className="back-link" href="/groups">
+        <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 11 18" width="7">
+          <path d="M9 1L1 9l8 8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+        </svg>
+        Groups
+      </Link>
+
+      <header className="group-header">
+        <div className="group-header-text">
+          <div className="group-header-eyebrow">
+            <span className="eyebrow" style={{ color: 'var(--accent)' }}>Group</span>
+            <span className="group-visibility">{group.is_public ? 'Public · join instantly' : 'Private · join by request'}</span>
+          </div>
+          <h1>{group.name}</h1>
+          {group.description?.trim() ? <p className="note-page-subtitle">{group.description.trim()}</p> : null}
         </div>
-        <h1>{group.name}</h1>
-        <p className="page-description">
-          {group.description?.trim() || 'No description yet.'}
-        </p>
+        <div className="group-header-side">
+          <div className="avatar-stack" aria-hidden="true">
+            {members.slice(0, 4).map((member) => (
+              <Avatar key={member.id} member={member} />
+            ))}
+          </div>
+          <span className="group-header-count">
+            {members.length} {members.length === 1 ? 'member' : 'members'} ·{' '}
+            {roleLabel === 'owner' ? 'you’re the owner' : roleLabel === 'admin' ? 'you’re an admin' : 'you’re a member'}
+          </span>
+          {canManageRequests ? (
+            <button className="button button-secondary" onClick={() => setActiveTab('members')} type="button">
+              Invite
+            </button>
+          ) : null}
+        </div>
       </header>
+
+      <nav className="notebook-tabs" aria-label="Group sections">
+        <button aria-current={tab === 'feed' ? 'page' : undefined} onClick={() => setActiveTab('feed')} type="button">
+          Feed
+        </button>
+        <button aria-current={tab === 'notes' ? 'page' : undefined} onClick={() => setActiveTab('notes')} type="button">
+          Group notes <span>{nativeNotes.length + sharedNotes.length}</span>
+        </button>
+        <button aria-current={tab === 'announcements' ? 'page' : undefined} onClick={() => setActiveTab('announcements')} type="button">
+          Announcements <span>{announcements.length}</span>
+        </button>
+        <button aria-current={tab === 'members' ? 'page' : undefined} onClick={() => setActiveTab('members')} type="button">
+          Members <span>{members.length}</span>
+          {canManageRequests && joinRequests.length ? <em className="tab-alert">{joinRequests.length}</em> : null}
+        </button>
+      </nav>
 
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
       {actionNotice ? <section className="empty-state status-message" role="status">{actionNotice}</section> : null}
       {actionError ? <section className="error-state status-message" role="alert">{actionError}</section> : null}
 
-      <div className="group-screen-grid">
-        <div className="group-screen-main">
-      <section className="support-tray" style={{ gap: '0.55rem' }}>
-        <div className="meta-row">
-          <span>Created {formatGroupDate(group.created_at)}</span>
-          <span>{group.is_public ? 'Members can join instantly.' : 'Private groups require a join request.'}</span>
-        </div>
-      </section>
+      <div className="group-columns">
+        <div className="group-main">
+          {tab === 'feed' ? (
+            <>
+              {canManageAnnouncements ? announcementComposer : null}
+              <div className="group-quick-actions">
+                <Link className="button button-primary" href={`/groups/${group.id}/notes/new`}>
+                  + New group note
+                </Link>
+                <Link className="button button-secondary" href="/notes">
+                  Share one of your notes
+                </Link>
+              </div>
+              {feed.length === 0 ? (
+                <section className="notebook-empty" role="status">
+                  <strong>Nothing here yet</strong>
+                  <span>Announcements, group notes and notes people share with the group will appear here.</span>
+                </section>
+              ) : (
+                <ul className="group-feed">
+                  {feed.map((item) =>
+                    item.kind === 'announcement' ? (
+                      <li className="feed-item" key={`a-${item.announcement.id}`}>
+                        <div className="feed-meta">
+                          <strong>{getAnnouncementAuthorLabel(item.announcement)}</strong>
+                          <span className="feed-kind is-lapis">Announcement</span>
+                          <time>{shortGroupDate(item.at)}</time>
+                        </div>
+                        <p className="feed-title">{item.announcement.title}</p>
+                        {item.announcement.body?.trim() ? <p className="feed-body">{item.announcement.body.trim()}</p> : null}
+                        {canManageAnnouncements ? (
+                          <button
+                            className="feed-link is-danger"
+                            disabled={pendingAction === `delete-announcement-${item.announcement.id}`}
+                            onClick={() => onDeleteAnnouncement(item.announcement)}
+                            type="button"
+                          >
+                            {pendingAction === `delete-announcement-${item.announcement.id}` ? 'Deleting…' : 'Delete'}
+                          </button>
+                        ) : null}
+                      </li>
+                    ) : item.kind === 'shared' ? (
+                      <li className="feed-item" key={`s-${item.note.id}`}>
+                        <div className="feed-meta">
+                          <strong>{memberName(item.note.shared_by)}</strong>
+                          <span>shared a note</span>
+                          <time>{shortGroupDate(item.at)}</time>
+                        </div>
+                        <Link className="feed-note" href={`/groups/${group.id}/notes/${item.note.id}`}>
+                          <span className="feed-note-title">“{item.note.title?.trim() || 'Untitled'}”</span>
+                          <span className="feed-note-meta">
+                            {item.note.type ?? 'Note'}
+                            {getScriptureReferenceCount(item.note) ? ` · ¶ ${getScriptureReferenceCount(item.note)} refs` : ''}
+                            {item.note.permissions !== 'view' ? ` · members can ${item.note.permissions}` : ''}
+                          </span>
+                          <span className="feed-body">{getNoteExcerpt(item.note)}</span>
+                        </Link>
+                      </li>
+                    ) : (
+                      <li className="feed-item" key={`g-${item.note.id}`}>
+                        <div className="feed-meta">
+                          <strong>{memberName(item.note.created_by)}</strong>
+                          <span className="feed-kind">Group note</span>
+                          <time>{shortGroupDate(item.at)}</time>
+                        </div>
+                        <Link className="feed-note" href={`/groups/${group.id}/notes/${item.note.id}`}>
+                          <span className="feed-note-title">{item.note.title?.trim() || 'Untitled'}</span>
+                          <span className="feed-body">{getNoteExcerpt(item.note)}</span>
+                        </Link>
+                      </li>
+                    )
+                  )}
+                </ul>
+              )}
+            </>
+          ) : null}
 
-      <GroupInvitePanel group={group} membership={membership} />
+          {tab === 'notes' ? (
+            <>
+              <div className="group-quick-actions">
+                <Link className="button button-primary" href={`/groups/${group.id}/notes/new`}>
+                  + New group note
+                </Link>
+              </div>
+              {nativeNotes.length + sharedNotes.length === 0 ? (
+                <section className="notebook-empty" role="status">
+                  <strong>No group notes yet</strong>
+                  <span>Write a note for the whole group, or share one of your own notes into it.</span>
+                </section>
+              ) : (
+                <ul className="notebook-list">
+                  {nativeNotes.map((note) => (
+                    <li key={`g-${note.id}`}>
+                      <div className="notebook-row">
+                        <span className="notebook-type type-berea">Group note</span>
+                        <Link className="notebook-row-main" href={`/groups/${group.id}/notes/${note.id}`}>
+                          <span className="notebook-row-title">
+                            {note.title?.trim() || 'Untitled'}
+                            <em> · {memberName(note.created_by)}</em>
+                          </span>
+                          <span className="notebook-row-excerpt">{getNoteExcerpt(note)}</span>
+                        </Link>
+                        <span className="notebook-row-meta">
+                          {getScriptureReferenceCount(note) ? <span className="verse-chip">¶ {getScriptureReferenceCount(note)}</span> : null}
+                          {membership && (membership.role === 'admin' || membership.user_id === note.created_by) ? (
+                            <Link className="feed-link" href={`/groups/${group.id}/notes/${note.id}/edit`}>
+                              Edit
+                            </Link>
+                          ) : null}
+                          <span className="notebook-date">{shortGroupDate(note.updated_at)}</span>
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                  {sharedNotes.map((note) => (
+                    <li key={`s-${note.id}`}>
+                      <Link className="notebook-row" href={`/groups/${group.id}/notes/${note.id}`}>
+                        <span className={`notebook-type type-${(note.type ?? 'note').toLowerCase().replace(/[^a-z]+/g, '-')}`}>Shared</span>
+                        <span className="notebook-row-main">
+                          <span className="notebook-row-title">
+                            {note.title?.trim() || 'Untitled'}
+                            <em> · {memberName(note.shared_by)}</em>
+                          </span>
+                          <span className="notebook-row-excerpt">{getNoteExcerpt(note)}</span>
+                        </span>
+                        <span className="notebook-row-meta">
+                          <span className="notebook-pill">{note.permissions === 'edit' ? 'Can edit' : note.permissions === 'comment' ? 'Can comment' : 'Read-only'}</span>
+                          <span className="notebook-date">{shortGroupDate(note.shared_at || note.updated_at)}</span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : null}
 
-      <section className="reading-surface" style={{ background: 'transparent', padding: 0, gap: '1rem' }}>
-        <div className="support-block" style={{ gap: '0.35rem' }}>
-          <span className="eyebrow">Announcements</span>
-          <strong className="support-block-title">
-            {announcements.length} {announcements.length === 1 ? 'announcement' : 'announcements'}
-          </strong>
-          <p className="support-block-copy">
-            Keep everyone in the group up to date from one place.
-          </p>
-        </div>
+          {tab === 'announcements' ? (
+            <>
+              {announcementComposer ?? (
+                <p className="composer-hint">Only the group owner and admins can post announcements.</p>
+              )}
+              {announcements.length === 0 ? (
+                <section className="notebook-empty" role="status">
+                  <strong>No announcements yet</strong>
+                  <span>Updates posted by the owner or admins will appear here.</span>
+                </section>
+              ) : (
+                <ul className="group-feed">
+                  {announcements.map((announcement) => (
+                    <li className="feed-item" key={announcement.id}>
+                      <div className="feed-meta">
+                        <strong>{getAnnouncementAuthorLabel(announcement)}</strong>
+                        <span className="feed-kind is-lapis">Announcement</span>
+                        <time>{shortGroupDate(announcement.created_at)}</time>
+                      </div>
+                      <p className="feed-title">{announcement.title}</p>
+                      {announcement.body?.trim() ? <p className="feed-body">{announcement.body.trim()}</p> : null}
+                      {canManageAnnouncements ? (
+                        <button
+                          className="feed-link is-danger"
+                          disabled={pendingAction === `delete-announcement-${announcement.id}`}
+                          onClick={() => onDeleteAnnouncement(announcement)}
+                          type="button"
+                        >
+                          {pendingAction === `delete-announcement-${announcement.id}` ? 'Deleting…' : 'Delete'}
+                        </button>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          ) : null}
 
-        {canManageAnnouncements ? (
-          <div
-            className="support-tray"
-            style={{
-              display: 'grid',
-              gap: '0.85rem',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            }}
-          >
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Announcement title</span>
-              <input
-                value={announcementTitle}
-                onChange={(event) => setAnnouncementTitle(event.target.value)}
-                placeholder="Announcement title"
-                style={inputStyle}
-              />
-            </label>
-
-            <label style={{ ...fieldStyle, gridColumn: '1 / -1' }}>
-              <span className="eyebrow" style={labelTextStyle}>Announcement details</span>
-              <textarea
-                value={announcementBody}
-                onChange={(event) => setAnnouncementBody(event.target.value)}
-                placeholder="Optional details for the group"
-                style={textareaStyle}
-              />
-            </label>
-
-            <div className="cta-row">
-              <button
-                className="button button-primary"
-                type="button"
-                disabled={pendingAction === 'create-announcement'}
-                onClick={onCreateAnnouncement}
-              >
-                {pendingAction === 'create-announcement' ? 'Posting…' : 'Post announcement'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <section className="support-block">
-            <strong>Member view</strong>
-            <span className="support-block-copy">
-              Only the group owner and admins can post or delete announcements.
-            </span>
-          </section>
-        )}
-
-        {announcements.length === 0 ? (
-          <section className="empty-state status-message" role="status">
-            <strong>No announcements yet</strong>
-            <span style={{ color: 'var(--muted)' }}>
-              Group-wide updates posted by the owner or admins will appear here.
-            </span>
-          </section>
-        ) : (
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {announcements.map((announcement) => (
-              <article key={announcement.id} style={{ display: 'grid', gap: '0.6rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'grid', gap: '0.3rem' }}>
-                    <strong>{announcement.title}</strong>
-                    <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
-                      Posted by {getAnnouncementAuthorLabel(announcement)} on {formatGroupDate(announcement.created_at)}
-                    </span>
-                  </div>
-                  {canManageAnnouncements ? (
-                    <button
-                      className="button button-secondary"
-                      type="button"
-                      disabled={pendingAction === `delete-announcement-${announcement.id}`}
-                      onClick={() => onDeleteAnnouncement(announcement)}
-                    >
-                      {pendingAction === `delete-announcement-${announcement.id}` ? 'Deleting…' : 'Delete'}
-                    </button>
-                  ) : null}
-                </div>
-                {announcement.body?.trim() ? (
-                  <span style={{ color: 'var(--muted)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>
-                    {announcement.body.trim()}
+          {tab === 'members' ? (
+            <>
+              {canManageRequests && !group.is_public ? (
+                <section className="rail-section">
+                  <span className="rail-heading is-vermilion">
+                    Waiting to join · {joinRequests.length}
                   </span>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
+                  {joinRequests.length === 0 ? (
+                    <p className="composer-hint">No one is waiting. New join requests will appear here.</p>
+                  ) : (
+                    joinRequests.map((request) => (
+                      <div className="request-card" key={request.id}>
+                        <Avatar member={request} />
+                        <span className="member-name">
+                          <strong>{getRequestLabel(request)}</strong>
+                          <small>
+                            {request.username ? `@${request.username} · ` : ''}asked {shortGroupDate(request.created_at)}
+                          </small>
+                        </span>
+                        <button
+                          className="button button-primary"
+                          disabled={pendingAction === `approve-${request.id}` || pendingAction === `decline-${request.id}`}
+                          onClick={() => onApproveRequest(request)}
+                          type="button"
+                        >
+                          {pendingAction === `approve-${request.id}` ? 'Approving…' : 'Approve'}
+                        </button>
+                        <button
+                          className="button button-secondary"
+                          disabled={pendingAction === `approve-${request.id}` || pendingAction === `decline-${request.id}`}
+                          onClick={() => onDeclineRequest(request)}
+                          type="button"
+                        >
+                          {pendingAction === `decline-${request.id}` ? 'Declining…' : 'Decline'}
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </section>
+              ) : null}
 
-      <section className="support-tray">
-        <div className="support-block" style={{ gap: '0.35rem' }}>
-          <span className="eyebrow">Membership</span>
-          <strong className="support-block-title">
-            {membership ? `You are a ${membership.role}` : 'Access inherited from owner visibility'}
-          </strong>
-          <p className="support-block-copy">
-            Manage your place in the group, review requests, and keep member roles organized.
-          </p>
+              <section className="rail-section">
+                <span className="rail-heading member-heading">
+                  <span>Members</span>
+                  <span>Role</span>
+                </span>
+                {members.length === 0 ? (
+                  <p className="composer-hint">No members were returned for this group.</p>
+                ) : (
+                  <ul className="member-list">
+                    {members.map((member) => (
+                      <li className="member-row" key={member.id}>
+                        <Avatar member={member} />
+                        <span className="member-name">
+                          <strong>
+                            {getGroupMemberLabel(member)}
+                            {member.user_id === membership?.user_id ? <em> (you)</em> : null}
+                          </strong>
+                          <small>
+                            {member.username ? `@${member.username} · ` : ''}joined {formatGroupDate(member.joined_at)}
+                          </small>
+                        </span>
+                        {canToggleAdmin(member) ? (
+                          <select
+                            aria-label={`Role for ${getGroupMemberLabel(member)}`}
+                            disabled={pendingAction === `role-${member.id}`}
+                            onChange={() => onToggleAdmin(member)}
+                            value={member.role}
+                          >
+                            <option value="member">Member</option>
+                            <option value="admin">Admin</option>
+                          </select>
+                        ) : (
+                          <span className={`member-role${member.is_owner ? ' is-owner' : ''}`}>{getMemberRoleSummary(member)}</span>
+                        )}
+                        {canRemoveMember(member) ? (
+                          <button
+                            className="feed-link is-danger"
+                            disabled={pendingAction === `remove-${member.id}`}
+                            onClick={() => onRemoveMember(member)}
+                            type="button"
+                          >
+                            {pendingAction === `remove-${member.id}` ? 'Removing…' : 'Remove'}
+                          </button>
+                        ) : (
+                          <span className="member-spacer" />
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </>
+          ) : null}
         </div>
 
-        <div className="cta-row">
+        <aside className="group-rail">
+          {tab === 'members' ? (
+            <GroupInvitePanel group={group} membership={membership} />
+          ) : (
+            <>
+              <section className="rail-section">
+                <span className="rail-heading">About this group</span>
+                <dl className="note-facts">
+                  <div>
+                    <dt>Visibility</dt>
+                    <dd>{getGroupVisibilityLabel(group)}</dd>
+                  </div>
+                  <div>
+                    <dt>Members</dt>
+                    <dd>{members.length}</dd>
+                  </div>
+                  <div>
+                    <dt>Created</dt>
+                    <dd>{formatGroupDate(group.created_at)}</dd>
+                  </div>
+                  <div>
+                    <dt>Invite code</dt>
+                    <dd>{canManageRequests ? group.invite_code : 'Ask an admin'}</dd>
+                  </div>
+                </dl>
+              </section>
+              <section className="rail-section">
+                <span className="rail-heading">Members</span>
+                <ul className="member-mini">
+                  {members.slice(0, 6).map((member) => (
+                    <li key={member.id}>
+                      <Avatar member={member} />
+                      <span>{getGroupMemberLabel(member)}</span>
+                      <small>{member.is_owner ? 'Owner' : member.role === 'admin' ? 'Admin' : ''}</small>
+                    </li>
+                  ))}
+                </ul>
+                {members.length > 6 ? (
+                  <button className="feed-link" onClick={() => setActiveTab('members')} type="button">
+                    Show all {members.length} members →
+                  </button>
+                ) : null}
+              </section>
+            </>
+          )}
+
           {canLeaveGroup ? (
-            <button
-              className="button button-secondary"
-              type="button"
-              disabled={pendingAction === 'leave'}
-              onClick={onLeaveGroup}
-            >
+            <button className="feed-link is-danger" disabled={pendingAction === 'leave'} onClick={onLeaveGroup} type="button">
               {pendingAction === 'leave' ? 'Leaving…' : 'Leave group'}
             </button>
-          ) : (
-            <div className="support-block">
-              <strong>{group.created_by === membership?.user_id ? 'Owner cannot leave yet' : 'Membership action unavailable'}</strong>
-              <span className="support-block-copy">
-                {group.created_by === membership?.user_id
-                  ? 'The group owner needs to stay connected to the group right now.'
-                  : 'This account does not currently have a leave action available.'}
-              </span>
-            </div>
-          )}
-        </div>
-      </section>
-
-      <section className="two-column-layout">
-        <section className="reading-surface" style={{ background: 'transparent', padding: 0 }}>
-          <div className="support-block" style={{ gap: '0.35rem' }}>
-            <span className="eyebrow">Members</span>
-            <strong className="support-block-title">
-              {members.length} {members.length === 1 ? 'member' : 'members'}
-            </strong>
-            <p className="support-block-copy">
-              See who is in the group and what role they hold.
-            </p>
-          </div>
-
-          {members.length === 0 ? (
-            <section className="empty-state status-message" role="status">
-              <strong>No members found</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                No visible members were returned for this group.
-              </span>
-            </section>
-          ) : (
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {members.map((member) => (
-                <article key={member.id} style={{ display: 'grid', gap: '0.45rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                    <strong>{getGroupMemberLabel(member)}</strong>
-                    {member.is_owner ? <span className="badge">Owner</span> : null}
-                    {!member.is_owner && member.role === 'admin' ? <span className="badge">Admin</span> : null}
-                    {member.user_id === membership?.user_id ? <span className="badge">You</span> : null}
-                  </div>
-                  <span style={{ color: 'var(--muted)' }}>
-                    {member.username ? `@${member.username}` : 'No public username'} • Joined {formatGroupDate(member.joined_at)}
-                  </span>
-                  <span style={{ color: 'var(--muted)' }}>
-                    Role: {getMemberRoleSummary(member)}
-                  </span>
-                  {canRemoveMember(member) || canToggleAdmin(member) ? (
-                    <div className="cta-row">
-                      {canToggleAdmin(member) ? (
-                        <button
-                          className="button button-secondary"
-                          type="button"
-                          disabled={pendingAction === `role-${member.id}` || pendingAction === `remove-${member.id}`}
-                          onClick={() => onToggleAdmin(member)}
-                        >
-                          {pendingAction === `role-${member.id}`
-                            ? 'Updating…'
-                            : member.role === 'admin'
-                              ? 'Make member'
-                              : 'Make admin'}
-                        </button>
-                      ) : null}
-                      {canRemoveMember(member) ? (
-                        <button
-                          className="button button-secondary"
-                          type="button"
-                          disabled={pendingAction === `role-${member.id}` || pendingAction === `remove-${member.id}`}
-                          onClick={() => onRemoveMember(member)}
-                        >
-                          {pendingAction === `remove-${member.id}` ? 'Removing…' : 'Remove member'}
-                        </button>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section className="reading-surface" style={{ background: 'transparent', padding: 0 }}>
-          <div className="support-block" style={{ gap: '0.35rem' }}>
-            <span className="eyebrow">Group notes</span>
-            <strong className="support-block-title">
-              {nativeNotes.length} {nativeNotes.length === 1 ? 'group note' : 'group notes'}
-            </strong>
-            <p className="support-block-copy">
-              Keep shared study notes and meeting notes together for the whole group.
-            </p>
-          </div>
-
-          <div className="cta-row">
-            <Link className="button button-primary" href={`/groups/${group.id}/notes/new`}>
-              New group note
-            </Link>
-          </div>
-
-          {nativeNotes.length === 0 ? (
-            <section className="empty-state status-message" role="status">
-              <strong>No group notes yet</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                This group does not have any dedicated group notes yet.
-              </span>
-            </section>
-          ) : (
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {nativeNotes.map((note) => (
-                <article key={note.id} style={{ display: 'grid', gap: '0.55rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                    <strong>{note.title?.trim() || 'Untitled'}</strong>
-                    <span className="badge">group note</span>
-                  </div>
-                  <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteExcerpt(note)}</span>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', color: 'var(--muted)' }}>
-                    <span>Updated {formatGroupDate(note.updated_at)}</span>
-                    <span>{getScriptureReferenceCount(note)} scripture refs</span>
-                  </div>
-                  <div className="cta-row">
-                    <Link className="button button-secondary" href={`/groups/${group.id}/notes/${note.id}`}>
-                      Open group note
-                    </Link>
-                    {membership && (membership.role === 'admin' || membership.user_id === note.created_by) ? (
-                      <Link className="button button-secondary" href={`/groups/${group.id}/notes/${note.id}/edit`}>
-                        Edit group note
-                      </Link>
-                    ) : null}
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      </section>
-
-      {canManageRequests && !group.is_public ? (
-        <section className="support-tray">
-          <div className="support-block" style={{ gap: '0.35rem' }}>
-            <span className="eyebrow">Join requests</span>
-            <strong className="support-block-title">
-              {joinRequests.length} {joinRequests.length === 1 ? 'pending request' : 'pending requests'}
-            </strong>
-            <p className="support-block-copy">
-              Private groups can review pending requests here. Public groups join immediately and do not use this queue.
-            </p>
-          </div>
-
-          {joinRequests.length === 0 ? (
-            <section className="empty-state status-message" role="status">
-              <strong>No pending join requests</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                New private-group join requests will appear here for admins and the owner.
-              </span>
-            </section>
-          ) : (
-            <div style={{ display: 'grid', gap: '0.75rem' }}>
-              {joinRequests.map((request) => (
-                <article key={request.id} style={{ display: 'grid', gap: '0.65rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                    <strong>{getRequestLabel(request)}</strong>
-                    <span className="badge">{request.username ? `@${request.username}` : 'Pending member'}</span>
-                  </div>
-                  <span style={{ color: 'var(--muted)' }}>
-                    Requested {formatGroupDate(request.created_at)}
-                  </span>
-                  <div className="cta-row">
-                    <button
-                      className="button button-primary"
-                      type="button"
-                      disabled={pendingAction === `approve-${request.id}` || pendingAction === `decline-${request.id}`}
-                      onClick={() => onApproveRequest(request)}
-                    >
-                      {pendingAction === `approve-${request.id}` ? 'Approving…' : 'Approve'}
-                    </button>
-                    <button
-                      className="button button-secondary"
-                      type="button"
-                      disabled={pendingAction === `approve-${request.id}` || pendingAction === `decline-${request.id}`}
-                      onClick={() => onDeclineRequest(request)}
-                    >
-                      {pendingAction === `decline-${request.id}` ? 'Declining…' : 'Decline'}
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
-      ) : null}
-
-      </div>
-
-      <aside className="group-screen-rail">
-      <section className="support-tray">
-        <div className="support-block" style={{ gap: '0.35rem' }}>
-          <span className="eyebrow">Shared personal notes</span>
-          <strong className="support-block-title">
-            {sharedNotes.length} {sharedNotes.length === 1 ? 'shared note' : 'shared notes'}
-          </strong>
-          <p className="support-block-copy">
-            These are personal notes that people have shared into the group.
-          </p>
-        </div>
-
-        {sharedNotes.length === 0 ? (
-          <section className="empty-state status-message" role="status">
-            <strong>No shared personal notes yet</strong>
-            <span style={{ color: 'var(--muted)' }}>
-              Shared notes will appear here when someone shares one into the group.
-            </span>
-          </section>
-        ) : (
-          <div style={{ display: 'grid', gap: '0.75rem' }}>
-            {sharedNotes.map((note) => (
-              <article key={`shared-${note.id}`} style={{ display: 'grid', gap: '0.55rem', padding: '0.35rem 0 1rem', borderBottom: '1px solid var(--line)' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                  <strong>{note.title?.trim() || 'Untitled'}</strong>
-                  <span className="badge">{note.permissions}</span>
-                  {note.type ? <span style={{ color: 'var(--muted)' }}>{note.type}</span> : null}
-                </div>
-                <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>{getNoteExcerpt(note)}</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem', color: 'var(--muted)' }}>
-                  <span>Updated {formatGroupDate(note.updated_at)}</span>
-                  <span>{getScriptureReferenceCount(note)} scripture refs</span>
-                </div>
-                <Link className="button button-secondary" href={`/groups/${group.id}/notes/${note.id}`}>
-                  Open shared note
-                </Link>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="support-tray" style={{ gap: '0.75rem' }}>
-        <span className="eyebrow">Current scope</span>
-        <strong>Groups bring announcements, members, shared notes, and group notes together in one place.</strong>
-        <span className="support-block-copy">
-          More advanced group management options will be added over time.
-        </span>
-      </section>
-      </aside>
-      </div>
-
-      <div className="cta-row">
-        <Link className="button button-secondary" href="/groups">
-          Back to groups
-        </Link>
+          ) : isOwner ? (
+            <p className="composer-hint">As the owner, you stay with the group.</p>
+          ) : null}
+        </aside>
       </div>
     </div>
   );
 }
 
-const fieldStyle: React.CSSProperties = {
-  display: 'grid',
-  gap: '0.5rem',
-};
+function Avatar({
+  member,
+}: {
+  member: Pick<GroupMemberSummary, 'display_name' | 'name' | 'username' | 'user_id' | 'avatar_url'>;
+}) {
+  const label = getGroupMemberLabel(member);
+  const hash = [...member.user_id].reduce((sum, char) => (sum * 31 + char.charCodeAt(0)) >>> 0, 7);
+  const tone = AVATAR_TONES[hash % AVATAR_TONES.length];
+  return member.avatar_url ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img alt="" className="member-avatar" src={member.avatar_url} />
+  ) : (
+    <span className="member-avatar" style={{ background: tone }}>
+      {label.trim().charAt(0).toUpperCase()}
+    </span>
+  );
+}
 
-const labelTextStyle: React.CSSProperties = {
-  fontSize: '0.72rem',
-};
+const AVATAR_TONES = ['#8fa3c9', '#d0907c', '#9c9478', '#a9bfa3', '#c4a2b8', '#8fb4b8', '#c9ab7c'];
 
-const inputStyle: React.CSSProperties = {
-  minHeight: 54,
-  borderRadius: 18,
-  padding: '0.95rem 1.05rem',
-  background: 'var(--field-bg)',
-  color: 'var(--text)',
-};
-
-const textareaStyle: React.CSSProperties = {
-  minHeight: 120,
-  borderRadius: 18,
-  padding: '1rem',
-  background: 'var(--field-bg)',
-  color: 'var(--text)',
-  resize: 'vertical',
-};
+/** "Today", a weekday within the last week, otherwise "8 Jul". */
+function shortGroupDate(value: string) {
+  const date = new Date(value);
+  const now = new Date();
+  const days = Math.floor((new Date(now.toDateString()).getTime() - new Date(date.toDateString()).getTime()) / 86400000);
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return new Intl.DateTimeFormat('en-GB', { weekday: 'short' }).format(date);
+  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric' }).format(date);
+}

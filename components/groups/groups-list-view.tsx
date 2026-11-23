@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import type { CSSProperties, FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createGroup, joinGroupByCode, listUserGroups, type Group, type UserGroup } from '@/lib/groups';
-import { formatGroupDate, getGroupVisibilityLabel } from '@/components/groups/group-utils';
+import { createGroup, joinGroupByCode, listUserGroups, type UserGroup } from '@/lib/groups';
 
 type CreateGroupState = {
   name: string;
@@ -107,172 +106,120 @@ export function GroupsListView() {
   };
 
   return (
-    <div className="page-container page-section">
-      <header className="page-header" style={{ gap: '0.8rem' }}>
-        <div className="note-list-title">
-          <span className="eyebrow">Groups</span>
-          <h1>Your groups</h1>
-          <p className="page-description">
-            Shared spaces for reflection, study, and notes that continue together.
-          </p>
+    <div className="page-container page-section groups-page">
+      <header className="notebook-header">
+        <div>
+          <span className="eyebrow" style={{ color: 'var(--accent)' }}>Groups</span>
+          <h1>
+            Study <em>together.</em>
+          </h1>
+          <p className="groups-intro">Shared spaces for announcements, group notes and the notes you share with each other.</p>
         </div>
       </header>
 
       {successMessage ? <section className="empty-state status-message" role="status">{successMessage}</section> : null}
 
-      <section className="responsive-grid">
-        <section className="support-tray">
-          <div className="support-block">
-            <span className="eyebrow">Create group</span>
-            <strong className="support-block-title">Start a new shared space</strong>
-            <p className="support-block-copy">Make it private for invitation-only conversation or public for open participation.</p>
-          </div>
-          <form onSubmit={onCreateSubmit} style={{ display: 'grid', gap: '0.85rem' }}>
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Name</span>
-              <input
-                required
-                value={createState.name}
-                onChange={(event) => setCreateState((current) => ({ ...current, name: event.target.value }))}
-                placeholder="Bible study group"
-                style={inputStyle}
-              />
-            </label>
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Description</span>
-              <textarea
-                rows={4}
-                value={createState.description}
-                onChange={(event) => setCreateState((current) => ({ ...current, description: event.target.value }))}
-                placeholder="Who this group is for"
-                style={textareaStyle}
-              />
-            </label>
-            <label style={{ display: 'flex', gap: '0.7rem', alignItems: 'center' }}>
+      <div className="group-columns">
+        <div className="group-main">
+          <span className="rail-heading">Your groups</span>
+
+          {loading ? (
+            <p className="composer-hint" role="status">Loading your groups…</p>
+          ) : null}
+
+          {!loading && error ? (
+            <section className="error-state status-message" role="alert">
+              <strong>Unable to load groups</strong>
+              <span style={{ color: 'var(--muted)' }}>{error}</span>
+              <Link className="button button-secondary" href="/groups">
+                Refresh
+              </Link>
+            </section>
+          ) : null}
+
+          {!loading && !error && groups.length === 0 ? (
+            <section className="notebook-empty" role="status">
+              <strong>No groups yet</strong>
+              <span>Start one for your study group or church, or join one with an invite code.</span>
+            </section>
+          ) : null}
+
+          {!loading && !error && groups.length > 0 ? (
+            <ul className="group-list">
+              {groups.map(({ group, role }) => (
+                <li key={group.id}>
+                  <Link className="group-row" href={`/groups/${group.id}`}>
+                    <span className="group-row-initial" aria-hidden="true">
+                      {group.name.trim().charAt(0).toUpperCase()}
+                    </span>
+                    <span className="notebook-row-main">
+                      <span className="notebook-row-title">{group.name}</span>
+                      <span className="notebook-row-excerpt">{group.description?.trim() || 'No description yet.'}</span>
+                    </span>
+                    <span className="notebook-row-meta">
+                      <span className="notebook-pill">{group.is_public ? 'Public' : 'Private'}</span>
+                      <span className="notebook-date">{role === 'admin' ? 'Admin' : 'Member'}</span>
+                      <span aria-hidden="true" className="group-row-arrow">→</span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+
+        <aside className="group-rail">
+          <form className="group-composer" onSubmit={onCreateSubmit}>
+            <span className="rail-heading">Start a group</span>
+            <input
+              aria-label="Group name"
+              onChange={(event) => setCreateState((current) => ({ ...current, name: event.target.value }))}
+              placeholder="Name, e.g. Wednesday Night Study"
+              required
+              value={createState.name}
+            />
+            <textarea
+              aria-label="Description"
+              onChange={(event) => setCreateState((current) => ({ ...current, description: event.target.value }))}
+              placeholder="Who it’s for (optional)"
+              rows={3}
+              value={createState.description}
+            />
+            <label className="group-check">
               <input
                 checked={createState.isPublic}
                 onChange={(event) => setCreateState((current) => ({ ...current, isPublic: event.target.checked }))}
                 type="checkbox"
               />
-              <span style={{ color: 'var(--muted)', lineHeight: 1.5 }}>Make this a public group that members can join instantly.</span>
+              <span>Public: anyone with the code joins straight away. Leave unticked to approve each request.</span>
             </label>
             {createError ? <div className="error-state status-message" role="alert">{createError}</div> : null}
-            <button className="button button-primary" disabled={createPending} type="submit">
-              {createPending ? 'Creating…' : 'Create group'}
-            </button>
+            <div className="group-composer-actions">
+              <button className="button button-primary" disabled={createPending} type="submit">
+                {createPending ? 'Creating…' : 'Create group'}
+              </button>
+            </div>
           </form>
-        </section>
 
-        <section className="support-tray">
-          <div className="support-block">
-            <span className="eyebrow">Join by invite</span>
-            <strong className="support-block-title">Enter a shared space</strong>
-            <p className="support-block-copy">Use an invite code to step into an existing group and keep the thread going.</p>
-          </div>
-          <form onSubmit={onJoinSubmit} style={{ display: 'grid', gap: '0.85rem' }}>
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Invite code</span>
+          <form className="group-composer" onSubmit={onJoinSubmit}>
+            <span className="rail-heading">Join with a code</span>
+            <div className="invite-card-row">
               <input
-                value={inviteCode}
+                aria-label="Invite code"
+                className="invite-code-input"
                 onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
                 placeholder="ABCDEFGH2"
-                style={inputStyle}
+                value={inviteCode}
               />
-            </label>
+              <button className="button button-secondary" disabled={joinPending || !inviteCode.trim()} type="submit">
+                {joinPending ? 'Joining…' : 'Join'}
+              </button>
+            </div>
             {joinError ? <div className="error-state status-message" role="alert">{joinError}</div> : null}
             {joinNotice ? <div className="empty-state status-message" role="status">{joinNotice}</div> : null}
-            <button className="button button-secondary" disabled={joinPending || !inviteCode.trim()} type="submit">
-              {joinPending ? 'Joining…' : 'Join group'}
-            </button>
           </form>
-        </section>
-      </section>
-
-      {loading ? (
-        <section className="loading-state status-message" role="status" aria-live="polite">
-          <strong>Loading groups…</strong>
-          <span style={{ color: 'var(--muted)' }}>Fetching the groups connected to your account.</span>
-        </section>
-      ) : null}
-
-      {!loading && error ? (
-        <section className="error-state status-message" role="alert">
-          <strong>Unable to load groups</strong>
-          <span style={{ color: 'var(--muted)' }}>{error}</span>
-          <Link className="button button-secondary" href="/groups">
-            Refresh
-          </Link>
-        </section>
-      ) : null}
-
-      {!loading && !error && groups.length === 0 ? (
-        <section className="empty-state status-message" role="status">
-          <strong>No groups yet</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            Create your first group or join one with an invite code.
-          </span>
-        </section>
-      ) : null}
-
-      {!loading && !error && groups.length > 0 ? (
-        <section className="group-card-grid">
-          {groups.map(({ group, role }) => (
-            <GroupCard group={group} key={group.id} role={role} />
-          ))}
-        </section>
-      ) : null}
+        </aside>
+      </div>
     </div>
   );
 }
-
-function GroupCard({ group, role }: { group: Group; role: 'admin' | 'member' }) {
-  return (
-    <article className="note-card">
-      <div className="note-card-meta">
-        <div className="note-hero-block" style={{ gap: '0.35rem' }}>
-          <span className="badge">{getGroupVisibilityLabel(group)}</span>
-          <strong className="note-card-title">{group.name}</strong>
-        </div>
-        <span style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>{role}</span>
-      </div>
-      <span className="note-card-excerpt">
-        {group.description?.trim() || 'No description yet.'}
-      </span>
-      <span style={{ color: 'var(--muted)', fontSize: '0.92rem' }}>
-        Created {formatGroupDate(group.created_at)}
-      </span>
-      <div className="cta-row">
-        <Link className="button button-primary" href={`/groups/${group.id}`}>
-          Open group
-        </Link>
-      </div>
-    </article>
-  );
-}
-
-const fieldStyle: CSSProperties = {
-  display: 'grid',
-  gap: '0.5rem',
-};
-
-const labelTextStyle: CSSProperties = {
-  fontSize: '0.72rem',
-};
-
-const inputStyle: CSSProperties = {
-  minHeight: 54,
-  borderRadius: 18,
-  padding: '0.95rem 1.05rem',
-  background: 'var(--field-bg)',
-  color: 'var(--text)',
-};
-
-const textareaStyle: CSSProperties = {
-  minHeight: 120,
-  borderRadius: 18,
-  padding: '1rem',
-  background: 'var(--field-bg)',
-  color: 'var(--text)',
-  resize: 'vertical',
-  lineHeight: 1.6,
-};

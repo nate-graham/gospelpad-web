@@ -26,67 +26,39 @@ export function GroupInvitePanel({
     }
   };
 
+  if (!canInvite) {
+    return (
+      <section className="invite-card is-muted">
+        <span className="rail-heading">Invite people</span>
+        <p>Only the owner or an admin can share this group’s invite. Ask one of them to send it.</p>
+      </section>
+    );
+  }
+
   return (
-    <section className="panel note-section-panel">
-      <div className="page-header note-hero-block" style={{ gap: '0.35rem' }}>
-        <span className="eyebrow">Invite</span>
-        <strong style={{ fontSize: '1.1rem' }}>
-          {canInvite ? 'Share this group safely' : 'Invite sharing is limited'}
-        </strong>
-        <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-          {canInvite
-            ? 'Owners and admins can share a reusable invite link or the invite code. Public groups join immediately; private groups create a join request for review.'
-            : 'Only the owner or an admin can issue invites for this group. Members can still see the group status here, but they should ask an admin to share the invite.'}
-        </span>
+    <section className="invite-card">
+      <span className="invite-card-heading">Invite people</span>
+      <p>
+        {group.is_public
+          ? 'Share the link or the code. Because this group is public, people join straight away.'
+          : 'Share the link or the code. Because this group is private, each person sends a join request for you to review.'}
+      </p>
+      <span className="invite-card-label">Invite link</span>
+      <div className="invite-card-row">
+        <input aria-label="Invite link" readOnly value={inviteLink} onFocus={(event) => event.currentTarget.select()} />
+        <button className="button button-lapis" type="button" onClick={() => void copyText(inviteLink, 'Invite link copied.')}>
+          Copy
+        </button>
       </div>
-
-      {canInvite ? (
-        <>
-          <div className="responsive-grid compact">
-            <article className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.45rem' }}>
-              <span className="eyebrow">Invite code</span>
-              <strong style={{ fontSize: '1.25rem', letterSpacing: '0.08em' }}>{group.invite_code}</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                Share this code so someone can join the group.
-              </span>
-            </article>
-            <article className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.45rem' }}>
-              <span className="eyebrow">Invite link</span>
-              <strong style={{ fontSize: '1rem', overflowWrap: 'anywhere' }}>{inviteLink}</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                Send this link directly so the code is prefilled on the web join page.
-              </span>
-            </article>
-          </div>
-
-          <div className="cta-row">
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={() => void copyText(group.invite_code, 'Invite code copied.')}
-            >
-              Copy invite code
-            </button>
-            <button
-              className="button button-primary"
-              type="button"
-              onClick={() => void copyText(inviteLink, 'Invite link copied.')}
-            >
-              Copy invite link
-            </button>
-          </div>
-        </>
-      ) : (
-        <section className="empty-state status-message" role="status">
-          <strong>Ask an admin to invite someone</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            Only the owner or an admin can share this group's invite code or link.
-          </span>
-        </section>
-      )}
-
-      {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
-      {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
+      <span className="invite-card-label">Invite code</span>
+      <div className="invite-card-row">
+        <strong className="invite-code">{group.invite_code}</strong>
+        <button className="button button-secondary" type="button" onClick={() => void copyText(group.invite_code, 'Invite code copied.')}>
+          Copy code
+        </button>
+      </div>
+      {notice ? <span className="invite-card-notice" role="status">{notice}</span> : null}
+      {error ? <span className="invite-card-notice is-error" role="alert">{error}</span> : null}
     </section>
   );
 }
