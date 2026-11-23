@@ -307,6 +307,24 @@ export async function leaveGroup(groupId: string) {
   }
 }
 
+/**
+ * Permanently deletes a group. Its members, announcements, group notes and join requests go with it;
+ * personal notes that were shared into the group stay in their owners' notebooks.
+ */
+export async function deleteGroup(groupId: string) {
+  const { supabase } = await getAuthenticatedContext();
+
+  const { data, error } = await supabase.from('groups').delete().eq('id', groupId).select('id');
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data || data.length === 0) {
+    throw new Error('Only the group owner or an admin can delete this group.');
+  }
+}
+
 export async function listGroupMembers(groupId: string): Promise<GroupMemberSummary[]> {
   const { supabase } = await getAuthenticatedContext();
 

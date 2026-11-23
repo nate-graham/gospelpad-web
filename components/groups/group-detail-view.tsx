@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   approveJoinRequest,
   createGroupAnnouncement,
+  deleteGroup,
   deleteGroupAnnouncement,
   declineJoinRequest,
   getCurrentMembership,
@@ -47,6 +48,8 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementBody, setAnnouncementBody] = useState('');
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
   const initialTab = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<'feed' | 'notes' | 'announcements' | 'members'>(
     initialTab === 'notes' || initialTab === 'announcements' || initialTab === 'members' ? initialTab : 'feed'
@@ -153,6 +156,21 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
     } catch (leaveError) {
       setActionError(leaveError instanceof Error ? leaveError.message : 'Failed to leave group.');
     } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const onDeleteGroup = async () => {
+    if (!group || !isOwner || deleteConfirm.trim() !== group.name.trim()) return;
+
+    try {
+      setPendingAction('delete-group');
+      setActionError(null);
+      setActionNotice(null);
+      await deleteGroup(group.id);
+      router.replace('/groups?deleted=1');
+    } catch (deleteError) {
+      setActionError(deleteError instanceof Error ? deleteError.message : 'Failed to delete group.');
       setPendingAction(null);
     }
   };
@@ -772,8 +790,54 @@ export function GroupDetailView({ groupId }: { groupId: string }) {
             <button className="feed-link is-danger" disabled={pendingAction === 'leave'} onClick={onLeaveGroup} type="button">
               {pendingAction === 'leave' ? 'Leaving…' : 'Leave group'}
             </button>
-          ) : isOwner ? (
-            <p className="composer-hint">As the owner, you stay with the group.</p>
+          ) : null}
+
+          {isOwner ? (
+            <section className="danger-zone">
+              {!deleteOpen ? (
+                <button className="feed-link is-danger" onClick={() => setDeleteOpen(true)} type="button">
+                  Delete group…
+                </button>
+              ) : (
+                <>
+                  <span className="rail-heading is-vermilion">Delete this group</span>
+                  <p>
+                    This removes the group for everyone: its members, announcements, group notes and join requests. Notes
+                    people shared into it stay in their own notebooks. It can’t be undone.
+                  </p>
+                  <label>
+                    <span>
+                      Type <strong>{group.name}</strong> to confirm
+                    </span>
+                    <input
+                      autoComplete="off"
+                      onChange={(event) => setDeleteConfirm(event.target.value)}
+                      value={deleteConfirm}
+                    />
+                  </label>
+                  <div className="danger-zone-actions">
+                    <button
+                      className="button button-secondary"
+                      onClick={() => {
+                        setDeleteOpen(false);
+                        setDeleteConfirm('');
+                      }}
+                      type="button"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="button button-vermilion"
+                      disabled={deleteConfirm.trim() !== group.name.trim() || pendingAction === 'delete-group'}
+                      onClick={onDeleteGroup}
+                      type="button"
+                    >
+                      {pendingAction === 'delete-group' ? 'Deleting…' : 'Delete group'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </section>
           ) : null}
         </aside>
       </div>

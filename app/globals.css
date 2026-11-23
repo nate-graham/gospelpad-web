@@ -3010,3 +3010,49 @@ button.verse-callout-ref:hover {
     flex: 1 1 40%;
   }
 }
+
+.danger-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.danger-zone > .feed-link {
+  align-self: flex-start;
+}
+
+.danger-zone p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.danger-zone label {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.danger-zone input {
+  padding: 0.6rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+.danger-zone-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.danger-zone-actions .button {
+  min-height: 38px;
+  padding: 0.5rem 1rem;
+  font-size: 0.84rem;
+}
+
+.button-vermilion:disabled {
+  opacity: 0.45;
+}
