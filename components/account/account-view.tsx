@@ -19,6 +19,7 @@ import { getSupabaseBrowserClient } from '@/lib/supabase/client';
 import { useDisplayPreferences } from '@/components/providers/display-preferences-provider';
 import { getShowDeleteWarningPreference, setShowDeleteWarningPreference } from '@/lib/delete-warning-preference';
 import { BereaSeatsSection } from '@/components/account/berea-seats-section';
+import { AccountDialogs, type AccountDialog } from '@/components/account/account-help-dialogs';
 
 type NoteType = (typeof NOTE_TYPES)[number];
 
@@ -53,6 +54,7 @@ export function AccountView({ isAdmin = false }: { isAdmin?: boolean }) {
   const [success, setSuccess] = useState<string | null>(null);
   const [showDeleteWarning, setShowDeleteWarning] = useState(true);
   const [signingOut, setSigningOut] = useState(false);
+  const [dialog, setDialog] = useState<AccountDialog>(null);
 
   const [deletedNotes, setDeletedNotes] = useState<NoteRecord[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -387,10 +389,10 @@ export function AccountView({ isAdmin = false }: { isAdmin?: boolean }) {
             <span className="rail-heading">Help and account</span>
             <ul className="account-links">
               <li>
-                <a href="mailto:support@gospelpad.com?subject=GospelPad%20Help">Help and contact</a>
+                <button onClick={() => setDialog('help')} type="button">Help and contact</button>
               </li>
               <li>
-                <a href="mailto:support@gospelpad.com?subject=GospelPad%20Feedback">Send feedback</a>
+                <button onClick={() => setDialog('feedback')} type="button">Send feedback</button>
               </li>
               <li>
                 <Link href="/privacy">Privacy policy</Link>
@@ -399,7 +401,7 @@ export function AccountView({ isAdmin = false }: { isAdmin?: boolean }) {
                 <Link href="/terms">Terms of service</Link>
               </li>
               <li>
-                <Link href="/auth/forgot-password">Reset password</Link>
+                <button onClick={() => setDialog('password')} type="button">Change password</button>
               </li>
               {isAdmin ? (
                 <li>
@@ -416,6 +418,7 @@ export function AccountView({ isAdmin = false }: { isAdmin?: boolean }) {
           </section>
         </aside>
       </div>
+      <AccountDialogs email={profile?.email} onClose={() => setDialog(null)} open={dialog} />
     </div>
   );
 }

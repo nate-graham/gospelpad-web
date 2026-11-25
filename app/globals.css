@@ -4392,3 +4392,23 @@ button.verse-callout-ref:hover {
   .record-button-pulse,
   .record-caret { animation: none; }
 }
+
+/* ── Account help dialogs ──────────────────────────────────────────── */
+.contact-email {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--field-bg-soft);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
