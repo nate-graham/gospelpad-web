@@ -824,8 +824,11 @@ export async function replaceOwnedShares(input: {
   groups: Array<{ id: string; name: string }>;
   users: ShareableProfile[];
   permission: NoteSharePermission;
+  /** Optional per-target permission (group or user id); falls back to `permission`. */
+  permissionFor?: Record<string, NoteSharePermission>;
 }) {
   const { supabase, userId } = await getAuthenticatedUserId();
+  const permissionOf = (id: string) => input.permissionFor?.[id] ?? input.permission;
 
   const { error: deleteError } = await supabase
     .from('note_shares')
@@ -843,14 +846,14 @@ export async function replaceOwnedShares(input: {
       shared_by: userId,
       shared_with: group.id,
       shared_with_type: 'group' as const,
-      permissions: input.permission,
+      permissions: permissionOf(group.id),
     })),
     ...input.users.map((user) => ({
       note_id: input.noteId,
       shared_by: userId,
       shared_with: user.id,
       shared_with_type: 'user' as const,
-      permissions: input.permission,
+      permissions: permissionOf(user.id),
     })),
   ];
 
@@ -868,13 +871,13 @@ export async function replaceOwnedShares(input: {
     id: group.id,
     name: group.name,
     type: 'group',
-    permissions: [input.permission],
+    permissions: [permissionOf(group.id)],
   }));
   const noteUsers = input.users.map((user) => ({
     id: user.id,
     name: getProfileLabel(user),
     type: 'user',
-    permissions: [input.permission],
+    permissions: [permissionOf(user.id)],
   }));
   const shareTargets = [...noteGroups, ...noteUsers];
 

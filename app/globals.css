@@ -2032,13 +2032,14 @@ button.verse-callout-ref:hover {
 }
 
 .share-dialog {
-  width: min(560px, 100%);
+  width: min(600px, 100%);
+  box-sizing: border-box;
   display: grid;
-  gap: 1.2rem;
-  padding: 1.6rem;
+  gap: 24px;
+  padding: 30px;
   border-radius: 24px;
-  background: var(--panel-raised);
-  box-shadow: 0 30px 80px -30px rgb(0 0 0 / 0.45);
+  background: var(--panel);
+  box-shadow: 0 30px 70px rgba(43, 40, 35, 0.3);
 }
 
 .share-dialog-header {
@@ -2049,19 +2050,28 @@ button.verse-callout-ref:hover {
 }
 
 .share-dialog-header h2 {
-  margin: 0.2rem 0 0.25rem;
-  font-size: 1.8rem;
+  margin: 4px 0;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 1.15;
 }
 
 .share-dialog-header p {
   margin: 0;
-  font-size: 0.88rem;
+  font-size: 13px;
   color: var(--muted);
 }
 
+.share-dialog-header .eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
 .share-dialog-close {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   flex: none;
   border-radius: 999px;
   border: 1px solid var(--line-strong);
@@ -4411,4 +4421,254 @@ button.verse-callout-ref:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+/* ── Share panel (matches Share design) ────────────────────────────── */
+.share-panel {
+  display: grid;
+  gap: 24px;
+}
+
+.share-section {
+  display: grid;
+  gap: 10px;
+}
+
+.share-groups {
+  gap: 8px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.share-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.share-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--field-bg);
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.share-row,
+.share-results button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.share-results {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--field-bg);
+}
+
+.share-results button {
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.share-results button:hover {
+  background: var(--accent-soft);
+}
+
+.share-add {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.share-avatar {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.share-person {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.share-person strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.share-person small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.share-select {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--field-bg);
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.share-select.is-quiet {
+  padding: 4px 8px;
+  border-color: var(--line);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.share-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
+.share-group label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.share-group input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.share-group small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.share-public {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+}
+
+.share-public .share-label {
+  color: var(--accent-strong);
+}
+
+.share-public-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.share-public-copy {
+  font-size: 13px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--accent-strong) 75%, var(--ink));
+}
+
+.share-public-row {
+  display: flex;
+  gap: 8px;
+}
+
+.share-public-row .share-input {
+  flex: 1;
+  font-size: 13.5px;
+  border-color: var(--accent-line);
+  color: var(--accent-strong);
+}
+
+.share-pill {
+  flex: none;
+  padding: 11px 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.share-pill.is-outline {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent-line);
+}
+
+.share-text-button {
+  border: 0;
+  background: none;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted-strong);
+  cursor: pointer;
+}
+
+.share-text-button.is-danger {
+  padding: 4px 0;
+  font-size: 12.5px;
+  color: var(--vermilion);
+}
+
+.share-notice {
+  margin: 0;
+  font-size: 13px;
+  color: var(--accent-strong);
+}
+
+.share-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.share-done {
+  margin-left: auto;
+  padding: 12px 26px;
+  border-radius: 999px;
+}
+
+@media (max-width: 520px) {
+  .share-dialog { padding: 22px; }
+  .share-public-row { flex-wrap: wrap; }
+  .share-public-row .share-input { flex-basis: 100%; }
 }

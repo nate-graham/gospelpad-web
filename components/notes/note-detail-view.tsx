@@ -546,18 +546,18 @@ export function NoteDetailView({ noteId }: { noteId: string }) {
               <div>
                 <span className="eyebrow" style={{ color: 'var(--accent)' }}>Share note</span>
                 <h2 id="share-dialog-title">{note.title?.trim() || 'Untitled'}</h2>
-                <p>Share with people, post it to a group, or send a read-only link.</p>
+                <p>Collaborate with people, post it to a group, or send a read-only link.</p>
               </div>
               <button aria-label="Close" className="share-dialog-close" onClick={() => setShareOpen(false)} type="button">
                 ×
               </button>
             </header>
-            <NoteSharePanel note={note} onSharesUpdated={setGroupShares} onUserSharesUpdated={setUserShares} />
-            <div className="share-dialog-footer">
-              <button className="button button-primary" onClick={() => setShareOpen(false)} type="button">
-                Done
-              </button>
-            </div>
+            <NoteSharePanel
+              note={note}
+              onDone={() => setShareOpen(false)}
+              onSharesUpdated={setGroupShares}
+              onUserSharesUpdated={setUserShares}
+            />
           </section>
         </div>
       ) : null}

@@ -1,7 +1,6 @@
 'use client';
 
-import type { CSSProperties } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { listUserGroups, type UserGroup } from '@/lib/groups';
 import {
   ensureOwnedPublicShare,
@@ -20,35 +19,64 @@ import {
 } from '@/lib/notes';
 import { getPublicAppUrl } from '@/lib/env';
 
-const PERMISSIONS: NoteSharePermission[] = ['view', 'comment', 'edit'];
+const PERMISSION_LABELS: Record<NoteSharePermission, string> = {
+  edit: 'Can edit',
+  comment: 'Can comment',
+  view: 'Read-only',
+};
+const PERMISSION_ORDER: NoteSharePermission[] = ['edit', 'comment', 'view'];
+
+type PersonShare = { profile: ShareableProfile; permission: NoteSharePermission };
+type GroupShare = { id: string; name: string; permission: NoteSharePermission };
+
+function profileLabel(profile: ShareableProfile) {
+  return profile.display_name || profile.name || profile.username || 'GospelPad user';
+}
+
+const AVATAR_TINTS = ['var(--vermilion-soft)', 'var(--accent-soft)', 'var(--surface-2)'];
 
 export function NoteSharePanel({
   note,
   onSharesUpdated,
   onUserSharesUpdated,
+  onDone,
 }: {
   note: NoteRecord;
   onSharesUpdated?: (shares: NoteGroupShare[]) => void;
   onUserSharesUpdated?: (shares: NoteUserShare[]) => void;
+  onDone?: () => void;
 }) {
   const [groups, setGroups] = useState<UserGroup[]>([]);
-  const [existingShares, setExistingShares] = useState<NoteGroupShare[]>([]);
-  const [existingUserShares, setExistingUserShares] = useState<NoteUserShare[]>([]);
+  const [people, setPeople] = useState<PersonShare[]>([]);
+  const [groupShares, setGroupShares] = useState<GroupShare[]>([]);
   const [publicShare, setPublicShare] = useState<PublicNoteShare | null>(null);
-  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
-  const [selectedUsers, setSelectedUsers] = useState<ShareableProfile[]>([]);
   const [userQuery, setUserQuery] = useState('');
-  const [availableUsers, setAvailableUsers] = useState<ShareableProfile[]>([]);
-  const [permission, setPermission] = useState<NoteSharePermission>('view');
+  const [results, setResults] = useState<ShareableProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const canUseNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
+  const applyLoaded = (nextGroupShares: NoteGroupShare[], nextUserShares: NoteUserShare[]) => {
+    setGroupShares(
+      nextGroupShares.map((share) => ({ id: share.group_id, name: share.group_name, permission: share.permissions[0] ?? 'view' }))
+    );
+    setPeople((current) =>
+      nextUserShares.map((share) => {
+        const known = current.find((person) => person.profile.id === share.user_id)?.profile;
+        return {
+          profile: known ?? { id: share.user_id, username: null, display_name: share.user_label, name: share.user_label },
+          permission: share.permissions[0] ?? 'view',
+        };
+      })
+    );
+    onSharesUpdated?.(nextGroupShares);
+    onUserSharesUpdated?.(nextUserShares);
+  };
+
   useEffect(() => {
     let active = true;
-
     const load = async () => {
       try {
         setLoading(true);
@@ -59,436 +87,337 @@ export function NoteSharePanel({
           listOwnedUserShares(note.id),
           getOwnedPublicShare(note.id),
         ]);
-
         if (!active) return;
         setGroups(nextGroups);
-        setExistingShares(nextShares);
-        setExistingUserShares(nextUserShares);
         setPublicShare(nextPublicShare);
-        setSelectedGroupIds(nextShares.map((share) => share.group_id));
-        setSelectedUsers(
-          nextUserShares.map((share) => ({
-            id: share.user_id,
-            username: null,
-            display_name: share.user_label,
-            name: share.user_label,
-          }))
-        );
-        setPermission(nextShares[0]?.permissions[0] ?? nextUserShares[0]?.permissions[0] ?? 'view');
-        onSharesUpdated?.(nextShares);
-        onUserSharesUpdated?.(nextUserShares);
+        applyLoaded(nextShares, nextUserShares);
       } catch (loadError) {
         if (!active) return;
-        setError(loadError instanceof Error ? loadError.message : 'Failed to load note sharing state.');
+        setError(loadError instanceof Error ? loadError.message : 'Couldn’t load sharing for this note.');
       } finally {
         if (active) setLoading(false);
       }
     };
-
     void load();
-
     return () => {
       active = false;
     };
-  }, [note.id, onSharesUpdated]);
-
-  const selectedGroups = useMemo(
-    () => groups.filter((group) => selectedGroupIds.includes(group.group.id)),
-    [groups, selectedGroupIds]
-  );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note.id]);
 
   useEffect(() => {
+    const query = userQuery.trim();
+    if (!query) {
+      setResults([]);
+      return;
+    }
     let active = true;
-
-    const loadUsers = async () => {
-      try {
-        const results = await searchShareableProfiles(userQuery);
-        if (!active) return;
-        setAvailableUsers(results);
-      } catch {
-        if (!active) return;
-        setAvailableUsers([]);
-      }
-    };
-
-    void loadUsers();
-
+    const timer = window.setTimeout(() => {
+      searchShareableProfiles(query)
+        .then((found) => {
+          if (active) setResults(found);
+        })
+        .catch(() => {
+          if (active) setResults([]);
+        });
+    }, 200);
     return () => {
       active = false;
+      window.clearTimeout(timer);
     };
   }, [userQuery]);
 
-  const refreshShares = async () => {
-    const [refreshedGroups, refreshedUsers] = await Promise.all([
-      listOwnedGroupShares(note.id),
-      listOwnedUserShares(note.id),
-    ]);
-
-    setExistingShares(refreshedGroups);
-    setExistingUserShares(refreshedUsers);
-    setSelectedGroupIds(refreshedGroups.map((share) => share.group_id));
-    setSelectedUsers(
-      refreshedUsers.map((share) => ({
-        id: share.user_id,
-        username: null,
-        display_name: share.user_label,
-        name: share.user_label,
-      }))
-    );
-    onSharesUpdated?.(refreshedGroups);
-    onUserSharesUpdated?.(refreshedUsers);
-
-    return { refreshedGroups, refreshedUsers };
-  };
-
-  const onSave = async () => {
+  /** Save the full sharing state; every change applies straight away. */
+  const persist = async (nextPeople: PersonShare[], nextGroups: GroupShare[], done: string) => {
+    const previousPeople = people;
+    const previousGroups = groupShares;
+    setPeople(nextPeople);
+    setGroupShares(nextGroups);
     try {
       setSaving(true);
       setError(null);
       setNotice(null);
-
+      const permissionFor: Record<string, NoteSharePermission> = {};
+      nextPeople.forEach((person) => {
+        permissionFor[person.profile.id] = person.permission;
+      });
+      nextGroups.forEach((group) => {
+        permissionFor[group.id] = group.permission;
+      });
       await replaceOwnedShares({
         noteId: note.id,
-        groups: selectedGroups.map(({ group }) => ({ id: group.id, name: group.name })),
-        users: selectedUsers,
-        permission,
+        groups: nextGroups.map((group) => ({ id: group.id, name: group.name })),
+        users: nextPeople.map((person) => person.profile),
+        permission: 'view',
+        permissionFor,
       });
-
-      const { refreshedGroups: refreshed, refreshedUsers } = await refreshShares();
-      setNotice(
-        refreshed.length + refreshedUsers.length > 0
-          ? `Updated sharing for ${refreshed.length} group${refreshed.length === 1 ? '' : 's'} and ${refreshedUsers.length} user${refreshedUsers.length === 1 ? '' : 's'}.`
-          : 'All note sharing removed. This note is private again.'
-      );
+      const [refreshedGroups, refreshedUsers] = await Promise.all([listOwnedGroupShares(note.id), listOwnedUserShares(note.id)]);
+      applyLoaded(refreshedGroups, refreshedUsers);
+      setNotice(done);
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Failed to update note sharing.');
+      setPeople(previousPeople);
+      setGroupShares(previousGroups);
+      setError(saveError instanceof Error ? saveError.message : 'Couldn’t update sharing.');
     } finally {
       setSaving(false);
     }
   };
 
-  const onRemoveUserShare = async (userId: string, userLabel: string) => {
-    try {
-      setSaving(true);
-      setError(null);
-      setNotice(null);
+  const addPerson = (profile: ShareableProfile) => {
+    if (people.some((person) => person.profile.id === profile.id)) return;
+    setUserQuery('');
+    setResults([]);
+    void persist([...people, { profile, permission: 'view' }], groupShares, `Shared with ${profileLabel(profile)}.`);
+  };
 
-      const remainingUsers = selectedUsers.filter((user) => user.id !== userId);
-
-      await replaceOwnedShares({
-        noteId: note.id,
-        groups: selectedGroups.map(({ group }) => ({ id: group.id, name: group.name })),
-        users: remainingUsers,
-        permission,
-      });
-
-      await refreshShares();
-      setNotice(`${userLabel} no longer has access to this note.`);
-    } catch (removeError) {
-      setError(removeError instanceof Error ? removeError.message : 'Failed to remove this user from the shared note.');
-    } finally {
-      setSaving(false);
+  const changePerson = (id: string, value: NoteSharePermission | 'remove') => {
+    const person = people.find((candidate) => candidate.profile.id === id);
+    if (!person) return;
+    if (value === 'remove') {
+      void persist(people.filter((candidate) => candidate.profile.id !== id), groupShares, `${profileLabel(person.profile)} no longer has access.`);
+      return;
     }
+    void persist(
+      people.map((candidate) => (candidate.profile.id === id ? { ...candidate, permission: value } : candidate)),
+      groupShares,
+      `${profileLabel(person.profile)}: ${PERMISSION_LABELS[value].toLowerCase()}.`
+    );
+  };
+
+  const toggleGroup = (id: string, name: string) => {
+    const shared = groupShares.some((group) => group.id === id);
+    void persist(
+      people,
+      shared ? groupShares.filter((group) => group.id !== id) : [...groupShares, { id, name, permission: 'comment' }],
+      shared ? `Removed from ${name}.` : `Posted to ${name}.`
+    );
+  };
+
+  const changeGroup = (id: string, permission: NoteSharePermission) => {
+    const group = groupShares.find((candidate) => candidate.id === id);
+    if (!group) return;
+    void persist(
+      people,
+      groupShares.map((candidate) => (candidate.id === id ? { ...candidate, permission } : candidate)),
+      `${group.name}: ${PERMISSION_LABELS[permission].toLowerCase()}.`
+    );
   };
 
   const publicShareUrl = publicShare ? `${getPublicAppUrl()}/s/${publicShare.share_token}` : null;
 
-  const onEnablePublicShare = async () => {
+  const runPublic = async (action: () => Promise<void>) => {
     try {
       setSaving(true);
       setError(null);
       setNotice(null);
-      const share = await ensureOwnedPublicShare(note.id);
-      setPublicShare(share);
-      setNotice('Public read-only link ready. Anyone with the link can read this note and then sign up to keep their own copy.');
+      await action();
     } catch (shareError) {
-      setError(shareError instanceof Error ? shareError.message : 'Failed to create a public share link.');
+      setError(shareError instanceof Error ? shareError.message : 'Couldn’t update the public link.');
     } finally {
       setSaving(false);
     }
   };
 
-  const onDisablePublicShare = async () => {
-    try {
-      setSaving(true);
-      setError(null);
-      setNotice(null);
+  const onEnablePublicShare = () =>
+    runPublic(async () => {
+      setPublicShare(await ensureOwnedPublicShare(note.id));
+      setNotice('Link created. Anyone with it can read this note.');
+    });
+
+  const onDisablePublicShare = () =>
+    runPublic(async () => {
       await removeOwnedPublicShare(note.id);
       setPublicShare(null);
-      setNotice('Public link removed. People will need a signed-in share again to reach this note.');
-    } catch (shareError) {
-      setError(shareError instanceof Error ? shareError.message : 'Failed to remove the public share link.');
-    } finally {
-      setSaving(false);
-    }
-  };
+      setNotice('Public link removed.');
+    });
 
   const onCopyPublicLink = async () => {
     if (!publicShareUrl) return;
-
     try {
       await navigator.clipboard.writeText(publicShareUrl);
-      setNotice('Public share link copied.');
+      setNotice('Link copied.');
     } catch {
-      setError('Could not copy the public link from this browser.');
+      setError('Couldn’t copy the link from this browser.');
     }
   };
 
   const onSharePublicLink = async () => {
     if (!publicShareUrl) return;
-
-    if (!canUseNativeShare) {
-      await onCopyPublicLink();
-      return;
-    }
-
     try {
       await navigator.share({
         title: note.title?.trim() || 'Shared GospelPad note',
         text: 'Open this shared GospelPad note.',
         url: publicShareUrl,
       });
-      setNotice('Share sheet opened.');
     } catch (shareError) {
-      if (shareError instanceof Error && shareError.name === 'AbortError') {
-        return;
-      }
-      setError('Could not open the phone share sheet from this browser.');
+      if (shareError instanceof Error && shareError.name === 'AbortError') return;
+      setError('Couldn’t open the share sheet from this browser.');
     }
   };
 
+  const stopAllSharing = () =>
+    runPublic(async () => {
+      if (people.length || groupShares.length) {
+        await replaceOwnedShares({ noteId: note.id, groups: [], users: [], permission: 'view' });
+        applyLoaded([], []);
+      }
+      if (publicShare) {
+        await removeOwnedPublicShare(note.id);
+        setPublicShare(null);
+      }
+      setNotice('This note is private again.');
+    });
+
+  const sharedIds = new Set(people.map((person) => person.profile.id));
+  const suggestions = results.filter((profile) => !sharedIds.has(profile.id));
+  const anySharing = people.length > 0 || groupShares.length > 0 || Boolean(publicShare);
+
   return (
-    <section className="panel" style={{ padding: '1rem', display: 'grid', gap: '1rem' }}>
-      <div className="page-header" style={{ gap: '0.35rem' }}>
-        <span className="eyebrow">Share note</span>
-        <strong style={{ fontSize: '1rem' }}>Collaborate or send a read-only link</strong>
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gap: '0.75rem',
-          gridTemplateColumns: 'minmax(0, 1fr) auto',
-          alignItems: 'end',
-        }}
-      >
-        <label style={{ display: 'grid', gap: '0.35rem' }}>
-          <span className="eyebrow">Permission</span>
-          <select
-            value={permission}
-            onChange={(event) => setPermission(event.target.value as NoteSharePermission)}
-            style={{
-              minHeight: 42,
-              borderRadius: 14,
-              border: '1px solid var(--line)',
-              padding: '0.75rem 0.9rem',
-              background: 'var(--field-bg)',
-              color: 'var(--text)',
-            }}
-          >
-            {PERMISSIONS.map((candidate) => (
-              <option key={candidate} value={candidate}>
-                {candidate}
-              </option>
+    <div className="share-panel">
+      {loading ? (
+        <p className="composer-hint" role="status">Loading sharing…</p>
+      ) : (
+        <>
+          <section className="share-section">
+            <span className="share-label">People</span>
+            <input
+              aria-label="Search users"
+              className="share-input"
+              onChange={(event) => setUserQuery(event.target.value)}
+              placeholder="Search users by name or username"
+              type="search"
+              value={userQuery}
+            />
+            {suggestions.length ? (
+              <ul className="share-results" aria-label="Matching users">
+                {suggestions.slice(0, 6).map((profile, index) => (
+                  <li key={profile.id}>
+                    <button disabled={saving} onClick={() => addPerson(profile)} type="button">
+                      <span className="share-avatar" style={{ background: AVATAR_TINTS[index % AVATAR_TINTS.length] }}>
+                        {profileLabel(profile).charAt(0).toUpperCase()}
+                      </span>
+                      <span className="share-person">
+                        <strong>{profileLabel(profile)}</strong>
+                        {profile.username ? <small>@{profile.username}</small> : null}
+                      </span>
+                      <span className="share-add">Add</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : userQuery.trim() && results.length === 0 ? (
+              <p className="composer-hint">No one found by that name.</p>
+            ) : null}
+            {people.map((person, index) => (
+              <div className="share-row" key={person.profile.id}>
+                <span className="share-avatar" style={{ background: AVATAR_TINTS[index % AVATAR_TINTS.length] }}>
+                  {profileLabel(person.profile).charAt(0).toUpperCase()}
+                </span>
+                <span className="share-person">
+                  <strong>{profileLabel(person.profile)}</strong>
+                  {person.profile.username ? <small>@{person.profile.username}</small> : null}
+                </span>
+                <select
+                  aria-label={`${profileLabel(person.profile)}’s permission`}
+                  className="share-select"
+                  disabled={saving}
+                  onChange={(event) => changePerson(person.profile.id, event.target.value as NoteSharePermission | 'remove')}
+                  value={person.permission}
+                >
+                  {PERMISSION_ORDER.map((permission) => (
+                    <option key={permission} value={permission}>
+                      {PERMISSION_LABELS[permission]}
+                    </option>
+                  ))}
+                  <option value="remove">Remove</option>
+                </select>
+              </div>
             ))}
-          </select>
-        </label>
+            {people.length === 0 && !userQuery.trim() ? <p className="composer-hint">Not shared with anyone yet.</p> : null}
+          </section>
 
-        <button
-          className="button button-primary"
-          type="button"
-          disabled={loading || saving}
-          onClick={onSave}
-          style={{ minHeight: 42, paddingInline: '0.9rem' }}
-        >
-          {saving ? 'Saving…' : 'Save'}
+          <section className="share-section share-groups">
+            <span className="share-label">Groups</span>
+            {groups.length === 0 ? (
+              <p className="composer-hint">You’re not in any groups yet.</p>
+            ) : (
+              groups.map(({ group, role }) => {
+                const shared = groupShares.find((candidate) => candidate.id === group.id);
+                return (
+                  <div className="share-group" key={group.id}>
+                    <label>
+                      <input checked={Boolean(shared)} disabled={saving} onChange={() => toggleGroup(group.id, group.name)} type="checkbox" />
+                      <span>{group.name}</span>
+                    </label>
+                    {shared ? (
+                      <select
+                        aria-label={`${group.name} permission`}
+                        className="share-select is-quiet"
+                        disabled={saving}
+                        onChange={(event) => changeGroup(group.id, event.target.value as NoteSharePermission)}
+                        value={shared.permission}
+                      >
+                        {PERMISSION_ORDER.map((permission) => (
+                          <option key={permission} value={permission}>
+                            {permission === 'comment' ? 'Comments on' : PERMISSION_LABELS[permission]}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <small>{role === 'admin' ? 'Admin' : 'Member'}</small>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </section>
+
+          <section className="share-public">
+            <span className="share-public-head">
+              <span className="share-label">Public read-only link</span>
+              {publicShareUrl ? (
+                <button className="share-text-button is-danger" disabled={saving} onClick={onDisablePublicShare} type="button">
+                  Remove link
+                </button>
+              ) : null}
+            </span>
+            <span className="share-public-copy">Anyone with the link can read this note, then sign up to keep their own copy.</span>
+            {publicShareUrl ? (
+              <span className="share-public-row">
+                <input aria-label="Public link" className="share-input" readOnly value={publicShareUrl.replace(/^https?:\/\//, '')} />
+                <button className="share-pill" onClick={() => void onCopyPublicLink()} type="button">
+                  Copy link
+                </button>
+                {canUseNativeShare ? (
+                  <button className="share-pill is-outline" onClick={() => void onSharePublicLink()} type="button">
+                    Share
+                  </button>
+                ) : null}
+              </span>
+            ) : (
+              <span className="share-public-row">
+                <button className="share-pill" disabled={saving} onClick={() => void onEnablePublicShare()} type="button">
+                  Create link
+                </button>
+              </span>
+            )}
+          </section>
+        </>
+      )}
+
+      {error ? <p className="error-state status-message" role="alert">{error}</p> : null}
+      {notice && !error ? <p className="share-notice" role="status">{notice}</p> : null}
+
+      <div className="share-footer">
+        {anySharing ? (
+          <button className="share-text-button" disabled={saving} onClick={() => void stopAllSharing()} type="button">
+            Stop all sharing
+          </button>
+        ) : null}
+        <button className="button button-primary share-done" onClick={onDone} type="button">
+          {saving ? 'Saving…' : 'Done'}
         </button>
       </div>
-
-      {loading ? (
-        <section className="loading-state status-message" role="status" aria-live="polite">
-          <strong>Loading sharing options…</strong>
-          <span style={{ color: 'var(--muted)' }}>Checking your groups and existing group visibility for this note.</span>
-        </section>
-      ) : null}
-
-      {!loading ? (
-        <>
-          <details className="panel" style={{ padding: '0.8rem 1rem' }}>
-            <summary style={summaryStyle}>Groups {selectedGroupIds.length > 0 ? `(${selectedGroupIds.length})` : ''}</summary>
-            {groups.length === 0 ? (
-              <span style={{ color: 'var(--muted)', lineHeight: 1.6 }}>No groups yet.</span>
-            ) : (
-              <div className="cta-row" style={{ marginTop: '0.85rem' }}>
-                {groups.map(({ group, role }) => {
-                  const active = selectedGroupIds.includes(group.id);
-                  return (
-                    <button
-                      key={group.id}
-                      type="button"
-                      className={`button ${active ? 'button-primary' : 'button-secondary'}`}
-                      onClick={() =>
-                        setSelectedGroupIds((current) =>
-                          current.includes(group.id)
-                            ? current.filter((id) => id !== group.id)
-                            : [...current, group.id]
-                        )
-                      }
-                      style={compactButtonStyle}
-                    >
-                      {group.name} ({role})
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </details>
-
-          <details className="panel" style={{ padding: '0.8rem 1rem' }}>
-            <summary style={summaryStyle}>Users {selectedUsers.length > 0 ? `(${selectedUsers.length})` : ''}</summary>
-            <div style={{ display: 'grid', gap: '0.6rem', marginTop: '0.85rem' }}>
-              <input
-                value={userQuery}
-                onChange={(event) => setUserQuery(event.target.value)}
-                placeholder="Search users"
-                style={{
-                  minHeight: 42,
-                  borderRadius: 14,
-                  border: '1px solid var(--line)',
-                  padding: '0.75rem 0.9rem',
-                  background: 'var(--field-bg)',
-                  color: 'var(--text)',
-                }}
-              />
-              <div className="cta-row">
-                {availableUsers.map((user) => {
-                  const active = selectedUsers.some((candidate) => candidate.id === user.id);
-                  const label = user.display_name || user.username || user.name || 'User';
-                  return (
-                    <button
-                      key={user.id}
-                      type="button"
-                      className={`button ${active ? 'button-primary' : 'button-secondary'}`}
-                      onClick={() =>
-                        setSelectedUsers((current) =>
-                          current.some((candidate) => candidate.id === user.id)
-                            ? current.filter((candidate) => candidate.id !== user.id)
-                            : [...current, user]
-                        )
-                      }
-                      style={compactButtonStyle}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-                {availableUsers.length === 0 ? (
-                  <span style={{ color: 'var(--muted)' }}>No matches.</span>
-                ) : null}
-              </div>
-            </div>
-          </details>
-        </>
-      ) : null}
-
-      {existingShares.length > 0 ? (
-        <section className="status-card" style={{ padding: '0.9rem' }}>
-          <span className="eyebrow">Groups</span>
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            {existingShares.map((share) => (
-              <div key={share.group_id} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                <strong>{share.group_name}</strong>
-                <span className="badge">{share.permissions.join(', ')}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : existingUserShares.length === 0 ? (
-        <section className="empty-state status-message" role="status">
-          <strong>This note is private</strong>
-          <span style={{ color: 'var(--muted)' }}>
-            It is not currently shared into any group or directly with another user.
-          </span>
-        </section>
-      ) : null}
-
-      {existingUserShares.length > 0 ? (
-        <section className="status-card" style={{ padding: '0.9rem' }}>
-          <span className="eyebrow">Users</span>
-          <div style={{ display: 'grid', gap: '0.5rem' }}>
-            {existingUserShares.map((share) => (
-              <div key={share.user_id} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-                  <strong>{share.user_label}</strong>
-                  <span className="badge">{share.permissions.join(', ')}</span>
-                </div>
-                <button
-                  className="button button-ghost"
-                  disabled={saving}
-                  onClick={() => onRemoveUserShare(share.user_id, share.user_label)}
-                  style={iconButtonStyle}
-                  type="button"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <details className="status-card" style={{ padding: '0.9rem', display: 'grid', gap: '0.75rem' }} open={Boolean(publicShareUrl)}>
-        <summary style={summaryStyle}>Public link {publicShareUrl ? '(active)' : ''}</summary>
-        <span className="eyebrow">Public share link</span>
-        <span style={{ color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>Read-only</span>
-
-        {publicShareUrl ? (
-          <div style={{ display: 'grid', gap: '0.55rem' }}>
-            <strong style={{ fontSize: '0.95rem', overflowWrap: 'anywhere' }}>{publicShareUrl}</strong>
-            <div className="cta-row">
-              <button className="button button-primary" onClick={onSharePublicLink} style={compactButtonStyle} type="button">
-                {canUseNativeShare ? 'Share link' : 'Copy public link'}
-              </button>
-              <button className="button button-secondary" onClick={onCopyPublicLink} style={compactButtonStyle} type="button">
-                Copy
-              </button>
-              <button className="button button-ghost" onClick={onDisablePublicShare} style={compactButtonStyle} type="button" disabled={saving}>
-                Remove
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="cta-row">
-            <button className="button button-primary" onClick={onEnablePublicShare} style={compactButtonStyle} type="button" disabled={saving}>
-              Create link
-            </button>
-          </div>
-        )}
-      </details>
-
-      {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
-      {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
-    </section>
+    </div>
   );
 }
-
-const summaryStyle = {
-  cursor: 'pointer',
-  fontWeight: 700,
-  color: 'var(--text)',
-  listStyle: 'none',
-} satisfies CSSProperties;
-
-const compactButtonStyle = {
-  minHeight: 36,
-  padding: '0.55rem 0.8rem',
-} satisfies CSSProperties;
-
-const iconButtonStyle = {
-  minHeight: 34,
-  minWidth: 34,
-  padding: '0.35rem',
-  borderRadius: 999,
-  fontSize: '1.1rem',
-  lineHeight: 1,
-} satisfies CSSProperties;
