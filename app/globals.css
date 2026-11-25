@@ -718,10 +718,15 @@ summary::-webkit-details-marker {
   position: relative;
 }
 
+.scripture-editor:focus,
+.scripture-editor:focus-visible {
+  outline: none;
+}
+
 .scripture-editor[data-empty='true']::before {
   content: attr(data-placeholder);
   position: absolute;
-  inset: 1rem auto auto 1rem;
+  inset: 0 auto auto 0;
   color: var(--muted);
   pointer-events: none;
 }
