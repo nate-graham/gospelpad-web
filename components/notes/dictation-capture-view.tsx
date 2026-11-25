@@ -7,7 +7,10 @@ import { createNote, NOTE_TYPES, type NoteInput } from '@/lib/notes';
 import { upsertPrayerRequest, type PrayerRequestStatus } from '@/lib/prayer-requests';
 import { formatTranscriptText, uploadRecordingBlob, transcribeRecording, type UploadedRecording } from '@/lib/transcription';
 import { getNoteTypePlaceholders, supportsSpeakerField } from '@/components/notes/note-utils';
-import { InfoHint } from '@/components/feedback/info-hint';
+import { ScriptureEditableField } from '@/components/notes/scripture-editable-field';
+import { formatVerseReference, splitNoteIntoBlocks } from '@/components/notes/scripture-reference-text';
+import { fetchScriptureByReference, formatScriptureTextForInsertion, type ScriptureResult } from '@/lib/scripture';
+import { findScriptureReferences, splitTextByScriptureReferences } from '@/lib/scripture-references';
 
 type DictationDraft = Pick<NoteInput, 'title' | 'speaker' | 'type' | 'isLucidDream' | 'dreamRole' | 'prayerStatus'> & {
   transcript: string;
@@ -116,6 +119,61 @@ export function DictationCaptureView() {
   const [liveListening, setLiveListening] = useState(false);
   const [liveInterim, setLiveInterim] = useState('');
   const [liveError, setLiveError] = useState<string | null>(null);
+  const [liveSeconds, setLiveSeconds] = useState(0);
+  const [mode, setMode] = useState<'live' | 'record' | 'upload'>('live');
+  const [liveSupported, setLiveSupported] = useState(true);
+  const [recordSupported, setRecordSupported] = useState(true);
+  const [activeReference, setActiveReference] = useState<string | null>(null);
+
+  // What this browser can do is only known in the browser, so it is checked after the first render.
+  useEffect(() => {
+    const live = typeof window.SpeechRecognition !== 'undefined' || typeof window.webkitSpeechRecognition !== 'undefined';
+    const record = typeof window.MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
+    setLiveSupported(live);
+    setRecordSupported(record);
+    setMode(live ? 'live' : record ? 'record' : 'upload');
+  }, []);
+
+  useEffect(() => {
+    if (!liveListening) return undefined;
+    const timer = window.setInterval(() => setLiveSeconds((current) => current + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, [liveListening]);
+
+  // References heard so far, most recent first, and the ones whose verse is already in the note.
+  const heardReferences = useMemo(() => findScriptureReferences(draft.transcript).reverse(), [draft.transcript]);
+  const insertedReferences = useMemo(
+    () =>
+      new Set(
+        splitNoteIntoBlocks(draft.transcript)
+          .filter((block) => block.kind === 'verse')
+          .map((block) => (block.kind === 'verse' ? block.reference : ''))
+      ),
+    [draft.transcript]
+  );
+
+  /** Puts the verse on its own lines after the paragraph where the reference was last mentioned. */
+  const insertVerseAfterReference = (reference: string, verse: string) => {
+    setDraft((current) => {
+      const text = current.transcript;
+      let offset = 0;
+      let mentionEnd = -1;
+      for (const segment of splitTextByScriptureReferences(text)) {
+        const length = segment.value.length;
+        if (segment.type === 'reference' && segment.value === reference) mentionEnd = offset + length;
+        offset += length;
+      }
+      if (mentionEnd < 0) {
+        return { ...current, transcript: `${text.trimEnd()}\n\n${verse}\n\n` };
+      }
+      const breakAt = text.indexOf('\n\n', mentionEnd);
+      const cut = breakAt < 0 ? text.length : breakAt;
+      const before = text.slice(0, cut).trimEnd();
+      const after = text.slice(cut).replace(/^\s+/, '');
+      return { ...current, transcript: `${before}\n\n${verse}\n\n${after}` };
+    });
+    setActiveReference(null);
+  };
 
   useEffect(() => {
     if (!recording) return undefined;
@@ -147,9 +205,6 @@ export function DictationCaptureView() {
   const showSpeakerField = supportsSpeakerField(draft.type);
   const isDream = draft.type === 'Dream';
   const isPrayerRequest = draft.type === 'Prayer Requests';
-  const canRecord = typeof window !== 'undefined' && typeof window.MediaRecorder !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
-  const canLiveDictate =
-    typeof window !== 'undefined' && (typeof window.SpeechRecognition !== 'undefined' || typeof window.webkitSpeechRecognition !== 'undefined');
 
   const updateDraft = <K extends keyof DictationDraft>(key: K, value: DictationDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -320,6 +375,7 @@ export function DictationCaptureView() {
 
       liveResultReceivedRef.current = false;
       liveCommittedTranscriptRef.current = '';
+      setLiveSeconds(0);
       keepLiveDictationRunningRef.current = true;
       setLiveError(null);
       setError(null);
@@ -434,295 +490,359 @@ export function DictationCaptureView() {
     }
   };
 
+  const busy = recording || liveListening || keepLiveDictationRunningRef.current;
+  const statusLabel = liveListening
+    ? 'Listening'
+    : recording
+      ? 'Recording'
+      : transcribing
+        ? 'Transcribing'
+        : draft.transcript.trim()
+          ? 'Ready to save'
+          : 'Not started';
+
   return (
-    <div className="page-container page-section">
-      <header className="hero-surface">
-        <span className="eyebrow">Dictation mode</span>
-        <h1>Capture a note by voice</h1>
-        <p className="page-description" style={{ margin: 0 }}>
-          Move between live dictation, recorded audio, and a final written note without leaving the sanctuary flow.
-        </p>
-      </header>
-
-      <details className="detail-toggle" style={{ background: 'transparent', padding: 0 }}>
-        <summary style={detailsSummaryStyle}>
-          <span>Dictation details</span>
-          <span style={detailsMetaStyle}>
-            {canLiveDictate ? 'Live dictation and recording' : canRecord ? 'Record, then transcribe' : 'Upload-first fallback'}
-          </span>
-        </summary>
-        <div style={{ marginTop: '0.85rem', display: 'grid', gap: '1rem' }}>
-          <p className="page-description" style={{ margin: 0 }}>
-            Use live dictation for text that appears while you speak, or record audio first and transcribe it after you stop. Both paths still hand the result into the note editor for cleanup.
-          </p>
-
-          <section className="responsive-grid compact">
-            <article className="status-card" style={{ padding: '1rem' }}>
-              <span className="eyebrow">Capture mode</span>
-              <strong style={{ fontSize: '1.1rem' }}>
-                {canLiveDictate ? 'Live dictation and recording' : canRecord ? 'Record, then transcribe' : 'Upload-first fallback'}
-              </strong>
-              <span style={{ color: 'var(--muted)' }}>
-                {canLiveDictate
-                  ? 'Start live dictation for text as you speak, or keep using the saved-audio path when you want playback and retranscription later.'
-                  : canRecord
-                    ? 'Use the microphone directly in this browser, then run transcription after you stop recording.'
-                    : 'This browser does not support microphone capture here, so use the audio upload fallback.'}
-              </span>
-            </article>
-            <article className="status-card" style={{ padding: '1rem' }}>
-              <span className="eyebrow">Transcription backend</span>
-              <strong style={{ fontSize: '1.1rem' }}>Secure transcription</strong>
-              <span style={{ color: 'var(--muted)' }}>
-                Your audio is uploaded securely, transcribed, and then handed into the note editor for cleanup.
-              </span>
-            </article>
-          </section>
-        </div>
-      </details>
-
-      {permissionError ? <section className="error-state status-message" role="alert">{permissionError}</section> : null}
-      {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
-      {liveError ? <section className="error-state status-message" role="alert">{liveError}</section> : null}
-      {notice ? <section className="empty-state status-message" role="status">{notice}</section> : null}
-
-      <div className="dictation-grid">
-      <aside className="dictation-rail">
-      <section className="inline-support-stack">
-        <div className="support-block" style={{ gap: '0.35rem' }}>
-          <span className="eyebrow">Live dictation</span>
-          <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <strong className="support-block-title">{liveListening ? 'Listening now' : 'Personal dictation'}</strong>
-            <InfoHint
-              label="About live dictation"
-              text="Use this when you are speaking close to your phone and want text to appear while you talk. If the voice is further away, use record and transcribe instead for more reliable results. This mode does not save an audio clip for playback later."
-            />
-          </div>
-        </div>
-
-        <div className="cta-row">
-          {canLiveDictate ? (
-            liveListening ? (
-              <button className="button button-primary" onClick={stopLiveDictation} type="button">
-                Stop live dictation
-              </button>
-            ) : (
-              <button className="button button-primary" onClick={startLiveDictation} type="button">
-                Start live dictation
-              </button>
-            )
-          ) : (
-            <span style={{ color: 'var(--muted)' }}>
-              This browser does not expose the live speech-recognition API here. Use the record-and-transcribe flow below instead.
-            </span>
-          )}
-        </div>
-
-        {liveInterim ? (
-          <div className="support-tray">
-            <span className="eyebrow">Listening preview</span>
-            <strong style={{ fontSize: '1rem', lineHeight: 1.6 }}>{liveInterim}</strong>
-          </div>
-        ) : null}
-      </section>
-
-      <section className="inline-support-stack">
-        <div className="support-block" style={{ gap: '0.35rem' }}>
-          <span className="eyebrow">Audio capture</span>
-          <strong className="support-block-title">{recording ? `Recording ${formatSeconds(recordSeconds)}` : audioBlob ? 'Audio ready' : 'Start with audio'}</strong>
-        </div>
-
-        <div className="cta-row">
-          {canRecord ? (
-            recording ? (
-              <button className="button button-primary" type="button" onClick={stopRecording}>
-                Stop recording
-              </button>
-            ) : (
-              <button className="button button-primary" type="button" onClick={startRecording}>
-                Start recording
-              </button>
-            )
-          ) : null}
-
-          <label className="button button-secondary" style={{ position: 'relative', overflow: 'hidden' }}>
-            Upload audio
-            <input
-              accept="audio/*"
-              onChange={onAudioFileSelected}
-              style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }}
-              type="file"
-            />
-          </label>
-
-          {audioBlob ? (
-            <button className="button button-ghost" type="button" onClick={resetAudio}>
-              Clear audio
-            </button>
-          ) : null}
-        </div>
-
-        {audioUrl ? (
-          <audio controls src={audioUrl} style={{ width: '100%' }}>
-            Your browser does not support audio playback.
-          </audio>
-        ) : null}
-
-        <div className="cta-row">
+    <div className="page-container page-section record-page">
+      <div className="composer-topbar">
+        <Link className="back-link" href="/notes">
+          <svg aria-hidden="true" fill="none" height="12" viewBox="0 0 11 18" width="7">
+            <path d="M9 1L1 9l8 8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+          </svg>
+          Notebook
+        </Link>
+        <span className="composer-status">
+          Record · {statusLabel}
+          {liveListening || recording ? ` · ${formatSeconds(liveListening ? liveSeconds : recordSeconds)}` : ''}
+        </span>
+        <div className="composer-topbar-actions">
           <button
             className="button button-primary"
-            disabled={!audioBlob || transcribing}
-            onClick={transcribeAudio}
-            type="button"
-          >
-            {transcribing ? 'Transcribing…' : 'Transcribe audio'}
-          </button>
-        </div>
-      </section>
-      </aside>
-
-      <div className="dictation-main">
-      <section className="reading-surface" style={{ background: 'transparent', padding: 0 }}>
-        <div className="support-block" style={{ gap: '0.35rem' }}>
-          <span className="eyebrow">Note setup</span>
-          <div style={{ display: 'flex', gap: '0.55rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <strong className="support-block-title">Review before saving</strong>
-            <InfoHint
-              label="About note setup"
-              text="Adjust the transcript and note type here, then continue into the standard editor after save."
-            />
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gap: '1rem',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          }}
-        >
-          <label style={fieldStyle}>
-            <span className="eyebrow" style={labelTextStyle}>Title</span>
-            <input
-              value={draft.title}
-              onChange={(event) => updateDraft('title', event.target.value)}
-              placeholder={placeholders.title}
-              style={inputStyle}
-            />
-          </label>
-
-          {showSpeakerField ? (
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Speaker</span>
-              <input
-                value={draft.speaker}
-                onChange={(event) => updateDraft('speaker', event.target.value)}
-                placeholder={placeholders.speaker}
-                style={inputStyle}
-              />
-            </label>
-          ) : null}
-
-          <label style={fieldStyle}>
-            <span className="eyebrow" style={labelTextStyle}>Type</span>
-            <select
-              value={draft.type}
-              onChange={(event) => updateDraft('type', event.target.value as NoteInput['type'])}
-              style={inputStyle}
-            >
-              {NOTE_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        {isDream ? (
-          <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-            <label style={{ display: 'flex', gap: '0.7rem', alignItems: 'center' }}>
-              <input
-                checked={Boolean(draft.isLucidDream)}
-                onChange={(event) => updateDraft('isLucidDream', event.target.checked)}
-                type="checkbox"
-              />
-              <span style={{ color: 'var(--muted)' }}>Mark this as a lucid dream</span>
-            </label>
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>In the dream</span>
-              <select
-                value={draft.dreamRole ?? 'observing'}
-                onChange={(event) => updateDraft('dreamRole', event.target.value as 'observing' | 'involved')}
-                style={inputStyle}
-              >
-                <option value="observing">Observing</option>
-                <option value="involved">Involved</option>
-              </select>
-            </label>
-          </div>
-        ) : null}
-
-        {isPrayerRequest ? (
-          <div className="status-card" style={{ padding: '1rem', display: 'grid', gap: '0.75rem' }}>
-            <label style={fieldStyle}>
-              <span className="eyebrow" style={labelTextStyle}>Prayer status</span>
-              <select
-                value={draft.prayerStatus ?? 'Ongoing'}
-                onChange={(event) => updateDraft('prayerStatus', event.target.value as PrayerRequestStatus)}
-                style={inputStyle}
-              >
-                <option value="Ongoing">Ongoing</option>
-                <option value="Answered">Answered</option>
-              </select>
-            </label>
-          </div>
-        ) : null}
-
-        <label style={{ ...fieldStyle, gridColumn: '1 / -1' }}>
-          <span className="eyebrow" style={labelTextStyle}>Transcript</span>
-          <textarea
-            value={draft.transcript}
-            onChange={(event) => updateDraft('transcript', event.target.value)}
-            placeholder="Your transcript will appear here after transcription. You can edit it before saving."
-            style={textareaStyle}
-          />
-        </label>
-
-        <div className="cta-row">
-          <button
-            className="button button-primary"
-            disabled={!draft.transcript.trim() || saving}
+            disabled={saving || transcribing || !draft.transcript.trim()}
             onClick={createNoteFromTranscript}
             type="button"
           >
-            {saving ? 'Saving…' : 'Save and continue editing'}
+            {saving ? 'Saving…' : 'Save as note'}
           </button>
-          <Link className="button button-secondary" href="/notes">
-            Back to notes
-          </Link>
         </div>
-      </section>
       </div>
+
+      <div className="segmented record-modes" role="group" aria-label="How to capture">
+        <button aria-pressed={mode === 'live'} disabled={busy} onClick={() => setMode('live')} type="button">
+          Live dictation
+        </button>
+        <button aria-pressed={mode === 'record'} disabled={busy} onClick={() => setMode('record')} type="button">
+          Record, then transcribe
+        </button>
+        <button aria-pressed={mode === 'upload'} disabled={busy} onClick={() => setMode('upload')} type="button">
+          Upload audio
+        </button>
       </div>
+
+      {permissionError ? <section className="error-state status-message" role="alert">{permissionError}</section> : null}
+      {error ? <section className="error-state status-message" role="alert">{error}</section> : null}
+
+      <div className="composer-columns">
+        <section className="composer-main" aria-label="Transcript">
+          <input
+            aria-label="Title"
+            className="composer-title"
+            onChange={(event) => updateDraft('title', event.target.value)}
+            placeholder={placeholders.title}
+            value={draft.title}
+          />
+
+          <div className="composer-meta">
+            <label className="composer-field">
+              Note type
+              <select onChange={(event) => updateDraft('type', event.target.value as DictationDraft['type'])} value={draft.type}>
+                {NOTE_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type === 'Prayer Requests' ? 'Prayer request' : type}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {showSpeakerField ? (
+              <label className="composer-field">
+                {draft.type === 'Study' ? 'Teacher or source' : 'Speaker'}
+                <input
+                  onChange={(event) => updateDraft('speaker', event.target.value)}
+                  placeholder={placeholders.speaker}
+                  value={draft.speaker}
+                />
+              </label>
+            ) : null}
+            {isDream ? (
+              <div className="composer-field">
+                <span>Kind of dream</span>
+                <div className="segmented" role="group" aria-label="Kind of dream">
+                  <button aria-pressed={!draft.isLucidDream} onClick={() => updateDraft('isLucidDream', false)} type="button">
+                    Standard
+                  </button>
+                  <button aria-pressed={Boolean(draft.isLucidDream)} onClick={() => updateDraft('isLucidDream', true)} type="button">
+                    Lucid
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            {isDream ? (
+              <div className="composer-field">
+                <span>In the dream, I was</span>
+                <div className="segmented" role="group" aria-label="In the dream, I was">
+                  <button aria-pressed={(draft.dreamRole ?? 'observing') === 'observing'} onClick={() => updateDraft('dreamRole', 'observing')} type="button">
+                    Observing
+                  </button>
+                  <button aria-pressed={draft.dreamRole === 'involved'} onClick={() => updateDraft('dreamRole', 'involved')} type="button">
+                    Involved
+                  </button>
+                </div>
+              </div>
+            ) : null}
+            {isPrayerRequest ? (
+              <div className="composer-field">
+                <span>Status</span>
+                <div className="segmented" role="group" aria-label="Prayer status">
+                  {(['Ongoing', 'Answered'] as PrayerRequestStatus[]).map((status) => (
+                    <button
+                      aria-pressed={(draft.prayerStatus ?? 'Ongoing') === status}
+                      key={status}
+                      onClick={() => updateDraft('prayerStatus', status)}
+                      type="button"
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="composer-field composer-body">
+            <span className="record-transcript-label">
+              Transcript
+              {liveListening ? <em className="record-live-dot">Live</em> : null}
+            </span>
+            <div className="composer-body-box record-transcript">
+              <ScriptureEditableField
+                onChange={(next) => updateDraft('transcript', next)}
+                onReferenceClick={setActiveReference}
+                placeholder={
+                  mode === 'live'
+                    ? 'Press the red button and start speaking. Your words appear here as you talk, and you can edit them at any time.'
+                    : mode === 'record'
+                      ? 'Record, then press Transcribe. The text appears here for you to tidy before saving.'
+                      : 'Choose an audio file, then press Transcribe. The text appears here for you to tidy before saving.'
+                }
+                value={draft.transcript}
+              />
+              {liveInterim ? <p className="record-interim">{liveInterim}…</p> : null}
+            </div>
+          </div>
+        </section>
+
+        <aside className="composer-rail">
+          <section className="scripture-rail" aria-label="Verses heard">
+            <span className="rail-heading account-heading-row">
+              <span>Verses heard</span>
+              <span className="account-heading-aside">{heardReferences.length || ''}</span>
+            </span>
+            {heardReferences.length === 0 ? (
+              <p className="composer-hint">
+                References like “John 3:16” appear here as they’re spoken or typed. Insert one to put the verse into your note.
+              </p>
+            ) : (
+              heardReferences.map((reference) => (
+                <HeardVerse
+                  active={reference === activeReference}
+                  inserted={insertedReferences.has(reference)}
+                  key={reference}
+                  onInsert={(verse) => insertVerseAfterReference(reference, verse)}
+                  onSelect={() => setActiveReference(reference === activeReference ? null : reference)}
+                  reference={reference}
+                />
+              ))
+            )}
+          </section>
+
+          {audioUrl ? (
+            <section className="rail-section">
+              <span className="rail-heading">Recording</span>
+              <audio className="record-audio" controls src={audioUrl} />
+              <span className="composer-hint">
+                {audioName}
+                {recordSeconds ? ` · ${formatSeconds(recordSeconds)}` : ''}
+              </span>
+              <div className="scripture-rail-actions">
+                <button className="button button-primary" disabled={transcribing} onClick={transcribeAudio} type="button">
+                  {transcribing ? 'Transcribing…' : draft.transcript.trim() ? 'Transcribe again' : 'Transcribe'}
+                </button>
+                <button className="button button-secondary" disabled={transcribing} onClick={resetAudio} type="button">
+                  Discard audio
+                </button>
+              </div>
+              {draft.transcript.trim() && !transcribing ? (
+                <span className="composer-hint">Transcribing again replaces the transcript.</span>
+              ) : null}
+            </section>
+          ) : null}
+
+          <p className="composer-guidance">
+            Saving keeps the transcript as your note{audioBlob ? ' and attaches the audio' : ''}. You can tidy it further in the editor afterwards.
+          </p>
+        </aside>
+      </div>
+
+      <div className="record-bar" role="region" aria-label="Recording controls">
+        {mode === 'live' ? (
+          <>
+            <button
+              aria-label={liveListening ? 'Stop live dictation' : 'Start live dictation'}
+              className={`record-button${liveListening ? ' is-on' : ''}`}
+              disabled={!liveSupported}
+              onClick={liveListening ? stopLiveDictation : startLiveDictation}
+              type="button"
+            >
+              <span aria-hidden="true" />
+            </button>
+            <Waveform active={liveListening} />
+            <span className="record-bar-status">
+              {liveSupported
+                ? liveListening
+                  ? `Listening · ${formatSeconds(liveSeconds)}`
+                  : liveError ?? 'Live dictation · words appear as you speak'
+                : 'Live dictation isn’t available in this browser. Use Record, then transcribe.'}
+            </span>
+            {liveListening ? (
+              <button className="button button-secondary" onClick={stopLiveDictation} type="button">
+                Stop
+              </button>
+            ) : null}
+          </>
+        ) : mode === 'record' ? (
+          <>
+            <button
+              aria-label={recording ? 'Stop recording' : 'Start recording'}
+              className={`record-button${recording ? ' is-on' : ''}`}
+              disabled={!recordSupported || transcribing}
+              onClick={recording ? stopRecording : startRecording}
+              type="button"
+            >
+              <span aria-hidden="true" />
+            </button>
+            <Waveform active={recording} />
+            <span className="record-bar-status">
+              {recordSupported
+                ? recording
+                  ? `Recording · ${formatSeconds(recordSeconds)}`
+                  : audioUrl
+                    ? 'Recorded · press Transcribe to turn it into text'
+                    : 'Record the whole sermon, then transcribe it'
+                : 'This browser can’t record here. Upload an audio file instead.'}
+            </span>
+            {recording ? (
+              <button className="button button-secondary" onClick={stopRecording} type="button">
+                Stop
+              </button>
+            ) : audioUrl ? (
+              <button className="button button-primary" disabled={transcribing} onClick={transcribeAudio} type="button">
+                {transcribing ? 'Transcribing…' : 'Transcribe'}
+              </button>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <label className="button button-secondary record-upload">
+              Choose audio file
+              <input accept="audio/*" onChange={onAudioFileSelected} type="file" />
+            </label>
+            <span className="record-bar-status">{audioUrl ? audioName : 'MP3, M4A, WAV or WebM'}</span>
+            {audioUrl ? (
+              <button className="button button-primary" disabled={transcribing} onClick={transcribeAudio} type="button">
+                {transcribing ? 'Transcribing…' : 'Transcribe'}
+              </button>
+            ) : null}
+          </>
+        )}
+      </div>
+      {notice && !error ? <p className="composer-hint record-notice" role="status">{notice}</p> : null}
     </div>
   );
 }
 
-const detailsSummaryStyle: React.CSSProperties = {
-  cursor: 'pointer',
-  fontWeight: 700,
-  color: 'var(--text)',
-  listStyle: 'none',
-  display: 'grid',
-  gap: '0.28rem',
-};
+/** A reference heard in the transcript: tap to read it, then insert the verse into the note. */
+function HeardVerse({
+  reference,
+  active,
+  inserted,
+  onSelect,
+  onInsert,
+}: {
+  reference: string;
+  active: boolean;
+  inserted: boolean;
+  onSelect: () => void;
+  onInsert: (verse: string) => void;
+}) {
+  const [result, setResult] = useState<ScriptureResult | null>(null);
+  const [failed, setFailed] = useState(false);
 
-const detailsMetaStyle: React.CSSProperties = {
-  color: 'var(--muted)',
-  fontSize: '0.92rem',
-  fontWeight: 500,
-};
+  useEffect(() => {
+    if (!active || result) return;
+    let live = true;
+    fetchScriptureByReference(reference, 'KJV')
+      .then((next) => live && setResult(next))
+      .catch(() => live && setFailed(true));
+    return () => {
+      live = false;
+    };
+  }, [active, reference, result]);
+
+  const insert = async () => {
+    try {
+      const verse = result ?? (await fetchScriptureByReference(reference, 'KJV'));
+      setResult(verse);
+      onInsert(formatScriptureTextForInsertion(verse));
+    } catch {
+      setFailed(true);
+    }
+  };
+
+  return (
+    <article className={`heard-verse${active ? ' is-open' : ''}`}>
+      <div className="heard-verse-head">
+        <button className="heard-verse-ref" onClick={onSelect} type="button">
+          <span className="pilcrow" aria-hidden="true">¶</span>
+          {formatVerseReference(reference)}
+        </button>
+        {inserted ? (
+          <span className="heard-verse-done">Inserted</span>
+        ) : (
+          <button className="button button-secondary" onClick={() => void insert()} type="button">
+            Insert
+          </button>
+        )}
+      </div>
+      {active ? (
+        result ? (
+          <p className="scripture-rail-text">{result.text.trim()}</p>
+        ) : (
+          <p className="composer-hint">{failed ? 'Couldn’t load this verse.' : 'Loading the verse…'}</p>
+        )
+      ) : null}
+    </article>
+  );
+}
+
+/** Decorative level bars that move while audio is being captured. */
+function Waveform({ active }: { active: boolean }) {
+  return (
+    <span className={`record-wave${active ? ' is-active' : ''}`} aria-hidden="true">
+      {Array.from({ length: 28 }, (_, index) => (
+        <span key={index} style={{ animationDelay: `${(index % 7) * 0.11}s`, height: `${30 + ((index * 37) % 60)}%` }} />
+      ))}
+    </span>
+  );
+}
 
 function formatSeconds(value: number) {
   const minutes = Math.floor(value / 60)
@@ -731,29 +851,3 @@ function formatSeconds(value: number) {
   const seconds = (value % 60).toString().padStart(2, '0');
   return `${minutes}:${seconds}`;
 }
-
-const fieldStyle: React.CSSProperties = {
-  display: 'grid',
-  gap: '0.5rem',
-};
-
-const labelTextStyle: React.CSSProperties = {
-  fontSize: '0.72rem',
-};
-
-const inputStyle: React.CSSProperties = {
-  minHeight: 54,
-  borderRadius: 18,
-  padding: '0.95rem 1.05rem',
-  background: 'var(--field-bg)',
-  color: 'var(--text)',
-};
-
-const textareaStyle: React.CSSProperties = {
-  minHeight: 240,
-  borderRadius: 18,
-  padding: '1rem',
-  background: 'var(--field-bg)',
-  color: 'var(--text)',
-  resize: 'vertical',
-};
