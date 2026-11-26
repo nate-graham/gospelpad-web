@@ -124,7 +124,9 @@ function setCaretOffset(root: HTMLElement, offset: number) {
       }
       remaining -= 1;
       if (remaining === 0) {
-        range.setStartAfter(node);
+        const next = node.nextSibling;
+        if (next && next.nodeType === Node.TEXT_NODE) range.setStart(next, 0);
+        else range.setStartAfter(node);
         return true;
       }
       return false;
@@ -240,6 +242,32 @@ function placeCaretAtEnd(root: HTMLElement) {
   selection.addRange(range);
 }
 
+/** After a line break, make sure the caret sits on the new line (inside the next text, or before the trailing <br>). */
+function ensureCaretOnNewLine(root: HTMLElement) {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) return;
+  const range = selection.getRangeAt(0);
+  const container = range.startContainer;
+  if (!root.contains(container) || container.nodeType === Node.TEXT_NODE) return;
+  const before = container.childNodes[range.startOffset - 1];
+  const after = container.childNodes[range.startOffset];
+  if (!(before instanceof HTMLElement) || before.tagName !== 'BR') return;
+  const next = document.createRange();
+  if (after && after.nodeType === Node.TEXT_NODE) {
+    next.setStart(after, 0);
+  } else if (!after) {
+    // Nothing after the new line yet: it needs a trailing <br> to show and hold the caret.
+    const sentinel = document.createElement('br');
+    container.appendChild(sentinel);
+    next.setStartBefore(sentinel);
+  } else {
+    return;
+  }
+  next.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(next);
+}
+
 export function insertTextIntoEditable(root: HTMLElement, text: string) {
   const selection = window.getSelection();
   const lines = text.split('\n');
@@ -345,10 +373,16 @@ export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditab
           }}
           onKeyDown={(event) => {
             if (event.key !== 'Enter') return;
+            if (event.nativeEvent.isComposing) return;
             event.preventDefault();
-            leaveVerseAtEnd(event.currentTarget);
-            insertTextIntoEditable(event.currentTarget, '\n');
-            onChange(readPlainTextFromEditor(event.currentTarget));
+            const root = event.currentTarget;
+            leaveVerseAtEnd(root);
+            // The browser's own line break moves the caret onto the new line reliably (Safari
+            // included); fall back to inserting the <br> ourselves if it isn't supported.
+            const handled = typeof document.execCommand === 'function' && document.execCommand('insertLineBreak');
+            if (!handled) insertTextIntoEditable(root, '\n');
+            ensureCaretOnNewLine(root);
+            onChange(readPlainTextFromEditor(root));
           }}
           onPaste={(event) => {
             event.preventDefault();
