@@ -1,8 +1,19 @@
 'use client';
 
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { splitTextByScriptureReferences } from '@/lib/scripture-references';
 import { getVerseLineRanges } from '@/components/notes/scripture-reference-text';
+import {
+  continueList,
+  formatSignature,
+  parseLinePrefix,
+  toggleInline,
+  toggleLineKind,
+  tokenizeInline,
+  type Edit,
+  type LineKind,
+} from '@/lib/note-format';
 
 type ScriptureEditableFieldProps = {
   value: string;
@@ -20,7 +31,29 @@ function escapeHtml(value: string) {
     .replaceAll("'", '&#39;');
 }
 
+function markHtml(mark: string, extra = '') {
+  return `<span class="md-mark${extra}" data-mark="${escapeHtml(mark)}">${escapeHtml(mark)}</span>`;
+}
+
+function inlineHtml(text: string) {
+  return tokenizeInline(text)
+    .map((segment) => {
+      if (segment.kind === 'text') return referencesHtml(segment.text);
+      const tag = segment.kind === 'bold' ? 'strong' : 'em';
+      return `${markHtml(segment.open)}<${tag}>${referencesHtml(segment.text)}</${tag}>${markHtml(segment.close)}`;
+    })
+    .join('');
+}
+
+/** One line of the editor: its list/heading marker (kept as text, styled) and inline formatting. */
 function lineHtml(line: string) {
+  const prefix = parseLinePrefix(line);
+  if (!prefix) return inlineHtml(line);
+  const level = prefix.kind === 'heading' ? ` md-h${prefix.marker.trim().length}` : '';
+  return `<span class="md-line md-${prefix.kind}${level}">${markHtml(prefix.marker, ` md-mark-${prefix.kind}`)}${inlineHtml(prefix.rest)}</span>`;
+}
+
+function referencesHtml(line: string) {
   return splitTextByScriptureReferences(line)
     .map((segment) => {
       if (segment.type === 'reference') {
@@ -34,7 +67,7 @@ function lineHtml(line: string) {
 
 /** Identifies where verses sit, so the editor only re-renders when that changes. */
 function verseSignature(value: string) {
-  return JSON.stringify(getVerseLineRanges(value));
+  return `${JSON.stringify(getVerseLineRanges(value))}#${formatSignature(value)}`;
 }
 
 /**
@@ -70,39 +103,52 @@ function buildEditorHtml(value: string) {
   return parts.join('<br>') + (value.endsWith('\n') ? '<br>' : '');
 }
 
-/** Enter at the very end of a verse starts the next line outside it, not inside the verse. */
-function leaveVerseAtEnd(root: HTMLElement) {
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) return;
-  const anchor = selection.anchorNode;
-  const verse = (anchor instanceof HTMLElement ? anchor : anchor?.parentElement)?.closest('.editor-verse');
-  if (!verse || !root.contains(verse)) return;
-  const after = document.createRange();
-  after.selectNodeContents(verse);
-  after.setStart(selection.getRangeAt(0).endContainer, selection.getRangeAt(0).endOffset);
-  if (after.toString().length > 0) return;
-  const outside = document.createRange();
-  outside.setStartAfter(verse);
-  outside.collapse(true);
-  selection.removeAllRanges();
-  selection.addRange(outside);
+function offsetAt(root: HTMLElement, container: Node, offset: number) {
+  const range = document.createRange();
+  range.selectNodeContents(root);
+  range.setEnd(container, offset);
+  const holder = document.createElement('div');
+  holder.appendChild(range.cloneContents());
+  // A <br> at the end of this partial copy is a real line break, not the editor's trailing one.
+  return readPlainTextFromEditor(holder, true).length;
 }
 
 /** Caret position as an offset into the plain text, so it survives a re-render. */
 function getCaretOffset(root: HTMLElement) {
   const selection = window.getSelection();
   if (!selection || selection.rangeCount === 0 || !root.contains(selection.anchorNode)) return null;
-  const range = selection.getRangeAt(0).cloneRange();
-  range.selectNodeContents(root);
-  range.setEnd(selection.getRangeAt(0).endContainer, selection.getRangeAt(0).endOffset);
-  const holder = document.createElement('div');
-  holder.appendChild(range.cloneContents());
-  return readPlainTextFromEditor(holder).length;
+  const range = selection.getRangeAt(0);
+  return offsetAt(root, range.endContainer, range.endOffset);
+}
+
+/** The selection as plain-text offsets. */
+function getSelectionOffsets(root: HTMLElement) {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0 || !root.contains(selection.anchorNode)) return null;
+  const range = selection.getRangeAt(0);
+  return { start: offsetAt(root, range.startContainer, range.startOffset), end: offsetAt(root, range.endContainer, range.endOffset) };
+}
+
+function setSelectionOffsets(root: HTMLElement, start: number, end: number) {
+  const selection = window.getSelection();
+  if (!selection) return;
+  const from = rangeAtOffset(root, start);
+  const to = start === end ? from : rangeAtOffset(root, end);
+  const range = document.createRange();
+  range.setStart(from.startContainer, from.startOffset);
+  range.setEnd(to.startContainer, to.startOffset);
+  selection.removeAllRanges();
+  selection.addRange(range);
 }
 
 function setCaretOffset(root: HTMLElement, offset: number) {
   const selection = window.getSelection();
   if (!selection) return;
+  selection.removeAllRanges();
+  selection.addRange(rangeAtOffset(root, offset));
+}
+
+function rangeAtOffset(root: HTMLElement, offset: number) {
   let remaining = offset;
   const range = document.createRange();
 
@@ -142,7 +188,20 @@ function setCaretOffset(root: HTMLElement, offset: number) {
       remaining -= length;
       return false;
     }
-    for (const child of Array.from(node.childNodes)) {
+    const children = Array.from(node.childNodes);
+    for (let index = 0; index < children.length; index += 1) {
+      const child = children[index];
+      // At the very end of a formatting mark, prefer the start of what follows it.
+      if (child instanceof HTMLElement && child.classList.contains('md-mark') && remaining === (child.textContent?.length ?? 0)) {
+        const next = children[index + 1];
+        if (next) {
+          remaining = 0;
+          if (next.nodeType === Node.TEXT_NODE) range.setStart(next, 0);
+          else if (next.firstChild?.nodeType === Node.TEXT_NODE) range.setStart(next.firstChild, 0);
+          else range.setStartAfter(child);
+          return true;
+        }
+      }
       if (place(child)) return true;
     }
     return false;
@@ -154,8 +213,7 @@ function setCaretOffset(root: HTMLElement, offset: number) {
   } else {
     range.collapse(true);
   }
-  selection.removeAllRanges();
-  selection.addRange(range);
+  return range;
 }
 
 /**
@@ -178,9 +236,9 @@ function trailingSentinel(root: HTMLElement) {
   return node instanceof HTMLElement && node.tagName === 'BR' ? node : null;
 }
 
-export function readPlainTextFromEditor(root: HTMLElement) {
+export function readPlainTextFromEditor(root: HTMLElement, keepTrailingBreak = false) {
   const chunks: string[] = [];
-  const sentinel = trailingSentinel(root);
+  const sentinel = keepTrailingBreak ? null : trailingSentinel(root);
 
   const walk = (node: Node) => {
     if (node === sentinel) return;
@@ -242,32 +300,6 @@ function placeCaretAtEnd(root: HTMLElement) {
   selection.addRange(range);
 }
 
-/** After a line break, make sure the caret sits on the new line (inside the next text, or before the trailing <br>). */
-function ensureCaretOnNewLine(root: HTMLElement) {
-  const selection = window.getSelection();
-  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) return;
-  const range = selection.getRangeAt(0);
-  const container = range.startContainer;
-  if (!root.contains(container) || container.nodeType === Node.TEXT_NODE) return;
-  const before = container.childNodes[range.startOffset - 1];
-  const after = container.childNodes[range.startOffset];
-  if (!(before instanceof HTMLElement) || before.tagName !== 'BR') return;
-  const next = document.createRange();
-  if (after && after.nodeType === Node.TEXT_NODE) {
-    next.setStart(after, 0);
-  } else if (!after) {
-    // Nothing after the new line yet: it needs a trailing <br> to show and hold the caret.
-    const sentinel = document.createElement('br');
-    container.appendChild(sentinel);
-    next.setStartBefore(sentinel);
-  } else {
-    return;
-  }
-  next.collapse(true);
-  selection.removeAllRanges();
-  selection.addRange(next);
-}
-
 export function insertTextIntoEditable(root: HTMLElement, text: string) {
   const selection = window.getSelection();
   const lines = text.split('\n');
@@ -319,12 +351,85 @@ export function insertTextIntoEditable(root: HTMLElement, text: string) {
   activeSelection.addRange(range);
 }
 
+const TOOLBAR_KEY = 'gospelpad-format-toolbar';
+
+function Icon({ children }: { children: ReactNode }) {
+  return (
+    <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24" width="18">
+      {children}
+    </svg>
+  );
+}
+
+const LINE_TOOLS: { kind: LineKind; label: string; icon: ReactNode }[] = [
+  {
+    kind: 'heading',
+    label: 'Heading',
+    icon: (
+      <Icon>
+        <path d="M6 5v14M18 5v14M6 12h12" />
+      </Icon>
+    ),
+  },
+  {
+    kind: 'bullet',
+    label: 'Bulleted list',
+    icon: (
+      <Icon>
+        <path d="M9 6h11M9 12h11M9 18h11" />
+        <circle cx="4.5" cy="6" fill="currentColor" r="1" />
+        <circle cx="4.5" cy="12" fill="currentColor" r="1" />
+        <circle cx="4.5" cy="18" fill="currentColor" r="1" />
+      </Icon>
+    ),
+  },
+  {
+    kind: 'number',
+    label: 'Numbered list',
+    icon: (
+      <Icon>
+        <path d="M10 6h10M10 12h10M10 18h10M4 5h1.5v4M4 9h3M4 15.5c0-.8.7-1.5 1.5-1.5s1.5.6 1.5 1.3c0 1.2-3 1.9-3 3.7h3" />
+      </Icon>
+    ),
+  },
+  {
+    kind: 'quote',
+    label: 'Quote',
+    icon: (
+      <Icon>
+        <path d="M5 6v12M10 8h9M10 12h9M10 16h6" />
+      </Icon>
+    ),
+  },
+];
+
 export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditableFieldProps>(
   function ScriptureEditableField({ value, onChange, onReferenceClick, placeholder = 'Write your note here...' }, forwardedRef) {
     const localRef = useRef<HTMLDivElement | null>(null);
     const renderedSignatureRef = useRef<string | null>(null);
+    const pendingSelectionRef = useRef<{ start: number; end: number } | null>(null);
+    const [toolbarOpen, setToolbarOpen] = useState(true);
 
     useImperativeHandle(forwardedRef, () => localRef.current as HTMLDivElement, []);
+
+    useEffect(() => {
+      try {
+        if (window.localStorage.getItem(TOOLBAR_KEY) === 'hidden') setToolbarOpen(false);
+      } catch {
+        // Storage unavailable: keep the toolbar showing.
+      }
+    }, []);
+
+    const toggleToolbar = () => {
+      setToolbarOpen((open) => {
+        try {
+          window.localStorage.setItem(TOOLBAR_KEY, open ? 'hidden' : 'shown');
+        } catch {
+          // Not remembered this time.
+        }
+        return !open;
+      });
+    };
 
     useEffect(() => {
       const root = localRef.current;
@@ -332,12 +437,13 @@ export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditab
 
       const currentValue = readPlainTextFromEditor(root);
       const isActive = document.activeElement === root;
+      const pending = pendingSelectionRef.current;
 
       root.dataset.empty = value.trim() ? 'false' : 'true';
 
-      if (isActive && currentValue === value) {
-        // Typing (or inserting a verse) changed where verses are: re-render so they take their
-        // verse styling straight away, keeping the caret where it was.
+      if (isActive && currentValue === value && !pending) {
+        // Typing (or inserting a verse) changed where verses or formatting are: re-render so they
+        // take their styling straight away, keeping the caret where it was.
         const signature = verseSignature(value);
         if (signature === renderedSignatureRef.current) return;
         const caret = getCaretOffset(root);
@@ -349,13 +455,110 @@ export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditab
 
       root.innerHTML = buildEditorHtml(value);
       renderedSignatureRef.current = verseSignature(value);
+      if (pending) {
+        pendingSelectionRef.current = null;
+        root.focus();
+        setSelectionOffsets(root, pending.start, pending.end);
+      }
     }, [value]);
 
+    /** Apply a formatting change made on the plain text, then put the selection back. */
+    const applyEdit = (makeEdit: (current: string, selection: { start: number; end: number }) => Edit | null) => {
+      const root = localRef.current;
+      if (!root) return false;
+      const current = readPlainTextFromEditor(root);
+      const selection = getSelectionOffsets(root) ?? { start: current.length, end: current.length };
+      const edit = makeEdit(current, selection);
+      if (!edit) return false;
+      if (edit.value === current) {
+        setSelectionOffsets(root, edit.selection.start, edit.selection.end);
+        return true;
+      }
+      pendingSelectionRef.current = edit.selection;
+      onChange(edit.value);
+      return true;
+    };
+
+    const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+      const mod = event.metaKey || event.ctrlKey;
+      if (mod && !event.altKey && (event.key === 'b' || event.key === 'B')) {
+        event.preventDefault();
+        applyEdit((current, selection) => toggleInline(current, selection, '**'));
+        return;
+      }
+      if (mod && !event.altKey && (event.key === 'i' || event.key === 'I')) {
+        event.preventDefault();
+        applyEdit((current, selection) => toggleInline(current, selection, '_'));
+        return;
+      }
+      if (event.key !== 'Enter' || event.nativeEvent.isComposing) return;
+      event.preventDefault();
+      // Enter is applied to the text and the editor re-rendered, so the caret always lands at the
+      // start of the new line (Safari included). Inside a list it continues (or ends) the list.
+      applyEdit((current, selection) => {
+        if (!event.shiftKey && selection.start === selection.end) {
+          const listEdit = continueList(current, selection.start);
+          if (listEdit) return listEdit;
+        }
+        const next = current.slice(0, selection.start) + '\n' + current.slice(selection.end);
+        return { value: next, selection: { start: selection.start + 1, end: selection.start + 1 } };
+      });
+    };
+
+    // Toolbar buttons keep the editor's selection: act on mousedown and don't take focus.
+    const toolProps = (action: () => void) => ({
+      onMouseDown: (event: ReactMouseEvent) => {
+        event.preventDefault();
+        action();
+      },
+      onClick: (event: ReactMouseEvent) => {
+        // Keyboard users (Enter/Space on the button) get a click without a mousedown.
+        if (event.detail === 0) action();
+      },
+      type: 'button' as const,
+    });
+
     return (
-      <div style={{ display: 'grid', gap: '0.45rem' }}>
+      <div className="note-editor-wrap">
+        <div className={`format-bar${toolbarOpen ? '' : ' is-collapsed'}`} role="toolbar" aria-label="Formatting">
+          {toolbarOpen ? (
+            <>
+              <button aria-label="Bold (⌘B)" className="format-button" title="Bold (⌘B)" {...toolProps(() => applyEdit((v, sel) => toggleInline(v, sel, '**')))}>
+                <strong style={{ fontFamily: 'var(--font-sans)', fontSize: 15 }}>B</strong>
+              </button>
+              <button aria-label="Italic (⌘I)" className="format-button" title="Italic (⌘I)" {...toolProps(() => applyEdit((v, sel) => toggleInline(v, sel, '_')))}>
+                <em style={{ fontFamily: 'var(--font-serif)', fontSize: 17 }}>I</em>
+              </button>
+              <span className="format-divider" aria-hidden="true" />
+              {LINE_TOOLS.map((tool) => (
+                <button
+                  aria-label={tool.label}
+                  className="format-button"
+                  key={tool.kind}
+                  title={tool.label}
+                  {...toolProps(() => applyEdit((v, sel) => toggleLineKind(v, sel, tool.kind)))}
+                >
+                  {tool.icon}
+                </button>
+              ))}
+            </>
+          ) : null}
+          <button
+            aria-expanded={toolbarOpen}
+            aria-label={toolbarOpen ? 'Hide formatting toolbar' : 'Show formatting toolbar'}
+            className="format-toggle"
+            onClick={toggleToolbar}
+            title={toolbarOpen ? 'Hide formatting' : 'Show formatting'}
+            type="button"
+          >
+            <span style={{ fontFamily: 'var(--font-serif)', fontSize: 16 }}>Aa</span>
+            {toolbarOpen ? null : <span>Formatting</span>}
+          </button>
+        </div>
         <div
           ref={localRef}
           aria-label="Note body"
+          aria-multiline="true"
           className="scripture-editor"
           contentEditable
           data-empty={value.trim() ? 'false' : 'true'}
@@ -368,22 +571,17 @@ export const ScriptureEditableField = forwardRef<HTMLDivElement, ScriptureEditab
             onReferenceClick(reference);
           }}
           onInput={(event) => {
-            const nextValue = readPlainTextFromEditor(event.currentTarget);
-            onChange(nextValue);
-          }}
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter') return;
-            if (event.nativeEvent.isComposing) return;
-            event.preventDefault();
             const root = event.currentTarget;
-            leaveVerseAtEnd(root);
-            // The browser's own line break moves the caret onto the new line reliably (Safari
-            // included); fall back to inserting the <br> ourselves if it isn't supported.
-            const handled = typeof document.execCommand === 'function' && document.execCommand('insertLineBreak');
-            if (!handled) insertTextIntoEditable(root, '\n');
-            ensureCaretOnNewLine(root);
+            // Typing into a formatting mark (e.g. just after "**"): re-render so the new text
+            // takes the right style.
+            const anchor = window.getSelection()?.anchorNode;
+            const mark = (anchor instanceof HTMLElement ? anchor : anchor?.parentElement)?.closest('.md-mark');
+            if (mark instanceof HTMLElement && mark.textContent !== mark.dataset.mark) {
+              renderedSignatureRef.current = null;
+            }
             onChange(readPlainTextFromEditor(root));
           }}
+          onKeyDown={onKeyDown}
           onPaste={(event) => {
             event.preventDefault();
             const pasted = event.clipboardData.getData('text/plain');

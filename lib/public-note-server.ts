@@ -1,3 +1,5 @@
+import { stripFormatting } from '@/lib/note-format';
+
 export type PublicNotePreview = {
   title: string;
   body: string;
@@ -35,7 +37,7 @@ export async function fetchPublicNotePreview(token: string): Promise<PublicNoteP
 }
 
 export function previewExcerpt(body: string, max = 200) {
-  const text = body
+  const text = stripFormatting(body)
     .replace(/\[[A-Z0-9-]{2,10}\]/g, '')
     .replace(/\s+/g, ' ')
     .trim();

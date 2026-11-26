@@ -4672,3 +4672,209 @@ button.verse-callout-ref:hover {
   .share-public-row { flex-wrap: wrap; }
   .share-public-row .share-input { flex-basis: 100%; }
 }
+
+/* ── Formatting toolbar + formatted text ───────────────────────────── */
+.note-editor-wrap {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.format-bar {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-raised) 94%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px rgba(43, 40, 35, 0.06);
+}
+
+.format-bar.is-collapsed {
+  padding: 2px;
+  box-shadow: none;
+  background: transparent;
+  border-color: transparent;
+}
+
+.format-button,
+.format-toggle {
+  min-width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.format-button:hover,
+.format-toggle:hover {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.format-button:focus-visible,
+.format-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.format-toggle {
+  color: var(--muted);
+}
+
+.format-bar.is-collapsed .format-toggle {
+  border: 1px solid var(--line);
+  padding: 0 12px;
+}
+
+.format-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--line);
+}
+
+.format-bar:not(.is-collapsed) .format-toggle {
+  margin-left: 4px;
+  border-left: 1px solid var(--line);
+  border-radius: 0 999px 999px 0;
+}
+
+/* In the editor: marks stay in the text (so nothing is lost) but recede. */
+.scripture-editor .md-mark {
+  color: var(--muted);
+  opacity: 0.5;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.scripture-editor .md-heading {
+  font-weight: 600;
+  font-size: 1.32em;
+  line-height: 1.5;
+}
+
+.scripture-editor .md-heading.md-h1 {
+  font-size: 1.55em;
+}
+
+.scripture-editor .md-mark-heading {
+  font-size: 0.6em;
+  vertical-align: 0.2em;
+}
+
+.scripture-editor .md-mark-bullet {
+  position: relative;
+  display: inline-block;
+  width: 1.4em;
+  overflow: hidden;
+  color: transparent;
+  opacity: 1;
+  vertical-align: bottom;
+}
+
+.scripture-editor .md-mark-bullet::before {
+  content: '•';
+  position: absolute;
+  left: 0.3em;
+  color: var(--accent);
+}
+
+.scripture-editor .md-mark-number {
+  display: inline-block;
+  min-width: 1.4em;
+  color: var(--accent);
+  opacity: 1;
+  font-family: var(--font-sans);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.scripture-editor .md-quote {
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+.scripture-editor .md-mark-quote {
+  position: relative;
+  display: inline-block;
+  width: 1.2em;
+  overflow: hidden;
+  color: transparent;
+  opacity: 1;
+  vertical-align: bottom;
+}
+
+.scripture-editor .md-mark-quote::before {
+  content: '';
+  position: absolute;
+  left: 0.15em;
+  top: 0.15em;
+  bottom: 0.15em;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--vermilion);
+}
+
+/* In a saved note. */
+.note-md {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9em;
+}
+
+.note-md-heading {
+  display: block;
+  font-weight: 600;
+  font-size: 1.32em;
+  line-height: 1.35;
+  margin-top: 0.3em;
+}
+
+.note-md-heading.is-h1 {
+  font-size: 1.6em;
+}
+
+.note-md-list {
+  margin: 0;
+  padding-left: 1.5em;
+}
+
+.note-md-list li + li {
+  margin-top: 0.25em;
+}
+
+.note-md-list.is-bullet li::marker {
+  color: var(--accent);
+}
+
+.note-md-list.is-number li::marker {
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+.note-md-quote {
+  display: block;
+  padding-left: 1em;
+  border-left: 3px solid var(--vermilion);
+  font-style: italic;
+  color: var(--ink-soft);
+}

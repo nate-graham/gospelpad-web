@@ -1,7 +1,9 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { Fragment } from 'react';
 import { findScriptureReferences, splitTextByScriptureReferences } from '@/lib/scripture-references';
+import { hasFormatting, parseLinePrefix, tokenizeInline } from '@/lib/note-format';
 
 type TextBlock = { kind: 'text'; lines: string[] };
 type VerseBlock = {
@@ -239,30 +241,142 @@ export function formatVerseReference(reference: string) {
   return reference.replace(/\s*:\s*/g, ' : ');
 }
 
-function TextLines({ lines, onReferenceClick }: { lines: string[]; onReferenceClick: (reference: string) => void }) {
+function References({ text, onReferenceClick }: { text: string; onReferenceClick: (reference: string) => void }) {
   return (
     <>
-      {lines.map((line, lineIndex) => (
-        <Fragment key={`${line}-${lineIndex}`}>
-          {splitTextByScriptureReferences(line).map((segment, segmentIndex) =>
-            segment.type === 'reference' ? (
-              <button
-                className="scripture-ref-button"
-                key={`${segment.value}-${segmentIndex}`}
-                onClick={() => onReferenceClick(segment.value)}
-                type="button"
-              >
-                {segment.value}
-              </button>
-            ) : (
-              <Fragment key={`${segment.value}-${segmentIndex}`}>{segment.value}</Fragment>
-            )
-          )}
-          {lineIndex < lines.length - 1 ? <br /> : null}
-        </Fragment>
-      ))}
+      {splitTextByScriptureReferences(text).map((segment, segmentIndex) =>
+        segment.type === 'reference' ? (
+          <button
+            className="scripture-ref-button"
+            key={`${segment.value}-${segmentIndex}`}
+            onClick={() => onReferenceClick(segment.value)}
+            type="button"
+          >
+            {segment.value}
+          </button>
+        ) : (
+          <Fragment key={`${segment.value}-${segmentIndex}`}>{segment.value}</Fragment>
+        )
+      )}
     </>
   );
+}
+
+/** A line's text with **bold**, _italic_ and tappable references. */
+function InlineText({ text, onReferenceClick }: { text: string; onReferenceClick: (reference: string) => void }) {
+  return (
+    <>
+      {tokenizeInline(text).map((segment, index) =>
+        segment.kind === 'bold' ? (
+          <strong key={index}>
+            <References onReferenceClick={onReferenceClick} text={segment.text} />
+          </strong>
+        ) : segment.kind === 'italic' ? (
+          <em key={index}>
+            <References onReferenceClick={onReferenceClick} text={segment.text} />
+          </em>
+        ) : (
+          <References key={index} onReferenceClick={onReferenceClick} text={segment.text} />
+        )
+      )}
+    </>
+  );
+}
+
+function TextLines({ lines, onReferenceClick }: { lines: string[]; onReferenceClick: (reference: string) => void }) {
+  // Notes without formatting keep exactly the inline rendering they had before.
+  if (!hasFormatting(lines.join('\n'))) {
+    return (
+      <>
+        {lines.map((line, lineIndex) => (
+          <Fragment key={`${line}-${lineIndex}`}>
+            <References onReferenceClick={onReferenceClick} text={line} />
+            {lineIndex < lines.length - 1 ? <br /> : null}
+          </Fragment>
+        ))}
+      </>
+    );
+  }
+
+  // Group lines into paragraphs, headings, lists and quotes.
+  const out: ReactNode[] = [];
+  let plain: string[] = [];
+  const flushPlain = () => {
+    if (!plain.length) return;
+    const chunk = plain;
+    plain = [];
+    out.push(
+      <span className="note-md-text" key={`p-${out.length}`}>
+        {chunk.map((line, index) => (
+          <Fragment key={index}>
+            <InlineText onReferenceClick={onReferenceClick} text={line} />
+            {index < chunk.length - 1 ? <br /> : null}
+          </Fragment>
+        ))}
+      </span>
+    );
+  };
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const prefix = parseLinePrefix(lines[index]);
+    if (!prefix) {
+      plain.push(lines[index]);
+      continue;
+    }
+    // Drop the blank line the writer left right before a heading or list; spacing comes from CSS.
+    if (plain.length && !plain[plain.length - 1].trim()) plain.pop();
+    flushPlain();
+
+    if (prefix.kind === 'heading') {
+      out.push(
+        <span className={`note-md-heading is-h${prefix.marker.trim().length}`} key={`h-${index}`} role="heading" aria-level={prefix.marker.trim().length + 1}>
+          <InlineText onReferenceClick={onReferenceClick} text={prefix.rest} />
+        </span>
+      );
+      if (!lines[index + 1]?.trim() && lines[index + 1] !== undefined) index += 1;
+      continue;
+    }
+
+    const items: string[] = [];
+    let start = prefix.number ?? 1;
+    let cursor = index;
+    while (cursor < lines.length) {
+      const item = parseLinePrefix(lines[cursor]);
+      if (!item || item.kind !== prefix.kind) break;
+      if (cursor === index && item.number) start = item.number;
+      items.push(item.rest);
+      cursor += 1;
+    }
+    index = cursor - 1;
+    if (!lines[index + 1]?.trim() && lines[index + 1] !== undefined) index += 1;
+
+    if (prefix.kind === 'quote') {
+      out.push(
+        <span className="note-md-quote" key={`q-${index}`}>
+          {items.map((item, itemIndex) => (
+            <Fragment key={itemIndex}>
+              <InlineText onReferenceClick={onReferenceClick} text={item} />
+              {itemIndex < items.length - 1 ? <br /> : null}
+            </Fragment>
+          ))}
+        </span>
+      );
+      continue;
+    }
+
+    const List = prefix.kind === 'number' ? 'ol' : 'ul';
+    out.push(
+      <List className={`note-md-list is-${prefix.kind}`} key={`l-${index}`} start={prefix.kind === 'number' ? start : undefined}>
+        {items.map((item, itemIndex) => (
+          <li key={itemIndex}>
+            <InlineText onReferenceClick={onReferenceClick} text={item} />
+          </li>
+        ))}
+      </List>
+    );
+  }
+  flushPlain();
+  return <span className="note-md">{out}</span>;
 }
 
 export function ScriptureReferenceText({
