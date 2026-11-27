@@ -13,6 +13,7 @@ import {
   supportsSpeakerField,
 } from '@/components/notes/note-utils';
 import { ScriptureReferencePreview } from '@/components/notes/scripture-reference-preview';
+import { ScriptureSearchPanel } from '@/components/notes/scripture-search-panel';
 import { insertTextIntoEditable, readPlainTextFromEditor, ScriptureEditableField } from '@/components/notes/scripture-editable-field';
 import { NoteClipsList } from '@/components/notes/note-clips-list';
 import { findScriptureReferences } from '@/lib/scripture-references';
@@ -45,6 +46,19 @@ export function NoteForm({
   const router = useRouter();
   const searchParams = useSearchParams();
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  // Where the caret was in the body, so a verse found in the search panel goes in at that spot.
+  const lastBodyRangeRef = useRef<Range | null>(null);
+
+  useEffect(() => {
+    const remember = () => {
+      const selection = window.getSelection();
+      const editor = bodyRef.current;
+      if (!selection || selection.rangeCount === 0 || !editor || !editor.contains(selection.anchorNode)) return;
+      lastBodyRangeRef.current = selection.getRangeAt(0).cloneRange();
+    };
+    document.addEventListener('selectionchange', remember);
+    return () => document.removeEventListener('selectionchange', remember);
+  }, []);
   const lastDetectedReferenceRef = useRef<string | null>(null);
   const initialState = useMemo<DraftState>(
     () => ({
@@ -202,7 +216,15 @@ export function NoteForm({
       return;
     }
 
-    insertTextIntoEditable(editor, form.body.trim() ? `\n${payload}` : payload);
+    const saved = lastBodyRangeRef.current;
+    if (saved && editor.contains(saved.startContainer) && !editor.contains(window.getSelection()?.anchorNode ?? null)) {
+      editor.focus();
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(saved);
+    }
+
+    insertTextIntoEditable(editor, form.body.trim() ? `\n${payload}\n` : payload);
 
     setForm((current) => ({
       ...current,
@@ -269,7 +291,8 @@ export function NoteForm({
     }
   };
 
-  const hasEditorRail = Boolean(activeReference ?? orderedDetectedReferences[0]) || Boolean(note?.clips?.length);
+  // The rail always holds Scripture search; verse previews and audio join it when there are any.
+  const hasEditorRail = true;
 
   return (
     <div className="page-section">
@@ -554,6 +577,9 @@ export function NoteForm({
 
             {hasEditorRail ? (
             <aside className="note-editor-rail" style={{ gap: '1.5rem', alignContent: 'start' }}>
+              <div className="note-editor-search">
+                <ScriptureSearchPanel compact onInsert={insertScripture} />
+              </div>
               <ScriptureReferencePreview
                 onInsert={insertScripture}
                 onClose={() => setActiveReference(null)}
